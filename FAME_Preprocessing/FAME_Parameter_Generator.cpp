@@ -124,9 +124,9 @@ int copy_Popt2Par(
 void grid_nums_adjust(int* grid_nums, double* edge_len, double* mesh_len, int Nwant, int Nstep, int mem_size, int flag_Max)
 {   
     mesh_len[0] = edge_len[0] / grid_nums[0];
-  //  grid_nums[1] = (int) round( edge_len[1] / mesh_len[0] );
+    grid_nums[1] = (int) round( edge_len[1] / mesh_len[0] );
     mesh_len[1] = edge_len[1] / grid_nums[1];
- //   grid_nums[2] = (int) round( edge_len[2] / mesh_len[0] );
+    grid_nums[2] = (int) round( edge_len[2] / mesh_len[0] );
     mesh_len[2] = edge_len[2] / grid_nums[2];
 
     if(flag_Max)
