@@ -304,11 +304,8 @@ static __global__ void Dan_Multi_transpose_1_1616(cuDoubleComplex *odata, cuDoub
     int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
     int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
     int zIndex = blockIdx.z * blockDim.z + threadIdx.z;
-//  if( xIndex < n1 && yIndex < n2 && zIndex < n3 )
     if( xIndex < n3 && yIndex < n2 && zIndex < n1 )
     {
-//      uint index_in = zIndex * n1 * n2 + yIndex * n2 + xIndex;
-//      uint index_in = zIndex * n1 * n2 + yIndex * n1 + xIndex;
         int index_in = zIndex * n3 * n2 + yIndex * n3 + xIndex;
         block[threadIdx.y][threadIdx.x].x = mtx[index_in].x * idata[index_in].x - mtx[index_in].y * idata[index_in].y;
         block[threadIdx.y][threadIdx.x].y = mtx[index_in].x * idata[index_in].y + mtx[index_in].y * idata[index_in].x;
@@ -321,14 +318,8 @@ static __global__ void Dan_Multi_transpose_1_1616(cuDoubleComplex *odata, cuDoub
     // write the transposed matrix tile to global memory
     xIndex = blockIdx.y * blockDim.y + threadIdx.x;
     yIndex = blockIdx.x * blockDim.x + threadIdx.y;
-//  xIndex = blockIdx.x * blockDim.x + threadIdx.x;
-//  yIndex = blockIdx.y * blockDim.y + threadIdx.y;
-//  if( xIndex < n1 && yIndex <  n2 && zIndex < n3)
-//  if( xIndex < n3 && yIndex <  n2 && zIndex < n1)
     if( xIndex < n2 && yIndex <  n3 && zIndex < n1)
     {
-//      uint index_out = zIndex * n1 * n2 + yIndex * n1 + xIndex;
-//      uint index_out = zIndex * n3 * n2 + yIndex * n3 + xIndex;
         int index_out = zIndex * n3 * n2 + yIndex * n2 + xIndex;
         odata[index_out] = block[threadIdx.x][threadIdx.y];
     }
@@ -337,15 +328,12 @@ static __global__ void ConjMulti_Conj_transpose_1_1616(cuDoubleComplex *odata, c
 {
     __shared__ cuDoubleComplex block[NN][NN+1];
     // read the matrix tile into shared memory
-//  uint xIndex = blockIdx.x * blockDim.x + threadIdx.x;
-//  uint yIndex = blockIdx.y * blockDim.y + threadIdx.y;
     int xIndex = blockIdx.y * blockDim.y + threadIdx.x;
     int yIndex = blockIdx.x * blockDim.x + threadIdx.y;
     int zIndex = blockIdx.z * blockDim.z + threadIdx.z;
-//  if( xIndex < n1 && yIndex < n2 && zIndex < n3 )
+
     if( xIndex < n2 && yIndex < n3 && zIndex < n1 )
     {
-//      uint index_in = zIndex * n1 * n2 + yIndex * n2 + xIndex;
         int index_in = zIndex * n2 * n3 + yIndex * n2 + xIndex;
         block[threadIdx.y][threadIdx.x] = idata[index_in];
 
@@ -354,14 +342,11 @@ static __global__ void ConjMulti_Conj_transpose_1_1616(cuDoubleComplex *odata, c
 
 
     // write the transposed matrix tile to global memory
-//  xIndex = blockIdx.y * blockDim.y + threadIdx.x;
-//  yIndex = blockIdx.x * blockDim.x + threadIdx.y;
     xIndex = blockIdx.x * blockDim.x + threadIdx.x;
     yIndex = blockIdx.y * blockDim.y + threadIdx.y;
-//  if( xIndex < n1 && yIndex <  n2 && zIndex < n3)
+
     if( xIndex < n3 && yIndex <  n2 && zIndex < n1)
     {
-//      uint index_out = zIndex * n1 * n2 + yIndex * n1 + xIndex;
         int index_out = zIndex * n2 * n3 + yIndex * n3 + xIndex;
         odata[index_out].x = mtx[index_out].x * block[threadIdx.x][threadIdx.y].x + mtx[index_out].y * block[threadIdx.x][threadIdx.y].y;
         odata[index_out].y = mtx[index_out].x * block[threadIdx.x][threadIdx.y].y - mtx[index_out].y * block[threadIdx.x][threadIdx.y].x;
