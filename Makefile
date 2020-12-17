@@ -24,7 +24,7 @@ NVCCFLA = -O3 -m64 $(NVCCFLAGS) -std=c++03
 #############################################
 ### CUDA                                  ###
 #############################################
-CUDADIR ?= /usr/local/cuda-10.1
+CUDADIR ?= /opt/cuda-10.1
 CUDAINC  = -I$(CUDADIR)/include -I$(CUDADIR)/samples/common/inc
 CUDALIB  = -L$(CUDADIR)/lib64
 CUDAFLA  = -lcudart -lcublas -lcufft -lcusolver -lcusparse -lcurand -lpthread -ldl -lgomp
@@ -32,7 +32,7 @@ CUDAALL  = $(CUDAINC) $(CUDALIB) $(CUDAFLA)
 #############################################
 ### LAPACK                                ###
 #############################################
-LAPACKDIR ?= /home/zgxt/softwares/lapack-3.9.0
+LAPACKDIR ?= /opt/lapack-3.9.0
 LAPACKINC  = -I$(LAPACKDIR)/LAPACKE/include
 LAPACKLIB  = -L$(LAPACKDIR)
 LAPACKFLA  = -llapacke -llapack -lgfortran -lrefblas
