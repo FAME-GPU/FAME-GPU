@@ -1,0 +1,67 @@
+======================== Mesh information ========================
+# Grid number
+120 120 120
+
+================= Reciprocal lattice information =================
+# Part number
+ 10
+
+====================== Material information ======================
+# Material data name
+ No186_Hexagonal_ZnS
+# Material type
+ isotropic
+# Permittivity (inner material)
+ 6
+ 13.0 13.0 13.0 13.0 13.0 13.0
+# Permittivity (outer material)
+ 1.0
+# Permeability (inner material)
+ 6
+ 1.0 1.0 1.0 1.0 1.0 1.0  
+# Permeability (outer material)
+ 1.0
+# Reciprocity (inner material) (must given when biisotropic)
+ 6
+ 0.0 0.0 0.0 0.0 0.0 0.0 
+# Reciprocity (outer material) (must given when biisotropic)
+ 0.0
+# Chirality (inner material) (must given when biisotropic)
+ 6
+ 0.5 0.5 0.5 0.5 0.5 0.5
+# Chirality (outer material) (must given when biisotropic)
+ 0
+
+======================= Solver information =======================
+# Desired eigenpair number
+ 10
+# Dimension of Krylov subspace for Lanczos
+ 30
+# Tolerance of Lanczos
+ 1e-12
+# Maximum restart number of Lanczos
+ 300
+# Tolerance of linear solver
+ 1e-12
+# Maximum iteration number of linear solver
+ 1000
+
+ ========================== Flag setting ==========================
+# Device
+ 0
+# Printf User Option
+ 0
+# Printf Parameter
+ 0
+# Create Parameter
+ 0
+# Create B_inout
+ 0
+# Create Wave Vector
+ 0
+# Save Eigen Vector
+ 0
+# Grid nums Max
+ 0 16
+# Sphere/Cylinder radius adjustment
+ 1 0.6
