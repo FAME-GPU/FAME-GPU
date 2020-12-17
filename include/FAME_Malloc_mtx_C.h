@@ -1,0 +1,1 @@
+int FAME_Malloc_mtx_C(MTX_C* mtx_C, int N);

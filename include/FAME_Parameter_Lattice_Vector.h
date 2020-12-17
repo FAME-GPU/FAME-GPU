@@ -1,0 +1,1 @@
+int FAME_Parameter_Lattice_Vector(LATTICE *lattice);

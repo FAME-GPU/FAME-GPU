@@ -1,0 +1,1 @@
+int FAME_Matrix_Curl(MTX_C* mtx_C, double* wave_vec,int* grid_num, double* edge_len, double* mesh_len, LATTICE lattice);

@@ -1,0 +1,1 @@
+int FAME_Set_User_Define(MATERIAL* Material, LATTICE* Lattice);

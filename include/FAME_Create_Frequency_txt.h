@@ -1,0 +1,1 @@
+int FAME_Create_Frequency_txt(double* Freq_array, int Nwant, int idx);
