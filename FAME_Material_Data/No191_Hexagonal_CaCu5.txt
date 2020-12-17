@@ -1,0 +1,29 @@
+# Data name
+ No191_Hexagonal_CaCu5
+# Material number
+ 2
+# Lattice type
+ hexagonal
+# Lattice constant
+ 5.405000 0.0  4.183000 0.0 0.0 0.0 
+# Sphere number
+ 1
+ 5
+# Sphere centers
+ 0.000000  0.000000  0.000000 
+
+ 0.333333  0.666667  0.000000  0.666667  0.333333  0.000000 
+ 0.500000  0.000000  0.500000  0.000000  0.500000  0.500000 
+ 0.500000  0.500000  0.500000 
+
+# Sphere radius
+ 0.100000 
+
+ 0.100000  0.100000  0.100000  0.100000  0.100000 
+
+# Cylinder number
+ 0
+ 0
+# Cylinder top centers
+# Cylinder bot centers
+# Cylinder radius

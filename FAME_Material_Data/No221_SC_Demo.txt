@@ -1,0 +1,29 @@
+# Data name
+ No221_SC_Demo
+# Material number
+ 1
+# Lattice type
+ simple_cubic
+# Lattice constant
+ 1.000000 0.0 0.0 0.0 0.0 0.0 
+# Sphere number
+ 1
+# Sphere centers
+ 0.000000  0.000000  0.000000 
+
+# Sphere radius
+ 0.100000 
+
+# Cylinder number
+ 3
+# Cylinder top centers
+ 1.000000  0.000000  0.000000  0.000000  1.000000  0.000000 
+ 0.000000  0.000000  1.000000 
+
+# Cylinder bot centers
+ 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000 
+ 0.000000  0.000000  0.000000 
+
+# Cylinder radius
+ 0.100000  0.100000  0.100000 
+

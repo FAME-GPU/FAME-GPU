@@ -1,0 +1,23 @@
+# Data name
+ No191_Hexagonal_test_bianiso
+# Material number
+ 1
+# Lattice type
+ hexagonal
+# Lattice constant
+ 650000000.000000 0.0  448500000.000000 0.0 0.0 0.0 
+# Sphere number
+# Sphere centers
+
+# Sphere radius
+# Cylinder number
+ 2
+# Cylinder top centers
+ 0.500000  0.500000  0.264771  0.500000  0.500000  0.264771 
+
+# Cylinder bot centers
+ 0.500000  0.500000  0.617614  0.500000  0.500000  0.735229 
+
+# Cylinder radius
+ 0.100000  0.075000 
+

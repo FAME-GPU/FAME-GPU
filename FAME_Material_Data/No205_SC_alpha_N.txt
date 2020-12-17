@@ -1,0 +1,25 @@
+# Data name
+ No205_SC_alpha_N
+# Material number
+ 1
+# Lattice type
+ simple_cubic
+# Lattice constant
+ 5.650000 0.0 0.0 0.0 0.0 0.0 
+# Sphere number
+ 8
+# Sphere centers
+ 0.055690  0.055690  0.055690  0.444310  0.944310  0.555690 
+ 0.944310  0.555690  0.444310  0.555690  0.444310  0.944310 
+ 0.944310  0.944310  0.944310  0.555690  0.055690  0.444310 
+ 0.055690  0.444310  0.555690  0.444310  0.555690  0.055690 
+
+# Sphere radius
+ 0.100000  0.100000  0.100000  0.100000  0.100000  0.100000 
+ 0.100000  0.100000 
+
+# Cylinder number
+ 0
+# Cylinder top centers
+# Cylinder bot centers
+# Cylinder radius

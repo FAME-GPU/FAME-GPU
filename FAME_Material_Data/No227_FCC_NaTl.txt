@@ -1,0 +1,27 @@
+# Data name
+ No227_FCC_NaTl
+# Material number
+ 2
+# Lattice type
+ face_centered_cubic
+# Lattice constant
+ 7.483000 0.0 0.0 0.0 0.0 0.0 
+# Sphere number
+ 2
+ 2
+# Sphere centers
+ 0.125000  0.125000  0.125000  0.875000  0.875000  0.875000 
+
+ 0.375000  0.375000  0.375000  0.625000  0.625000  0.625000 
+
+# Sphere radius
+ 0.100000  0.100000 
+
+ 0.100000  0.100000 
+
+# Cylinder number
+ 0
+ 0
+# Cylinder top centers
+# Cylinder bot centers
+# Cylinder radius

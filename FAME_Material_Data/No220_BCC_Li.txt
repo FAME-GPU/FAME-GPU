@@ -1,0 +1,25 @@
+# Data name
+ No220_BCC_Li
+# Material number
+ 1
+# Lattice type
+ body_centered_cubic
+# Lattice constant
+ 5.271600 0.0 0.0 0.0 0.0 0.0 
+# Sphere number
+ 8
+# Sphere centers
+ 0.098000  0.098000  0.098000  0.500000  0.000000  0.402000 
+ 0.000000  0.402000  0.500000  0.402000  0.500000  0.000000 
+ 0.598000  0.598000  0.598000  0.500000  0.000000  0.902000 
+ 0.902000  0.500000  0.000000  0.000000  0.902000  0.500000 
+
+# Sphere radius
+ 0.100000  0.100000  0.100000  0.100000  0.100000  0.100000 
+ 0.100000  0.100000 
+
+# Cylinder number
+ 0
+# Cylinder top centers
+# Cylinder bot centers
+# Cylinder radius
