@@ -91,78 +91,7 @@ int FAME_Parameter_Brillouin_Zone_Path(RECIP_LATTICE* Recip_lattice, int part_nu
 
     return 0;
 }
-/*
-int FAME_Parameter_Brillouin_Zone_Path(RECIP_LATTICE* Recip_lattice, int part_num, LATTICE Lattice, char* path_string )
-{
-    int n, count_part, flag, count;
-    double part_x, part_y, part_z;
-    double subpath_start_string[3];
-    double subpath_end_string[3];
-    double subpath[3][part_num];
 
-    confirm_wave_vec_array_size(path_string, &Recip_lattice->Wave_vec_num, part_num);
-    Recip_lattice->WaveVector = (double*) calloc(3 * Recip_lattice->Wave_vec_num, sizeof(double));
-
-    FAME_Parameter_Brillouin_Zone_Point( &(Recip_lattice->vertex), Lattice, Recip_lattice->reciprocal_lattice_vector_b);
-
-    n = strlen(path_string);
-    count_part = 0;
-    flag = 0;
-    count = 0;
-
-    for (int i=0; i<n-1; i++)
-    {
-        if ( (path_string[i] != '|') && (path_string[i+1] !='|') )
-        {
-            get_vertex_pt( Recip_lattice, subpath_start_string, subpath_end_string, i);
-            part_x = (subpath_end_string[0]-subpath_start_string[0])/(double)(part_num-1);
-            part_y = (subpath_end_string[1]-subpath_start_string[1])/(double)(part_num-1);
-            part_z = (subpath_end_string[2]-subpath_start_string[2])/(double)(part_num-1);
-            for (int j=0; j<part_num; j++)
-            {
-                subpath[0][j] = subpath_start_string[0]+part_x*j;
-                subpath[1][j] = subpath_start_string[1]+part_y*j;
-                subpath[2][j] = subpath_start_string[2]+part_z*j;
-            }
-            if ( i==(n-2) || (path_string[i+2] == '|') )
-            {
-                for (int j=0; j<part_num; j++)
-                {
-                    Recip_lattice->WaveVector[count * 3 + 0] = subpath[0][j];
-                    Recip_lattice->WaveVector[count * 3 + 1] = subpath[1][j];
-                    Recip_lattice->WaveVector[count * 3 + 2] = subpath[2][j];
-                    count = count+1;
-                }
-            }
-            else
-            {
-                for (int j=0; j<part_num-1; j++)
-                {
-                    Recip_lattice->WaveVector[count * 3 + 0] = subpath[0][j];
-                    Recip_lattice->WaveVector[count * 3 + 1] = subpath[1][j];
-                    Recip_lattice->WaveVector[count * 3 + 2] = subpath[2][j];
-                    count = count+1;
-                }
-            }
-        }
-        if ( path_string[i] == '|')
-        {
-            count_part = count_part+1;
-            flag  = 1;
-        }
-        else if (path_string[i+1] == '|')
-        {
-            continue;
-        }
-        else if (flag == 1)
-        {
-            flag = 0;
-        }
-    }
-
-    return 0;
-}
-*/
 void default_path(LATTICE lattice, RECIP_LATTICE* recip_lattice)
 {
     if(strcmp(lattice.lattice_type, "simple_cubic") == 0)
