@@ -1,7 +1,7 @@
-typedef double _Complex cmpx;
-void mtx_dot_prod(cmpx* mtx_A, cmpx* mtx_B, int n, int m);
-void mtx_dot_prod(double* mtx_A, double* mtx_B, int n, int m);
-void mtx_dot_prod(double* mtx_A, cmpx* mtx_B, int n, int m);
-void mtx_dot_prod(cmpx* ans, double* mtx_A, cmpx* mtx_B, int n, int m);
-void mtx_dot_prod(double* mtx_A, cmpx* mtx_B,cmpx* result, int n, int m);
-void mtx_dot_prod(cmpx* mtx_A, cmpx* mtx_B, cmpx* result, int n, int m);
+#include "FAME_Internal_Common.h"
+void mtx_dot_prod(cmpxCPU* mtx_A, cmpxCPU* mtx_B, int n, int m);
+void mtx_dot_prod(realCPU* mtx_A, realCPU* mtx_B, int n, int m);
+void mtx_dot_prod(realCPU* mtx_A, cmpxCPU* mtx_B, int n, int m);
+void mtx_dot_prod(cmpxCPU* ans, realCPU* mtx_A, cmpxCPU* mtx_B, int n, int m);
+void mtx_dot_prod(realCPU* mtx_A, cmpxCPU* mtx_B,cmpxCPU* result, int n, int m);
+void mtx_dot_prod(cmpxCPU* mtx_A, cmpxCPU* mtx_B, cmpxCPU* result, int n, int m);

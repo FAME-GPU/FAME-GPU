@@ -5,7 +5,7 @@
 int FAME_Matrix_Vector_Production_invB_Biisotropic( CULIB_HANDLES cuHandles,
                                                     MTX_B mtx_B,
                                                     int N,
-                                                    cuDoubleComplex* vec_x,
-                                                    cuDoubleComplex* vec_y);
+                                                    cmpxGPU* vec_x,
+                                                    cmpxGPU* vec_y);
 
 #endif

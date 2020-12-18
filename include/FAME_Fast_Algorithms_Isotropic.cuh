@@ -2,8 +2,8 @@
 #define _FAME_FAST_ALGORITHMS_ISOTROPIC_H_
 
 int FAME_Fast_Algorithms_Isotropic(
-	double*        Freq_array,
-	cmpx*          Ele_field_mtx,
+	realCPU*        Freq_array,
+	cmpxCPU*          Ele_field_mtx,
 	CULIB_HANDLES  cuHandles,
 	LANCZOS_BUFFER lBuffer,
 	FFT_BUFFER     fft_buffer,

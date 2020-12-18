@@ -1,1 +1,2 @@
-int FAME_Matrix_Curl(MTX_C* mtx_C, double* wave_vec,int* grid_num, double* edge_len, double* mesh_len, LATTICE lattice);
+#include "FAME_Internal_Common.h"
+int FAME_Matrix_Curl(MTX_C* mtx_C, realCPU* wave_vec,int* grid_num, realCPU* edge_len, realCPU* mesh_len, LATTICE lattice);

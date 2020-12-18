@@ -2,8 +2,8 @@
 #define _FAME_FAST_ALGORITHMS_BIISOTROPIC_H_
 
 int FAME_Fast_Algorithms_Biisotropic
-	(double*        Freq_array,
-	 cmpx*          Ele_field_mtx,
+	(realCPU*        Freq_array,
+	 cmpxCPU*          Ele_field_mtx,
 	 CULIB_HANDLES cuHandles,
 	 LAMBDAS_CUDA  Lambdas_cuda, 
 	 LANCZOS_BUFFER lBuffer,

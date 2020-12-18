@@ -1,3 +1,3 @@
-typedef double _Complex cmpx;
-double vec_inner_prod(double* vec1, double* vec2, int len);
-cmpx vec_inner_prod(cmpx* vec_1, cmpx* vec_2, int len);
+#include "FAME_Internal_Common.h"
+realCPU vec_inner_prod(realCPU* vec1, realCPU* vec2, int len);
+cmpxCPU vec_inner_prod(cmpxCPU* vec_1, cmpxCPU* vec_2, int len);

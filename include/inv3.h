@@ -1,2 +1,3 @@
-void inv3(double* A, double* result);
-void inv3_Trans(double* A, double* result);
+#include "FAME_Internal_Common.h"
+void inv3(realCPU* A, realCPU* result);
+void inv3_Trans(realCPU* A, realCPU* result);

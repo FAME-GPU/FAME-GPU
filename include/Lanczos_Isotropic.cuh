@@ -2,8 +2,8 @@
 #define _LANCZOS_ISOTROPIC_H_
 
 int Lanczos_Isotropic( 
-    double*          Freq_array, 
-    cuDoubleComplex* ev,
+    realGPU*          Freq_array, 
+    cmpxGPU* ev,
     CULIB_HANDLES    cuHandles,
     LANCZOS_BUFFER   lBuffer,
     FFT_BUFFER       fft_buffer,

@@ -7,92 +7,99 @@
 #include <string.h>
 #include <assert.h>
 #include <sys/time.h>
-
-#include "vec_plus.h"
-#include "vec_norm.h"
-#include "vec_inner_prod.h"
-#include "mtx_print.h"
-#include "mtx_prod.h"
-#include "mtx_trans.h"
-#include "mtx_trans_conj.h"
-#include "mtx_cat.h"
-#include "mtx_dot_prod.h"
-#include "kron_vec.h"
-#include "inv3.h"
+#include <iostream>
+#include <complex.h>
+#include <FAME_Use_Single.h>
+using namespace std;
 
 #define PAUSE printf("Press Enter key to continue..."); fgetc(stdin);
 #define pi 3.141592653589793
 #define idouble_pi I*2*pi
 #define BILLION 1E9
 
-typedef double _Complex cmpx;
+
+#if defined(USE_SINGLE)
+
+typedef float realCPU;
+typedef float _Complex cmpxCPU;
+#define lapack_complex_float cmpxCPU
+#define PC_lapacke_pteqr LAPACKE_cpteqr
+#define PC_lapacke_stegr LAPACKE_cstegr
+#else
+
+typedef double realCPU;
+typedef double _Complex cmpxCPU;
+#define lapack_complex_double cmpxCPU
+#define PC_lapacke_pteqr LAPACKE_zpteqr
+#define PC_lapacke_stegr LAPACKE_zstegr
+#endif // end of USE_SINGLE
 
 typedef struct{
-	double A[3];
-	double B[3];
-	double C[3];
-	double D[3];
-	double E[3];
-	double F[3];
-	double G[3];
-	double H[3];
-	double I[3];
-	double J[3];
-	double K[3];
-	double L[3];
-	double M[3];
-	double N[3];
-	double O[3];
-	double P[3];
-	double Q[3];
-	double R[3];
-	double S[3];
-	double T[3];
-	double U[3];
-	double V[3];
-	double W[3];
-	double X[3];
-	double Y[3];
-	double Z[3];
-	double s[3];
-	double t[3];
-	double k[3];
+	realCPU A[3];
+	realCPU B[3];
+	realCPU C[3];
+	realCPU D[3];
+	realCPU E[3];
+	realCPU F[3];
+	realCPU G[3];
+	realCPU H[3];
+	realCPU Ii[3];
+	realCPU J[3];
+	realCPU K[3];
+	realCPU L[3];
+	realCPU M[3];
+	realCPU N[3];
+	realCPU O[3];
+	realCPU P[3];
+	realCPU Q[3];
+	realCPU R[3];
+	realCPU S[3];
+	realCPU T[3];
+	realCPU U[3];
+	realCPU V[3];
+	realCPU W[3];
+	realCPU X[3];
+	realCPU Y[3];
+	realCPU Z[3];
+	realCPU s[3];
+	realCPU t[3];
+	realCPU k[3];
 } VERTEX;
 
 typedef struct{
 	int    grid_nums[3];
-	double edge_len[3];
-	double mesh_len[3];
+	realCPU edge_len[3];
+	realCPU mesh_len[3];
 } MESH;
 
 typedef struct{
-	double  a;
-	double  b;
-	double  c;
-	double  alpha;
-	double  beta;
-	double  gamma;
+	realCPU  a;
+	realCPU  b;
+	realCPU  c;
+	realCPU  alpha;
+	realCPU  beta;
+	realCPU  gamma;
 	int     Permutation[3];
-	double  theta_1;
-	double  theta_2;
-	double  theta_3;
+	realCPU  theta_1;
+	realCPU  theta_2;
+	realCPU  theta_3;
 	int     m1;
 	int     m2;
 	int     m3;
 	int     m4;
-	double* t1;
-	double* t2;
-	double* t3;
-	double* t4;
+	realCPU* t1;
+	realCPU* t2;
+	realCPU* t3;
+	realCPU* t4;
 	int     rho_1;
 	int     rho_2;
 	int     rho_3;
 	int     rho_4;
 	int     rho_5;
 	char    flag[6];
-	double  length_a1;
-	double  length_a2;
-	double  length_a3;
+	realCPU  length_a1;
+	realCPU  length_a2;
+	realCPU  length_a3;
 } LATTICE_CONSTANT;
 
 typedef struct{
@@ -104,88 +111,88 @@ typedef struct{
 	int*    GInOut_index_length;
     int     material_num;
     int*    sphere_num;
-    double* sphere_centers;
-	double* sphere_radius;
+    realCPU* sphere_centers;
+	realCPU* sphere_radius;
 	int*    cylinder_num;
-	double* cylinder_top_centers;
-	double* cylinder_bot_centers;
-	double* cylinder_radius;
+	realCPU* cylinder_top_centers;
+	realCPU* cylinder_bot_centers;
+	realCPU* cylinder_radius;
 	int     num_ele_permitt_in;
 	int     num_reciprocity_in;
 	int		num_mag_permeab_in;
 	int		num_chirality_in;
-	double* ele_permitt_in;
-	double  ele_permitt_out;
-	double* mag_permeab_in;
-	double  mag_permeab_out;
-	double* reciprocity_in;
-	double  reciprocity_out;
-	double* chirality_in;
-	double  chirality_out;
+	realCPU* ele_permitt_in;
+	realCPU  ele_permitt_out;
+	realCPU* mag_permeab_in;
+	realCPU  mag_permeab_out;
+	realCPU* reciprocity_in;
+	realCPU  reciprocity_out;
+	realCPU* chirality_in;
+	realCPU  chirality_out;
 	int     flag_radius_adjustment;
-	double  flag_radius;
+	realCPU  flag_radius;
 } MATERIAL;
 
 typedef struct{
 	int     part_num;
 	int     Wave_vec_num;
-	double* WaveVector;
+	realCPU* WaveVector;
 	char    path_string[50];
-	double  reciprocal_lattice_vector_b[9];
+	realCPU  reciprocal_lattice_vector_b[9];
 	VERTEX  vertex;
 } RECIP_LATTICE;
 
 typedef struct{
 	char   lattice_type[50];
 	int    Permutation[3];
-	double lattice_vec_a[9];
-	double lattice_vec_a_orig[9];
-	double Omega[9];
+	realCPU lattice_vec_a[9];
+	realCPU lattice_vec_a_orig[9];
+	realCPU Omega[9];
 	LATTICE_CONSTANT lattice_constant;
 } LATTICE;
 
 typedef struct{
-	double* Lambda_q_sqrt;
-	cmpx* Lambda_x;
-	cmpx* Lambda_y;
-	cmpx* Lambda_z;
-	cmpx* D_kx;
-	cmpx* D_ky;
-	cmpx* D_kz;
-	cmpx* D_k;
-	cmpx* D_ks;
-	cmpx* Pi_Qr;
-	cmpx* Pi_Pr;
-	cmpx* Pi_Qrs;
-	cmpx* Pi_Prs;
+	realCPU* Lambda_q_sqrt;
+	cmpxCPU* Lambda_x;
+	cmpxCPU* Lambda_y;
+	cmpxCPU* Lambda_z;
+	cmpxCPU* D_kx;
+	cmpxCPU* D_ky;
+	cmpxCPU* D_kz;
+	cmpxCPU* D_k;
+	cmpxCPU* D_ks;
+	cmpxCPU* Pi_Qr;
+	cmpxCPU* Pi_Pr;
+	cmpxCPU* Pi_Qrs;
+	cmpxCPU* Pi_Prs;
 	
 } LAMBDAS;
 
 typedef struct{
 	int*  C1_r;
 	int*  C1_c;
-	cmpx* C1_v;
+	cmpxCPU* C1_v;
 	int*  C2_r;
 	int*  C2_c;
-	cmpx* C2_v;
+	cmpxCPU* C2_v;
 	int*  C3_r;
 	int*  C3_c;
-	cmpx* C3_v;
+	cmpxCPU* C3_v;
 	int*   C_r;
 	int*   C_c;
-	cmpx*  C_v;
+	cmpxCPU*  C_v;
 } MTX_C;
 
 typedef struct{
 	int    maxit;
-	double tol;
+	realCPU tol;
 } LS;
 
 typedef struct{
 	int    nwant;
 	int    nstep;
 	int    maxit;
-	double tol;
+	realCPU tol;
 } ES;
 
 typedef struct{
@@ -199,7 +206,7 @@ typedef struct{
 	int grid_nums_max;
 	int mem_size;
 	int radius_adjustment;
-	double radius;
+	realCPU radius;
 } FLAG;
 
 typedef struct{
@@ -217,6 +224,7 @@ typedef struct{
 	LATTICE       lattice;
 	MATERIAL      material;
 	RECIP_LATTICE recip_lattice;
+	realCPU ce_error;
 	LS ls;
 	ES es;
 } PAR;
@@ -225,12 +233,12 @@ typedef struct{
 	int     idx;
 	int*    ls_iter;
 	int*    es_iter;
-	double* ls_time;
-	double* es_time;
-  //double* qr_time;
-  //double* qrs_time;
- // double* fft_time;
- // double* ifft_time;
- // double* eigen_time;
+	realCPU* ls_time;
+	realCPU* es_time;
+  //realCPU* qr_time;
+  //realCPU* qrs_time;
+ // realCPU* fft_time;
+ // realCPU* ifft_time;
+ // realCPU* eigen_time;
 } PROFILE;
 #endif

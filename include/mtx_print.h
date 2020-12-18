@@ -1,4 +1,4 @@
-typedef double _Complex cmpx;
-void mtx_print(double* M, int m, int n);
+#include "FAME_Internal_Common.h"
+void mtx_print(realCPU* M, int m, int n);
 void mtx_print(int* M, int m, int n);
-void mtx_print(cmpx* M, int m, int n);
+void mtx_print(cmpxCPU* M, int m, int n);

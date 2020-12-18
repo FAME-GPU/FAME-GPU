@@ -1,3 +1,3 @@
-typedef double _Complex cmpx;
-void mtx_trans(cmpx* mtx_A, cmpx* mtx_B, int n, int m);
-void mtx_trans(double* mtx_A, double* mtx_B, int n, int m);
+#include "FAME_Internal_Common.h"
+void mtx_trans(cmpxCPU* mtx_A, cmpxCPU* mtx_B, int n, int m);
+void mtx_trans(realCPU* mtx_A, realCPU* mtx_B, int n, int m);

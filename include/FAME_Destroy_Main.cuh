@@ -7,7 +7,7 @@ int FAME_Destroy_Main(
     LANCZOS_BUFFER lBuffer,
     MTX_B          mtx_B,
     MTX_C          mtx_C,
-    double*        Freq_array,
-    cmpx*          Ele_field_mtx);
+    realCPU*        Freq_array,
+    cmpxCPU*          Ele_field_mtx);
     
 #endif
