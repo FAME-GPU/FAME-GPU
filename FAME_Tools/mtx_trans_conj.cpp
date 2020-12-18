@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
-typedef double _Complex cmpx;
+#include "FAME_Internal_Common.h"
 // 2020-02-19
 
 // return the transpose of nxm matrix mtx_A into mtx_B
-void mtx_trans_conj(cmpx* mtx_A, cmpx* mtx_B, int n, int m)
+void mtx_trans_conj(cmpxCPU* mtx_A, cmpxCPU* mtx_B, int n, int m)
 {
 	for( int j = 0; j < n; j++)
 		for( int i = 0; i < m; i++)
@@ -14,8 +14,8 @@ void mtx_trans_conj(cmpx* mtx_A, cmpx* mtx_B, int n, int m)
 }
 
 // return the transpose of nxm sparse matrix mtx_A into mtx_B
-void mtx_trans_conj(int* mtx_A_r, int* mtx_A_c, cmpx* mtx_A_v, 
-	                int* mtx_B_r, int* mtx_B_c, cmpx* mtx_B_v, 
+void mtx_trans_conj(int* mtx_A_r, int* mtx_A_c, cmpxCPU* mtx_A_v, 
+	                int* mtx_B_r, int* mtx_B_c, cmpxCPU* mtx_B_v, 
 	                int  nnz)
 {
 	for(int i = 0; i < nnz; i++)

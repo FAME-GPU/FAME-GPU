@@ -5,10 +5,10 @@
 #include <assert.h>
 #include <cuComplex.h>
 #include <cuda_runtime.h>
-typedef double _Complex cmpx;
-// 2020-02-19
+#include "FAME_Internal_Common.h"
+#include "FAME_CUDA.h"
 
-void printDeviceArray(double *d_Array, int n, const char *filename)
+void printDeviceArray(realGPU *d_Array, int n, const char *filename)
 {
 	cudaError_t cudaErr;
 
@@ -17,8 +17,8 @@ void printDeviceArray(double *d_Array, int n, const char *filename)
 
     printf("Write array into %s.\n", filename);
 
-    double *h_Array = (double*) malloc( n * sizeof(double) );
-    cudaErr = cudaMemcpy(h_Array, d_Array, n*sizeof(double), cudaMemcpyDeviceToHost);
+    realGPU *h_Array = (realGPU*) malloc( n * sizeof(realGPU) );
+    cudaErr = cudaMemcpy(h_Array, d_Array, n*sizeof(realGPU), cudaMemcpyDeviceToHost);
 	assert( cudaErr == cudaSuccess );
 
 	for(int i = 0 ; i < n; i++)
@@ -28,7 +28,7 @@ void printDeviceArray(double *d_Array, int n, const char *filename)
     free(h_Array);
 }
 
-void printDeviceArray(cuDoubleComplex *d_Array, int n, const char *filename)
+void printDeviceArray(cmpxGPU *d_Array, int n, const char *filename)
 {
 	cudaError_t cudaErr;
     FILE *fp = fopen(filename, "w");
@@ -36,9 +36,9 @@ void printDeviceArray(cuDoubleComplex *d_Array, int n, const char *filename)
 
     printf("Write array into %s.\n", filename);
 
-    cmpx *h_Array = (cmpx*) malloc( n * sizeof(cmpx) );
+    cmpxCPU *h_Array = (cmpxCPU*) malloc( n * sizeof(cmpxCPU) );
     
-    cudaErr = cudaMemcpy(h_Array, d_Array, n*sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost);
+    cudaErr = cudaMemcpy(h_Array, d_Array, n*sizeof(cmpxGPU), cudaMemcpyDeviceToHost);
     //printf("cudaErr %s.\n" , cudaGetErrorString(cudaErr));
 	assert( cudaErr == cudaSuccess );
 
@@ -68,7 +68,7 @@ void printDeviceArray(int *d_Array, int n, const char *filename)
     free(h_Array);
 }
 
-void printDeviceArray(cmpx *d_Array, int n, const char *filename)
+void printDeviceArray(cmpxCPU *d_Array, int n, const char *filename)
 {
 	cudaError_t cudaErr;
     FILE *fp = fopen(filename, "w");

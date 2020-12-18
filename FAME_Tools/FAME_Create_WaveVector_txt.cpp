@@ -1,7 +1,7 @@
 #include "FAME_Internal_Common.h"
 // 2020-02-19
 
-int FAME_Create_WaveVector_txt(int WaveVecotrNum, double* WaveVector)
+int FAME_Create_WaveVector_txt(int WaveVecotrNum, realCPU* WaveVector)
 {
     int i;
     FILE* fp;

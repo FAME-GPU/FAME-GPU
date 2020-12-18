@@ -2,21 +2,21 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
-typedef double _Complex cmpx;
+#include "FAME_Internal_Common.h"
 // 2020-02-19
 
-double vec_norm(cmpx* vec_x, int len)
+realCPU vec_norm(cmpxCPU* vec_x, int len)
 {
-    cmpx ans = 0.0 + 0.0i;
+    cmpxCPU ans = 0.0 + 0.0i;
     for(int i = 0; i < len; i++)
         ans += vec_x[i] * conj(vec_x[i]);
-    return sqrt(creal(ans));
+    return sqrt(creal(ans))/sqrt(len);
 }
 
-double vec_norm(double* vec_x, int len)
+realCPU vec_norm(realCPU* vec_x, int len)
 {
-    double ans = 0.0;
+    realCPU ans = 0.0;
     for(int i = 0; i < len; i++)
         ans += vec_x[i] * vec_x[i];
-    return sqrt(ans);
+    return sqrt(ans)/sqrt(len);
 }

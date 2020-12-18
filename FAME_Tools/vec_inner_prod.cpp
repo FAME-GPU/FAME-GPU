@@ -2,20 +2,20 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
-typedef double _Complex cmpx;
+#include "FAME_Internal_Common.h"
 // 2020-02-19
 
-double vec_inner_prod(double* vec1, double* vec2, int len)
+realCPU vec_inner_prod(realCPU* vec1, realCPU* vec2, int len)
 {
-	double sum = 0;
+	realCPU sum = 0;
 	for( int i = 0; i < len; i++ )
 		sum += vec1[i]*vec2[i];
 	return sum;
 }
 
-cmpx vec_inner_prod(cmpx* vec_1, cmpx* vec_2, int len)
+cmpxCPU vec_inner_prod(cmpxCPU* vec_1, cmpxCPU* vec_2, int len)
 {
-    cmpx ans = 0.0 + 0.0i;
+    cmpxCPU ans = 0.0 + 0.0i;
     for(int i = 0; i < len; i++)
         ans += conj(vec_1[i]) * vec_2[i];
     return ans;

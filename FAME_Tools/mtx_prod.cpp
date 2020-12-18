@@ -4,10 +4,10 @@
 #include <complex.h>
 #include <string>
 using namespace std;
-typedef double _Complex cmpx;
+#include "FAME_Internal_Common.h"
 // 2020-02-19
 
-void mtx_prod(double* ans, double* M1, double* M2, int m, int n, int p)
+void mtx_prod(realCPU* ans, realCPU* M1, realCPU* M2, int m, int n, int p)
 {
     for(int i = 0; i < m; i++)
     {
@@ -20,7 +20,7 @@ void mtx_prod(double* ans, double* M1, double* M2, int m, int n, int p)
     }
 }
 
-void mtx_prod(cmpx* ans, cmpx* M1, double* M2, int m, int n, int p)
+void mtx_prod(cmpxCPU* ans, cmpxCPU* M1, realCPU* M2, int m, int n, int p)
 {
     for(int i = 0; i < m; i++)
     {
@@ -33,7 +33,7 @@ void mtx_prod(cmpx* ans, cmpx* M1, double* M2, int m, int n, int p)
     }
 }
 
-void mtx_prod(cmpx* ans, double* M1, cmpx* M2, int m, int n, int p)
+void mtx_prod(cmpxCPU* ans, realCPU* M1, cmpxCPU* M2, int m, int n, int p)
 {
     for(int i = 0; i < m; i++)
     {
@@ -46,7 +46,7 @@ void mtx_prod(cmpx* ans, double* M1, cmpx* M2, int m, int n, int p)
     }
 }
 
-void mtx_prod(cmpx* ans, cmpx* M1, cmpx* M2, int m, int n, int p)
+void mtx_prod(cmpxCPU* ans, cmpxCPU* M1, cmpxCPU* M2, int m, int n, int p)
 {
     for(int i = 0; i < m; i++)
     {
@@ -59,7 +59,7 @@ void mtx_prod(cmpx* ans, cmpx* M1, cmpx* M2, int m, int n, int p)
     }
 }
 
-void mtx_prod(cmpx* ans, int* M1_row, int* M1_col, cmpx* M1_val, cmpx* vec2, int nnz, int m)
+void mtx_prod(cmpxCPU* ans, int* M1_row, int* M1_col, cmpxCPU* M1_val, cmpxCPU* vec2, int nnz, int m)
 {
     // Do the Matrix-vector production with sparse format matrix M1
     for( int i = 0; i < m; i++ )
@@ -69,7 +69,7 @@ void mtx_prod(cmpx* ans, int* M1_row, int* M1_col, cmpx* M1_val, cmpx* vec2, int
         ans[M1_row[i]] += M1_val[i]*vec2[M1_col[i]];
 }
 
-void mtx_prod(cmpx* ans, int* M1_row, int* M1_col, cmpx* M1_val, cmpx* vec2, int nnz, int m, string flag_CompType)
+void mtx_prod(cmpxCPU* ans, int* M1_row, int* M1_col, cmpxCPU* M1_val, cmpxCPU* vec2, int nnz, int m, string flag_CompType)
 {
     // Do the Matrix-vector production with sparse format matrix M1
 	if (flag_CompType == "Conjugate Transpose")
