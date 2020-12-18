@@ -8,16 +8,23 @@
 #include "FAME_Create_Par_txt.h"
 #include "FAME_Create_B_txt.h"
 #include "FAME_Create_WaveVector_txt.h"
-// 2020-02-19
+
 
 int FAME_Preprocessing(PAR* Par)
 {
     POPT Popt;
     struct timespec start, end;
-    
+    int single;
+	
     printf("= = = = FAME_Set_User_Option  = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
-    FAME_Set_User_Option(&Popt);
 
+    #if defined(USE_SINGLE)
+        FAME_Set_User_Option_Single(&Popt);
+    #else
+        FAME_Set_User_Option(&Popt);
+    #endif 
+        
+    
     printf("= = = = FAME_Parameter_Generator  = = = = = = = = = = = = = = = = = = = = = = = =\n");
     FAME_Parameter_Generator(Par, Popt.flag, Popt.mesh, Popt.material, Popt.recip_lattice, Popt.ls, Popt.es);
 
@@ -28,7 +35,7 @@ int FAME_Preprocessing(PAR* Par)
     clock_gettime(CLOCK_REALTIME, &start);
     FAME_Material_Locate_Index(&Par->material, *Par);
     clock_gettime(CLOCK_REALTIME, &end);
-    double accum = ( end.tv_sec - start.tv_sec ) + ( end.tv_nsec - start.tv_nsec ) / BILLION;
+    realCPU accum = ( end.tv_sec - start.tv_sec ) + ( end.tv_nsec - start.tv_nsec ) / BILLION;
     printf("%*s%8.2f sec.\n", 68, "", accum);
 
 

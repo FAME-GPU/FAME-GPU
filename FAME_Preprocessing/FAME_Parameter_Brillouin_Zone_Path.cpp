@@ -1,22 +1,22 @@
 #include "FAME_Internal_Common.h"
 #include "FAME_Parameter_Brillouin_Zone_Point.h"
-// 2020-02-19
+
 
 void confirm_wave_vec_array_size(char* path_string,int* wave_vec_num, int part_num);
 void default_path(LATTICE lattice, RECIP_LATTICE* recip_lattice);
-void get_vertex_pt(RECIP_LATTICE *recip_lattice, double* subpath_start_string, double* subpath_end_string, int i);
+void get_vertex_pt(RECIP_LATTICE *recip_lattice, realCPU* subpath_start_string, realCPU* subpath_end_string, int i);
 
 int FAME_Parameter_Brillouin_Zone_Path(RECIP_LATTICE* Recip_lattice, int part_num, LATTICE Lattice)
 {
     int str_len, count_part, flag, count;
-    double part_x, part_y, part_z;
-    double subpath_start_string[3];
-    double subpath_end_string[3];
-    double subpath[3][part_num];
+    realCPU part_x, part_y, part_z;
+    realCPU subpath_start_string[3];
+    realCPU subpath_end_string[3];
+    realCPU subpath[3][part_num];
     default_path(Lattice, Recip_lattice);
     confirm_wave_vec_array_size(Recip_lattice->path_string, &Recip_lattice->Wave_vec_num, part_num);
 
-    Recip_lattice->WaveVector = (double*) calloc(3 * Recip_lattice->Wave_vec_num, sizeof(double));
+    Recip_lattice->WaveVector = (realCPU*) calloc(3 * Recip_lattice->Wave_vec_num, sizeof(realCPU));
 
     //printf("= = = = = = FAME_Parameter_Brillouin_Zone_Point = = = = = = = = = = = = = = = = =\n");
     FAME_Parameter_Brillouin_Zone_Point( &(Recip_lattice->vertex), Lattice, Recip_lattice->reciprocal_lattice_vector_b);
@@ -31,9 +31,9 @@ int FAME_Parameter_Brillouin_Zone_Path(RECIP_LATTICE* Recip_lattice, int part_nu
         if ( (Recip_lattice->path_string[i] != '|') && (Recip_lattice->path_string[i+1] !='|') )
         {
             get_vertex_pt( Recip_lattice, subpath_start_string, subpath_end_string, i);
-            part_x = (subpath_end_string[0] - subpath_start_string[0])/(double)(part_num-1);
-            part_y = (subpath_end_string[1] - subpath_start_string[1])/(double)(part_num-1);
-            part_z = (subpath_end_string[2] - subpath_start_string[2])/(double)(part_num-1);
+            part_x = (subpath_end_string[0] - subpath_start_string[0])/(realCPU)(part_num-1);
+            part_y = (subpath_end_string[1] - subpath_start_string[1])/(realCPU)(part_num-1);
+            part_z = (subpath_end_string[2] - subpath_start_string[2])/(realCPU)(part_num-1);
             for (int j = 0; j < part_num; j++ )
             {
                 subpath[0][j] = subpath_start_string[0] + part_x*j;
@@ -77,7 +77,7 @@ int FAME_Parameter_Brillouin_Zone_Path(RECIP_LATTICE* Recip_lattice, int part_nu
         }
     }
 
-    double V1, V2, V3;
+    realCPU V1, V2, V3;
     for(int i = 0; i < Recip_lattice->Wave_vec_num; i++)
     {
         V1 = Recip_lattice->WaveVector[i * 3 + 0];
@@ -112,7 +112,7 @@ void default_path(LATTICE lattice, RECIP_LATTICE* recip_lattice)
     }
     else if(strcmp(lattice.lattice_type, "rhombohedral") == 0)
     {
-        double theta = 2*asin( 3*(lattice.lattice_constant.a)/(2*sqrt( pow(lattice.lattice_constant.c, 2) + 3*(pow(lattice.lattice_constant.a, 2)))));
+        realCPU theta = 2*asin( 3*(lattice.lattice_constant.a)/(2*sqrt( pow(lattice.lattice_constant.c, 2) + 3*(pow(lattice.lattice_constant.a, 2)))));
         if(theta <= pi/2)
             strcpy(recip_lattice->path_string, "GLC|BZGX|QFRZ|LP");
         else
@@ -139,8 +139,8 @@ void default_path(LATTICE lattice, RECIP_LATTICE* recip_lattice)
     }
     else if(strcmp(lattice.lattice_type, "face_centered_orthorhombic") == 0)
     {
-        double temp1 = 1/pow(lattice.lattice_constant.a, 2);
-        double temp2 = 1/pow(lattice.lattice_constant.b, 2) + 1/pow(lattice.lattice_constant.c, 2);
+        realCPU temp1 = 1/pow(lattice.lattice_constant.a, 2);
+        realCPU temp2 = 1/pow(lattice.lattice_constant.b, 2) + 1/pow(lattice.lattice_constant.c, 2);
         if(temp1>temp2)
             strcpy(recip_lattice->path_string, "GYTZGXBY|TJ|XAZ|LG");
         else if(temp1<temp2)
@@ -154,12 +154,12 @@ void default_path(LATTICE lattice, RECIP_LATTICE* recip_lattice)
         strcpy(recip_lattice->path_string, "GYHCENAXI|MDZ|YD");
     else if(strcmp(lattice.lattice_type, "base_centered_monoclinic") == 0)
     {
-        double temp = (lattice.lattice_constant.b)*cosf(lattice.lattice_constant.alpha)/(lattice.lattice_constant.c)+pow(lattice.lattice_constant.b, 2)*pow(sinf(lattice.lattice_constant.alpha), 2)/pow(lattice.lattice_constant.a, 2);
+        realCPU temp = (lattice.lattice_constant.b)*cosf(lattice.lattice_constant.alpha)/(lattice.lattice_constant.c)+pow(lattice.lattice_constant.b, 2)*pow(sinf(lattice.lattice_constant.alpha), 2)/pow(lattice.lattice_constant.a, 2);
         int i;
-        double dot = 0;
-        double normb1 = 0;
-        double normb2 = 0;
-        double k_gamma;
+        realCPU dot = 0;
+        realCPU normb1 = 0;
+        realCPU normb2 = 0;
+        realCPU k_gamma;
 
         for(i=0; i<3; i++)
         {
@@ -216,7 +216,7 @@ void confirm_wave_vec_array_size(char* path_string, int* wave_vec_num, int part_
     }
 }
 
-void get_vertex_pt(RECIP_LATTICE *recip_lattice, double* subpath_start_string, double* subpath_end_string, int index)
+void get_vertex_pt(RECIP_LATTICE *recip_lattice, realCPU* subpath_start_string, realCPU* subpath_end_string, int index)
 {
     string path_string(recip_lattice->path_string);
 
@@ -258,9 +258,9 @@ void get_vertex_pt(RECIP_LATTICE *recip_lattice, double* subpath_start_string, d
         for(i = 0; i < 3; i++)
             subpath_start_string[i] = recip_lattice->vertex.H[i];
         break;
-    case 'I':
+    case 'Ii':
         for(i = 0; i < 3; i++)
-            subpath_start_string[i] = recip_lattice->vertex.I[i];
+            subpath_start_string[i] = recip_lattice->vertex.Ii[i];
         break;
     case 'J':
         for(i = 0; i < 3; i++)
@@ -378,9 +378,9 @@ void get_vertex_pt(RECIP_LATTICE *recip_lattice, double* subpath_start_string, d
         for(i = 0; i < 3; i++)
             subpath_end_string[i] = recip_lattice->vertex.H[i];
         break;
-    case 'I':
+    case 'Ii':
         for(i = 0; i < 3; i++)
-            subpath_end_string[i] = recip_lattice->vertex.I[i];
+            subpath_end_string[i] = recip_lattice->vertex.Ii[i];
         break;
     case 'J':
         for(i = 0; i < 3; i++)

@@ -1,7 +1,9 @@
 #include "FAME_Internal_Common.h"
+#include "inv3.h"
+#include "mtx_prod.h"
 // 2020-02-19
 
-void Max_ind_change(double* length_a1, double* length_a2, double* length_a3, double* vec_a, int* permutation);
+void Max_ind_change(realCPU* length_a1, realCPU* length_a2, realCPU* length_a3, realCPU* vec_a, int* permutation);
 
 int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
 {
@@ -11,10 +13,10 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     //  Cubic system
     if(strcmp(lattice->lattice_type, "simple_cubic") == 0)
     {
-        double a     = lattice->lattice_constant.a;
-        double a1[3] = {a, 0, 0};
-        double a2[3] = {0, a, 0};
-        double a3[3] = {0, 0, a};
+        realCPU a     = lattice->lattice_constant.a;
+        realCPU a1[3] = {a, 0, 0};
+        realCPU a2[3] = {0, a, 0};
+        realCPU a3[3] = {0, 0, a};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -25,10 +27,10 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     }
     else if(strcmp(lattice->lattice_type, "face_centered_cubic") == 0)
     {
-        double a     = 0.5*lattice->lattice_constant.a;
-        double a1[3] = {0, a, a};
-        double a2[3] = {a, 0, a};
-        double a3[3] = {a, a, 0};
+        realCPU a     = 0.5*lattice->lattice_constant.a;
+        realCPU a1[3] = {0, a, a};
+        realCPU a2[3] = {a, 0, a};
+        realCPU a3[3] = {a, a, 0};
 
         for(i=0; i<3; i++)
         {
@@ -40,10 +42,10 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     }
     else if(strcmp(lattice->lattice_type, "body_centered_cubic") == 0)
     {
-        double a     = 0.5*lattice->lattice_constant.a;
-        double a1[3] = {-1*a,    a,    a};
-        double a2[3] = {   a, -1*a,    a};
-        double a3[3] = {   a,    a, -1*a};
+        realCPU a     = 0.5*lattice->lattice_constant.a;
+        realCPU a1[3] = {-1*a,    a,    a};
+        realCPU a2[3] = {   a, -1*a,    a};
+        realCPU a3[3] = {   a,    a, -1*a};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -55,11 +57,11 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     //  Tetragonal system
     else if(strcmp(lattice->lattice_type, "primitive_tetragonal") == 0)
     {
-        double a     = lattice->lattice_constant.a;
-        double c     = lattice->lattice_constant.c;
-        double a1[3] = {a, 0, 0};
-        double a2[3] = {0, a, 0};
-        double a3[3] = {0, 0, c};
+        realCPU a     = lattice->lattice_constant.a;
+        realCPU c     = lattice->lattice_constant.c;
+        realCPU a1[3] = {a, 0, 0};
+        realCPU a2[3] = {0, a, 0};
+        realCPU a3[3] = {0, 0, c};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -70,11 +72,11 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     }
     else if(strcmp(lattice->lattice_type, "body_centered_tetragonal") == 0)
     {
-        double a     = 0.5*lattice->lattice_constant.a;
-        double c     = 0.5*lattice->lattice_constant.c;
-        double a1[3] = {-a,  a,  c};
-        double a2[3] = { a, -a,  c};
-        double a3[3] = { a,  a, -c};
+        realCPU a     = 0.5*lattice->lattice_constant.a;
+        realCPU c     = 0.5*lattice->lattice_constant.c;
+        realCPU a1[3] = {-a,  a,  c};
+        realCPU a2[3] = { a, -a,  c};
+        realCPU a3[3] = { a,  a, -c};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -86,12 +88,12 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     // Orthorhombic system
     else if(strcmp(lattice->lattice_type, "primitive_orthorhombic") == 0)
     {
-        double a = lattice->lattice_constant.a;
-        double b = lattice->lattice_constant.b;
-        double c = lattice->lattice_constant.c;
-        double a1[3] = {a, 0, 0};
-        double a2[3] = {0, b, 0};
-        double a3[3] = {0, 0, c};
+        realCPU a = lattice->lattice_constant.a;
+        realCPU b = lattice->lattice_constant.b;
+        realCPU c = lattice->lattice_constant.c;
+        realCPU a1[3] = {a, 0, 0};
+        realCPU a2[3] = {0, b, 0};
+        realCPU a3[3] = {0, 0, c};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -102,12 +104,12 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     }
     else if(strcmp(lattice->lattice_type, "face_centered_orthorhombic") == 0)//no check
     {
-        double a = 0.5*lattice->lattice_constant.a;
-        double b = 0.5*lattice->lattice_constant.b;
-        double c = 0.5*lattice->lattice_constant.c;
-        double a1[3] = {0, b, c};
-        double a2[3] = {a, 0, c};
-        double a3[3] = {a, b, 0};
+        realCPU a = 0.5*lattice->lattice_constant.a;
+        realCPU b = 0.5*lattice->lattice_constant.b;
+        realCPU c = 0.5*lattice->lattice_constant.c;
+        realCPU a1[3] = {0, b, c};
+        realCPU a2[3] = {a, 0, c};
+        realCPU a3[3] = {a, b, 0};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -118,12 +120,12 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     }
     else if(strcmp(lattice->lattice_type, "body_centered_orthorhombic") == 0)
     {
-        double a = 0.5*lattice->lattice_constant.a;
-        double b = 0.5*lattice->lattice_constant.b;
-        double c = 0.5*lattice->lattice_constant.c;
-        double a1[3] = {-a,  b,  c};
-        double a2[3] = { a, -b,  c};
-        double a3[3] = { a,  b, -c};
+        realCPU a = 0.5*lattice->lattice_constant.a;
+        realCPU b = 0.5*lattice->lattice_constant.b;
+        realCPU c = 0.5*lattice->lattice_constant.c;
+        realCPU a1[3] = {-a,  b,  c};
+        realCPU a2[3] = { a, -b,  c};
+        realCPU a3[3] = { a,  b, -c};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -134,12 +136,12 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     }
     else if(strcmp(lattice->lattice_type, "a_base_centered_orthorhombic") == 0)
     {
-        double a = lattice->lattice_constant.a;
-        double b = lattice->lattice_constant.b;
-        double c = lattice->lattice_constant.c;
-        double a1[3] = {a,     0,      0};
-        double a2[3] = {0, 0.5*b, -0.5*c};
-        double a3[3] = {0, 0.5*b,  0.5*c};
+        realCPU a = lattice->lattice_constant.a;
+        realCPU b = lattice->lattice_constant.b;
+        realCPU c = lattice->lattice_constant.c;
+        realCPU a1[3] = {a,     0,      0};
+        realCPU a2[3] = {0, 0.5*b, -0.5*c};
+        realCPU a3[3] = {0, 0.5*b,  0.5*c};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -150,12 +152,12 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     }
     else if(strcmp(lattice->lattice_type, "c_base_centered_orthorhombic") == 0)
     {
-        double a = lattice->lattice_constant.a;
-        double b = lattice->lattice_constant.b;
-        double c = lattice->lattice_constant.c;
-        double a1[3] = {0.5*a, -0.5*b, 0};
-        double a2[3] = {0.5*a,  0.5*b, 0};
-        double a3[3] = {    0,      0, c};
+        realCPU a = lattice->lattice_constant.a;
+        realCPU b = lattice->lattice_constant.b;
+        realCPU c = lattice->lattice_constant.c;
+        realCPU a1[3] = {0.5*a, -0.5*b, 0};
+        realCPU a2[3] = {0.5*a,  0.5*b, 0};
+        realCPU a3[3] = {    0,      0, c};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -167,11 +169,11 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     //  Hexagonal system
     else if(strcmp(lattice->lattice_type, "hexagonal") == 0)
     {
-        double a = lattice->lattice_constant.a;
-        double c = lattice->lattice_constant.c;
-        double a1[3] = {     a,             0, 0};
-        double a2[3] = {-0.5*a, sqrt(3)*0.5*a, 0};
-        double a3[3] = {     0,             0, c};
+        realCPU a = lattice->lattice_constant.a;
+        realCPU c = lattice->lattice_constant.c;
+        realCPU a1[3] = {     a,             0, 0};
+        realCPU a2[3] = {-0.5*a, sqrt(3)*0.5*a, 0};
+        realCPU a3[3] = {     0,             0, c};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -183,11 +185,11 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     //  Rhombohedral system
     else if(strcmp(lattice->lattice_type, "rhombohedral") == 0)
     {
-        double a = lattice->lattice_constant.a;
-        double alpha = lattice->lattice_constant.alpha;
-        double a1[3] = {            a*cos(alpha/2), -a*sin(alpha/2),                                                     0};
-        double a2[3] = {            a*cos(alpha/2),  a*sin(alpha/2),                                                     0};
-        double a3[3] = { a*cos(alpha)/cos(alpha/2),               0, a*sqrt(1.0-(pow(cos(alpha) / cos(alpha / 2), 2)))};
+        realCPU a = lattice->lattice_constant.a;
+        realCPU alpha = lattice->lattice_constant.alpha;
+        realCPU a1[3] = {            a*cos(alpha/2), -a*sin(alpha/2),                                                     0};
+        realCPU a2[3] = {            a*cos(alpha/2),  a*sin(alpha/2),                                                     0};
+        realCPU a3[3] = { a*cos(alpha)/cos(alpha/2),               0, a*sqrt(1.0-(pow(cos(alpha) / cos(alpha / 2), 2)))};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -199,13 +201,13 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     //  Monoclinic system
     else if(strcmp(lattice->lattice_type, "primitive_monoclinic") == 0)
     {
-        double a = lattice->lattice_constant.a;
-        double b = lattice->lattice_constant.b;
-        double c = lattice->lattice_constant.c;
-        double alpha = lattice->lattice_constant.alpha;
-        double a1[3] = {a, 0, 0};
-        double a2[3] = {0, b, 0};
-        double a3[3] = {0, c*cos(alpha), c*sin(alpha)};
+        realCPU a = lattice->lattice_constant.a;
+        realCPU b = lattice->lattice_constant.b;
+        realCPU c = lattice->lattice_constant.c;
+        realCPU alpha = lattice->lattice_constant.alpha;
+        realCPU a1[3] = {a, 0, 0};
+        realCPU a2[3] = {0, b, 0};
+        realCPU a3[3] = {0, c*cos(alpha), c*sin(alpha)};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -216,13 +218,13 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     }
     else if(strcmp(lattice->lattice_type, "base_centered_monoclinic") == 0)
     {
-        double a = 0.5*lattice->lattice_constant.a;
-        double b = 0.5*lattice->lattice_constant.b;
-        double c = lattice->lattice_constant.c;
-        double alpha = lattice->lattice_constant.alpha;
-        double a1[3] = {a, b, 0};
-        double a2[3] = {-a, b, 0};
-        double a3[3] = {0, c*cos(alpha), c*sin(alpha)};
+        realCPU a = 0.5*lattice->lattice_constant.a;
+        realCPU b = 0.5*lattice->lattice_constant.b;
+        realCPU c = lattice->lattice_constant.c;
+        realCPU alpha = lattice->lattice_constant.alpha;
+        realCPU a1[3] = {a, b, 0};
+        realCPU a2[3] = {-a, b, 0};
+        realCPU a3[3] = {0, c*cos(alpha), c*sin(alpha)};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -234,15 +236,15 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     //  Triclinic system
     else if(strcmp(lattice->lattice_type, "triclinic") == 0)
     {
-        double a = lattice->lattice_constant.a;
-        double b = lattice->lattice_constant.b;
-        double c = lattice->lattice_constant.c;
-        double alpha = lattice->lattice_constant.alpha;
-        double beta  = lattice->lattice_constant.beta;
-        double gamma = lattice->lattice_constant.gamma;
-        double a1[3] = {a, 0, 0};
-        double a2[3] = {b*cos(gamma), b*sin(gamma), 0};
-        double a3[3] = { c*cos(beta), c*(cos(alpha)-cos(beta)*cos(gamma))/sin(gamma), c*( sqrt(1-pow(cos(alpha), 2)-pow(cos(beta), 2)-pow(cos(gamma), 2)+2*cos(alpha)*cos(beta)*cos(gamma)) / sin(gamma))};
+        realCPU a = lattice->lattice_constant.a;
+        realCPU b = lattice->lattice_constant.b;
+        realCPU c = lattice->lattice_constant.c;
+        realCPU alpha = lattice->lattice_constant.alpha;
+        realCPU beta  = lattice->lattice_constant.beta;
+        realCPU gamma = lattice->lattice_constant.gamma;
+        realCPU a1[3] = {a, 0, 0};
+        realCPU a2[3] = {b*cos(gamma), b*sin(gamma), 0};
+        realCPU a3[3] = { c*cos(beta), c*(cos(alpha)-cos(beta)*cos(gamma))/sin(gamma), c*( sqrt(1-pow(cos(alpha), 2)-pow(cos(beta), 2)-pow(cos(gamma), 2)+2*cos(alpha)*cos(beta)*cos(gamma)) / sin(gamma))};
         for(i=0; i<3; i++)
         {
             (lattice->lattice_vec_a)[i] = (a1[i]);
@@ -311,7 +313,7 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     /* Condition 2 : */
     if(lattice->lattice_constant.length_a2*sin(lattice->lattice_constant.theta_3) <= ((lattice->lattice_constant.length_a3)/sin(lattice->lattice_constant.theta_3))*fabs(cos(lattice->lattice_constant.theta_1)-cos(lattice->lattice_constant.theta_2)*cos(lattice->lattice_constant.theta_3)))
     {
-        double temp4;
+        realCPU temp4;
         // change vector
         for(k=0; k<3; k++)
         {
@@ -374,8 +376,8 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     lattice->lattice_vec_a[8] = lattice->lattice_constant.length_a3*sqrt(1 - pow(cos(lattice->lattice_constant.theta_3), 2)-pow(cos(lattice->lattice_constant.theta_2), 2)-pow(cos(lattice->lattice_constant.theta_1), 2) \
                                   + 2*cos(lattice->lattice_constant.theta_3)*cos(lattice->lattice_constant.theta_2)*cos(lattice->lattice_constant.theta_1))/sin(lattice->lattice_constant.theta_3);
 
-    double lattice_vec_a_orig_P[9];
-    double inv_lattice_vec_a_orig_P[9];
+    realCPU lattice_vec_a_orig_P[9];
+    realCPU inv_lattice_vec_a_orig_P[9];
     lattice_vec_a_orig_P[0] = lattice->lattice_vec_a_orig[(lattice->Permutation[0] - 1) * 3 + 0];
     lattice_vec_a_orig_P[1] = lattice->lattice_vec_a_orig[(lattice->Permutation[0] - 1) * 3 + 1];
     lattice_vec_a_orig_P[2] = lattice->lattice_vec_a_orig[(lattice->Permutation[0] - 1) * 3 + 2];
@@ -391,12 +393,12 @@ int FAME_Parameter_Lattice_Vector(LATTICE* lattice)
     return 0;
 }
 
-void Max_ind_change(double* length_a1, double* length_a2, double* length_a3, double* vec_a, int* permutation)
+void Max_ind_change(realCPU* length_a1, realCPU* length_a2, realCPU* length_a3, realCPU* vec_a, int* permutation)
 {
     int i;
     int max_idx;
     int itemp;
-    double dtemp;
+    realCPU dtemp;
     if(length_a1[0] >= length_a2[0] && length_a1[0] >= length_a3[0])
     {
         max_idx = 0;

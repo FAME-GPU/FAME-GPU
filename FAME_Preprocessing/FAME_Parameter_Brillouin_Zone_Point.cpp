@@ -1,23 +1,23 @@
 #include "FAME_Internal_Common.h"
 // 2020-02-19
 
-void MV(double* point, double* M, double V1, double V2, double V3)
+void MV(realCPU* point, realCPU* M, realCPU V1, realCPU V2, realCPU V3)
 {
     point[0] = M[0] * V1 + M[3] * V2 + M[6] * V3;
     point[1] = M[1] * V1 + M[4] * V2 + M[7] * V3;
     point[2] = M[2] * V1 + M[5] * V2 + M[8] * V3;
 }
 
-int FAME_Parameter_Brillouin_Zone_Point(VERTEX* Vertex, LATTICE Lattice, double* reciprocal_lattice_vector_b)
+int FAME_Parameter_Brillouin_Zone_Point(VERTEX* Vertex, LATTICE Lattice, realCPU* reciprocal_lattice_vector_b)
 {
-    double a     = Lattice.lattice_constant.a;
-    double b     = Lattice.lattice_constant.b;
-    double c     = Lattice.lattice_constant.c;
-    double alpha = Lattice.lattice_constant.alpha;
-//    double beta  = Lattice.lattice_constant.beta;
-//    double gamma = Lattice.lattice_constant.gamma;
+    realCPU a     = Lattice.lattice_constant.a;
+    realCPU b     = Lattice.lattice_constant.b;
+    realCPU c     = Lattice.lattice_constant.c;
+    realCPU alpha = Lattice.lattice_constant.alpha;
+//    realCPU beta  = Lattice.lattice_constant.beta;
+//    realCPU gamma = Lattice.lattice_constant.gamma;
 
-    double eta, varsigma, delta, phi, mu, temp, nu, psi, rho, omega;
+    realCPU eta, varsigma, delta, phi, mu, temp, nu, psi, rho, omega;
 
     if(strcmp(Lattice.lattice_type, "simple_cubic") == 0)
     {
@@ -120,7 +120,7 @@ int FAME_Parameter_Brillouin_Zone_Point(VERTEX* Vertex, LATTICE Lattice, double*
             MV(Vertex->D, reciprocal_lattice_vector_b, 0.5 - delta,       0.5, 1.0 - delta);
             MV(Vertex->F, reciprocal_lattice_vector_b, 0.5 + delta,       0.5,       delta);
             MV(Vertex->H, reciprocal_lattice_vector_b,   1.0 - phi, 0.5 - phi,         0.5);
-            MV(Vertex->I, reciprocal_lattice_vector_b,         phi, 0.5 + phi,         0.5);
+            MV(Vertex->Ii, reciprocal_lattice_vector_b,         phi, 0.5 + phi,         0.5);
             MV(Vertex->X, reciprocal_lattice_vector_b,         0.0,       0.5,         0.5);
             MV(Vertex->Y, reciprocal_lattice_vector_b,         0.5,       0.0,         0.5);
             MV(Vertex->Z, reciprocal_lattice_vector_b,         0.5,       0.5,         0.0);
@@ -134,7 +134,7 @@ int FAME_Parameter_Brillouin_Zone_Point(VERTEX* Vertex, LATTICE Lattice, double*
         mu       = (pow(a, 2) + pow(b, 2)) / (4.0 * pow(c, 2));
         MV(Vertex->G, reciprocal_lattice_vector_b,        0.00,           0.00,        0.00);
         MV(Vertex->L, reciprocal_lattice_vector_b,         -mu,             mu, 0.5 - delta);
-        MV(Vertex->I, reciprocal_lattice_vector_b,          mu,            -mu, 0.5 + delta);
+        MV(Vertex->Ii, reciprocal_lattice_vector_b,          mu,            -mu, 0.5 + delta);
         MV(Vertex->J, reciprocal_lattice_vector_b, 0.5 - delta,    0.5 + delta,         -mu);
         MV(Vertex->R, reciprocal_lattice_vector_b,        0.00,           0.50,        0.00);
         MV(Vertex->S, reciprocal_lattice_vector_b,        0.50,           0.00,        0.00);
@@ -181,7 +181,7 @@ int FAME_Parameter_Brillouin_Zone_Point(VERTEX* Vertex, LATTICE Lattice, double*
             MV(Vertex->B, reciprocal_lattice_vector_b,      eta,       0.5, 1.0 - eta);
             MV(Vertex->C, reciprocal_lattice_vector_b,      0.5, 1.0 - eta, eta - 1.0);
             MV(Vertex->L, reciprocal_lattice_vector_b,      0.5,       0.0,       0.0);
-            MV(Vertex->I, reciprocal_lattice_vector_b,      0.0,       0.0,      -0.5);
+            MV(Vertex->Ii, reciprocal_lattice_vector_b,      0.0,       0.0,      -0.5);
             MV(Vertex->P, reciprocal_lattice_vector_b,      eta,        nu,        nu);
             MV(Vertex->R, reciprocal_lattice_vector_b, 1.0 - nu,  1.0 - nu, 1.0 - eta);
             MV(Vertex->S, reciprocal_lattice_vector_b,       nu,        nu, eta - 1.0);
@@ -214,7 +214,7 @@ int FAME_Parameter_Brillouin_Zone_Point(VERTEX* Vertex, LATTICE Lattice, double*
         MV(Vertex->F, reciprocal_lattice_vector_b, 0.5,       0.0,     -0.5);
         MV(Vertex->E, reciprocal_lattice_vector_b, 0.5,       0.5,      0.5);
         MV(Vertex->H, reciprocal_lattice_vector_b, 0.0,       eta, 1.0 - nu);
-        MV(Vertex->I, reciprocal_lattice_vector_b, 0.0, 1.0 - eta,       nu);
+        MV(Vertex->Ii, reciprocal_lattice_vector_b, 0.0, 1.0 - eta,       nu);
         MV(Vertex->J, reciprocal_lattice_vector_b, 0.0,       eta,      -nu);
         MV(Vertex->M, reciprocal_lattice_vector_b, 0.5,       eta, 1.0 - nu);
         MV(Vertex->N, reciprocal_lattice_vector_b, 0.5, 1.0 - eta,       nu);
@@ -242,7 +242,7 @@ int FAME_Parameter_Brillouin_Zone_Point(VERTEX* Vertex, LATTICE Lattice, double*
             MV(Vertex->J, reciprocal_lattice_vector_b,       varsigma,       varsigma,       eta);
             MV(Vertex->K, reciprocal_lattice_vector_b,      -varsigma,      -varsigma, 1.0 - eta);
             MV(Vertex->O, reciprocal_lattice_vector_b, 1.0 - varsigma,      -varsigma, 1.0 - eta);
-            MV(Vertex->I, reciprocal_lattice_vector_b,            phi,      1.0 - phi,       0.5);
+            MV(Vertex->Ii, reciprocal_lattice_vector_b,            phi,      1.0 - phi,       0.5);
             MV(Vertex->R, reciprocal_lattice_vector_b,      1.0 - phi,      phi - 1.0,       0.5);
             MV(Vertex->L, reciprocal_lattice_vector_b,            0.5,            0.5,       0.5);
             MV(Vertex->M, reciprocal_lattice_vector_b,            0.5,            0.0,       0.5);
@@ -271,7 +271,7 @@ int FAME_Parameter_Brillouin_Zone_Point(VERTEX* Vertex, LATTICE Lattice, double*
                 MV(Vertex->H, reciprocal_lattice_vector_b,       varsigma,  varsigma,       eta);
                 MV(Vertex->P, reciprocal_lattice_vector_b, 1.0 - varsigma, -varsigma, 1.0 - eta);
                 MV(Vertex->Q, reciprocal_lattice_vector_b,      -varsigma, -varsigma, 1.0 - eta);
-                MV(Vertex->I, reciprocal_lattice_vector_b,            0.5,      -0.5,       0.5);
+                MV(Vertex->Ii, reciprocal_lattice_vector_b,            0.5,      -0.5,       0.5);
                 MV(Vertex->M, reciprocal_lattice_vector_b,            0.5,       0.0,       0.5);
                 MV(Vertex->N, reciprocal_lattice_vector_b,            0.5,       0.0,       0.0);
                 MV(Vertex->S, reciprocal_lattice_vector_b,            0.0,      -0.5,       0.0);
@@ -298,7 +298,7 @@ int FAME_Parameter_Brillouin_Zone_Point(VERTEX* Vertex, LATTICE Lattice, double*
                 MV(Vertex->H, reciprocal_lattice_vector_b,       varsigma,  varsigma,         eta);
                 MV(Vertex->P, reciprocal_lattice_vector_b, 1.0 - varsigma, -varsigma,   1.0 - eta);
                 MV(Vertex->Q, reciprocal_lattice_vector_b,      -varsigma, -varsigma,   1.0 - eta);
-                MV(Vertex->I, reciprocal_lattice_vector_b,            rho, 1.0 - rho,         0.5);
+                MV(Vertex->Ii, reciprocal_lattice_vector_b,            rho, 1.0 - rho,         0.5);
                 MV(Vertex->R, reciprocal_lattice_vector_b,      1.0 - rho, rho - 1.0,         0.5);
                 MV(Vertex->L, reciprocal_lattice_vector_b,            0.5,       0.5,         0.5);
                 MV(Vertex->M, reciprocal_lattice_vector_b,            0.5,       0.0,         0.5);

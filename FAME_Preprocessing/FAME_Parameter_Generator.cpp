@@ -8,7 +8,7 @@
 #include <iostream>
 using namespace std;
 
-void grid_nums_adjust(int* grid_nums, double* edge_len, double* mesh_len, int Nwant, int Nstep, int mem_size, int flag_Max);
+void grid_nums_adjust(int* grid_nums, realCPU* edge_len, realCPU* mesh_len, int Nwant, int Nstep, int mem_size, int flag_Max);
 
 int copy_Popt2Par(
     PAR*          Par, 
@@ -28,12 +28,17 @@ int FAME_Parameter_Generator(
     RECIP_LATTICE Popt_recip_lattice,
     LS            Popt_ls,
     ES            Popt_es)
-{
+{	
     // Copy parameters from Popt to Par
     copy_Popt2Par(Par, Popt_flag, Popt_mesh, Popt_material, Popt_recip_lattice, Popt_ls, Popt_es);
 
     // Set material parameters to Par from desired material data file stated in Popt
-    FAME_Set_User_Define(&Par->material, &Par->lattice);
+
+	#if defined(USE_SINGLE)
+	    FAME_Set_User_Define_Single(&Par->material, &Par->lattice);
+	#else
+	    FAME_Set_User_Define(&Par->material, &Par->lattice);
+	#endif 
 
     // Set lattice constans to Par
     FAME_Parameter_Lattice_Constants_Format(&Par->lattice);
@@ -80,17 +85,17 @@ int copy_Popt2Par(
     Par->material.num_reciprocity_in = Popt_material.num_reciprocity_in;
     Par->material.num_chirality_in = Popt_material.num_chirality_in;
 
-    Par->material.ele_permitt_in = (double*) malloc(Par->material.num_ele_permitt_in * sizeof(double));
-    memcpy(Par->material.ele_permitt_in, Popt_material.ele_permitt_in, Par->material.num_ele_permitt_in * sizeof(double));
+    Par->material.ele_permitt_in = (realCPU*) malloc(Par->material.num_ele_permitt_in * sizeof(realCPU));
+    memcpy(Par->material.ele_permitt_in, Popt_material.ele_permitt_in, Par->material.num_ele_permitt_in * sizeof(realCPU));
 
-    Par->material.mag_permeab_in = (double*) malloc(Par->material.num_mag_permeab_in * sizeof(double));
-    memcpy(Par->material.mag_permeab_in, Popt_material.mag_permeab_in, Par->material.num_mag_permeab_in * sizeof(double));
+    Par->material.mag_permeab_in = (realCPU*) malloc(Par->material.num_mag_permeab_in * sizeof(realCPU));
+    memcpy(Par->material.mag_permeab_in, Popt_material.mag_permeab_in, Par->material.num_mag_permeab_in * sizeof(realCPU));
 
-    Par->material.reciprocity_in = (double*) malloc(Par->material.num_reciprocity_in * sizeof(double));
-    memcpy(Par->material.reciprocity_in, Popt_material.reciprocity_in, Par->material.num_reciprocity_in* sizeof(double));
+    Par->material.reciprocity_in = (realCPU*) malloc(Par->material.num_reciprocity_in * sizeof(realCPU));
+    memcpy(Par->material.reciprocity_in, Popt_material.reciprocity_in, Par->material.num_reciprocity_in* sizeof(realCPU));
 
-    Par->material.chirality_in = (double*) malloc(Par->material.num_chirality_in * sizeof(double));
-    memcpy(Par->material.chirality_in, Popt_material.chirality_in, Par->material.num_chirality_in* sizeof(double));
+    Par->material.chirality_in = (realCPU*) malloc(Par->material.num_chirality_in * sizeof(realCPU));
+    memcpy(Par->material.chirality_in, Popt_material.chirality_in, Par->material.num_chirality_in* sizeof(realCPU));
 
     Par->material.ele_permitt_out = Popt_material.ele_permitt_out;
     Par->material.mag_permeab_out = Popt_material.mag_permeab_out;
@@ -121,19 +126,19 @@ int copy_Popt2Par(
     return 0;
 }
 
-void grid_nums_adjust(int* grid_nums, double* edge_len, double* mesh_len, int Nwant, int Nstep, int mem_size, int flag_Max)
+void grid_nums_adjust(int* grid_nums, realCPU* edge_len, realCPU* mesh_len, int Nwant, int Nstep, int mem_size, int flag_Max)
 {   
     mesh_len[0] = edge_len[0] / grid_nums[0];
     grid_nums[1] = (int) round( edge_len[1] / mesh_len[0] );
     mesh_len[1] = edge_len[1] / grid_nums[1];
     grid_nums[2] = (int) round( edge_len[2] / mesh_len[0] );
     mesh_len[2] = edge_len[2] / grid_nums[2];
-
+    
     if(flag_Max)
     {
         size_t byte = 768 + 32 * (Nwant + Nstep + 1) + 128;
-        size_t a = floor(mem_size * 1024 * 1024 / (double) byte);
-        size_t b = floor(Nstep * Nstep * 16 / (double) byte);
+        size_t a = floor(mem_size * 1024 * 1024 / (realCPU) byte);
+        size_t b = floor(Nstep * Nstep * 16 / (realCPU) byte);
         size_t maxsize = a * 1024 - b;
         int Nx, Ny, Nz, flag = 0;
 

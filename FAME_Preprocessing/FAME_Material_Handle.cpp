@@ -1,11 +1,12 @@
 #include "FAME_Internal_Common.h"
+// 2020-02-19
 
-int sphere_handle(double ptx, double pty, double ptz, double* lattice_vec_a, MATERIAL Material, int kind)
+int sphere_handle(realCPU ptx, realCPU pty, realCPU ptz, realCPU* lattice_vec_a, MATERIAL Material, int kind)
 {
     int i, sum = 0, flag = 0;
     int shiftx, shifty, shiftz;
-    double center_x, center_y, center_z;
-    double distance;
+    realCPU center_x, center_y, center_z;
+    realCPU distance;
 
     for(i = 0; i < kind; i++)
         sum += Material.sphere_num[i];
@@ -30,12 +31,12 @@ int sphere_handle(double ptx, double pty, double ptz, double* lattice_vec_a, MAT
     return flag;
 }
 
-int cylinder_handle(double ptx, double pty, double ptz, double* lattice_vec_a, MATERIAL Material, int kind)
+int cylinder_handle(realCPU ptx, realCPU pty, realCPU ptz, realCPU* lattice_vec_a, MATERIAL Material, int kind)
 {
     int i, sum = 0, flag = 0;
     int shiftx, shifty, shiftz;
-    double ctx, cty, ctz, cbx, cby, cbz;
-    double temp, distance;
+    realCPU ctx, cty, ctz, cbx, cby, cbz;
+    realCPU temp, distance;
 
     for(i = 0; i < kind; i++)
         sum += Material.cylinder_num[i];
@@ -70,7 +71,7 @@ int cylinder_handle(double ptx, double pty, double ptz, double* lattice_vec_a, M
     return flag;
 }
 
-int FAME_Material_Handle(double* point_set, double* lattice_vec_a, PAR Par)
+int FAME_Material_Handle(realCPU* point_set, realCPU* lattice_vec_a, PAR Par)
 {
     int i;
     int flag_sphere, flag_cylinder;

@@ -1,15 +1,14 @@
 #include "FAME_Internal_Common.h"
-// 2020-02-19
 
 int FAME_Parameter_Boundary_Point(LATTICE* Lattice, MESH Mesh)
 {
     int i;
-    double R3R8 = 0.0, R10R3 = 0.0;// R9R1 = 0.0, R11R2 = 0.0;
+    realCPU R3R8 = 0.0, R10R3 = 0.0;// R9R1 = 0.0, R11R2 = 0.0;
     // initialize t1, t2, t3, t4 as zero vectors
-    Lattice->lattice_constant.t1 = (double*) calloc(3, sizeof(double));
-    Lattice->lattice_constant.t2 = (double*) calloc(3, sizeof(double));
-    Lattice->lattice_constant.t3 = (double*) calloc(3, sizeof(double));
-    Lattice->lattice_constant.t4 = (double*) calloc(3, sizeof(double));
+    Lattice->lattice_constant.t1 = (realCPU*) calloc(3, sizeof(realCPU));
+    Lattice->lattice_constant.t2 = (realCPU*) calloc(3, sizeof(realCPU));
+    Lattice->lattice_constant.t3 = (realCPU*) calloc(3, sizeof(realCPU));
+    Lattice->lattice_constant.t4 = (realCPU*) calloc(3, sizeof(realCPU));
 
     if( (Lattice->lattice_constant.theta_3 > 0)  &&  (Lattice->lattice_constant.theta_3 <= pi/2) )
         R3R8 = Lattice->lattice_vec_a[3];

@@ -1,13 +1,14 @@
 #include "FAME_Internal_Common.h"
 #include "FAME_Material_Handle.h"
 #include "FAME_Matrix_Grid.h"
+#include "inv3.h"
 // 2020-02-19
 
-int FAME_Material_Locate(double* point_set, double* Omega, double* lattice_vec_a_orig_P, double* invAP, double* lattice_vec_a_orig, PAR Par)
+int FAME_Material_Locate(realCPU* point_set, realCPU* Omega, realCPU* lattice_vec_a_orig_P, realCPU* invAP, realCPU* lattice_vec_a_orig, PAR Par)
 {
     int in_k_material;
-    double point_set_orig[3], coef[3];
-    double shift_1, shift_2, shift_3;
+    realCPU point_set_orig[3], coef[3];
+    realCPU shift_1, shift_2, shift_3;
 
     /* point_set_orig = point_set * Omega */
     point_set_orig[0] = point_set[0] * Omega[0] + point_set[1] * Omega[1] + point_set[2] * Omega[2];
@@ -38,8 +39,8 @@ int FAME_Material_Locate_Index_Print(int* B_idx, PAR Par, char* type)
     int i, j, k, m, idx, count = 0;
     int n = Par.mesh.grid_nums[0] * Par.mesh.grid_nums[1] * Par.mesh.grid_nums[2];
     int inout[Par.material.material_num], invP[3] = {0};
-    double Point_temp[3];
-    double lattice_vec_a_orig[9], lattice_vec_a_orig_P[9], invAP[9];
+    realCPU Point_temp[3];
+    realCPU lattice_vec_a_orig[9], lattice_vec_a_orig_P[9], invAP[9];
 
     /* lattice_vec_a_orig_P = Omega' * lattice_vec_a */
     for(int i = 0; i < 3; i++)
