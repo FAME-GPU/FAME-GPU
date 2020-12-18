@@ -2,14 +2,14 @@
 #include <iostream>
 using namespace std;
 
-void given_rotation(double* c, double* s, double* r, double a, double b);
+void given_rotation(realCPU* c, realCPU* s, realCPU* r, realCPU a, realCPU b);
 
-void GVqrrq_g(double* T0, double* T1, double* T2, double* T3, double* c, double* s, double shift, int n)
+void GVqrrq_g(realCPU* T0, realCPU* T1, realCPU* T2, realCPU* T3, realCPU* c, realCPU* s, realCPU shift, int n)
 {
     int i;
-    double a, b, r, R[4];
+    realCPU a, b, r, R[4];
     
-    memcpy(T3, T1, (n-1) * sizeof(double));
+    memcpy(T3, T1, (n-1) * sizeof(realCPU));
 
     // shift
     for(i = 0; i < n; i++)
@@ -57,9 +57,9 @@ void GVqrrq_g(double* T0, double* T1, double* T2, double* T3, double* c, double*
 }
 
 
-void given_rotation(double* c, double* s, double* r, double a, double b)
+void given_rotation(realCPU* c, realCPU* s, realCPU* r, realCPU a, realCPU b)
 {
-    double t, u;
+    realCPU t, u;
     if(fabs(a) > fabs(b))
     {
         t    = b / a;

@@ -7,34 +7,34 @@ size of vec_x = 6*Nd
 Update  : yilin
 Date    : 2019/02/17
 */
-static __global__ void dot_product_3size( int size, cuDoubleComplex* array_1, cuDoubleComplex* array_2, cuDoubleComplex* output );
-static __global__ void dot_product_3size( int size, cuDoubleComplex* array_1, double* array_2, cuDoubleComplex* output );
+static __global__ void dot_product_3size( int size, cmpxGPU* array_1, cmpxGPU* array_2, cmpxGPU* output );
+static __global__ void dot_product_3size( int size, cmpxGPU* array_1, realGPU* array_2, cmpxGPU* output );
 int FAME_Matrix_Vector_Production_invB_Biisotropic( CULIB_HANDLES cuHandles,
 													MTX_B mtx_B,
 													int N,
-													cuDoubleComplex* vec_x,
-													cuDoubleComplex* vec_y)
+													cmpxGPU* vec_x,
+													cmpxGPU* vec_y)
 {
 		int N_3 = 3*N; //3*Nx*Ny*Nz
 		dim3 DimGrid(BLOCK_SIZE, 1, 1);
 		dim3 DimBlock( (N-1)/BLOCK_SIZE + 1, 1, 1);
 		cublasStatus_t cublasStatus;
 
-		cuDoubleComplex one; one.x = 1.0; one.y = 0.0;
-		cuDoubleComplex m_one_i; m_one_i.x = 0.0; m_one_i.y = -1.0;
-		double m_one = -1.0;
+		cmpxGPU one; one.x = 1.0; one.y = 0.0;
+		cmpxGPU m_one_i; m_one_i.x = 0.0; m_one_i.y = -1.0;
+		realGPU m_one = -1.0;
 
-		cuDoubleComplex* temp;
-		checkCudaErrors(cudaMalloc((void**)&temp, 3*N*sizeof(cuDoubleComplex)));
+		cmpxGPU* temp;
+		checkCudaErrors(cudaMalloc((void**)&temp, 3*N*sizeof(cmpxGPU)));
 		
 		//////// create vec_y_ele
 		dot_product_3size<<<DimGrid, DimBlock>>>(N, mtx_B.B_xi, vec_x, temp );
 
 		dot_product_3size<<<DimGrid, DimBlock>>>(N, vec_x+N_3, mtx_B.B_mu, vec_y );
 
-		cublasStatus = cublasZaxpy( cuHandles.cublas_handle, N_3, &one, vec_y, 1, temp, 1 );
+		cublasStatus = PC_cublas_axpy( cuHandles.cublas_handle, N_3, &one, vec_y, 1, temp, 1 );
 		assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
-		cublasStatus = cublasZdscal( cuHandles.cublas_handle, N_3, &m_one, temp, 1 );
+		cublasStatus = PC_cublas_dscal( cuHandles.cublas_handle, N_3, &m_one, temp, 1 );
 		assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 		dot_product_3size<<<DimGrid, DimBlock>>>(N, temp, mtx_B.invPhi, vec_y );
 
@@ -43,12 +43,12 @@ int FAME_Matrix_Vector_Production_invB_Biisotropic( CULIB_HANDLES cuHandles,
 		
 		dot_product_3size<<<DimGrid, DimBlock>>>(N, mtx_B.B_zeta, vec_x+N_3, vec_y+N_3);
 		
-		cublasStatus = cublasZaxpy( cuHandles.cublas_handle, N_3, &one, vec_y+N_3, 1, temp, 1 );
+		cublasStatus = PC_cublas_axpy( cuHandles.cublas_handle, N_3, &one, vec_y+N_3, 1, temp, 1 );
 		assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 		dot_product_3size<<<DimGrid, DimBlock>>>(N, temp, mtx_B.invPhi, vec_y+N_3 );
 
 		///////
-		cublasStatus = cublasZscal( cuHandles.cublas_handle, 6*N, &m_one_i, vec_y, 1 );
+		cublasStatus = PC_cublas_scal( cuHandles.cublas_handle, 6*N, &m_one_i, vec_y, 1 );
 		assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 	return 0;
 }
@@ -57,7 +57,7 @@ int FAME_Matrix_Vector_Production_invB_Biisotropic( CULIB_HANDLES cuHandles,
 
 
 
-static __global__ void dot_product_3size( int size, cuDoubleComplex* array_1, cuDoubleComplex* array_2, cuDoubleComplex* output )
+static __global__ void dot_product_3size( int size, cmpxGPU* array_1, cmpxGPU* array_2, cmpxGPU* output )
 {
 	int idx = blockIdx.x*blockDim.x + threadIdx.x;
 	if(idx<size)
@@ -75,7 +75,7 @@ static __global__ void dot_product_3size( int size, cuDoubleComplex* array_1, cu
 }
 
 
-static __global__ void dot_product_3size( int size, cuDoubleComplex* array_1, double* array_2, cuDoubleComplex* output )
+static __global__ void dot_product_3size( int size, cmpxGPU* array_1, realGPU* array_2, cmpxGPU* output )
 {
     int idx = blockIdx.x*blockDim.x + threadIdx.x;
     if(idx<size)

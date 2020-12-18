@@ -3,27 +3,27 @@
 #include "FAME_FFT_CUDA.cuh"
 #include "printDeviceArray.cuh"
 
-static __global__ void vp_add_vp(int size, cuDoubleComplex* L_1, cuDoubleComplex* L_2, cuDoubleComplex* vec_1, cuDoubleComplex* vec_2,cuDoubleComplex* vec_out);
+static __global__ void vp_add_vp(int size, cmpxGPU* L_1, cmpxGPU* L_2, cmpxGPU* vec_1, cmpxGPU* vec_2,cmpxGPU* vec_out);
 
 ////////////=========================== Create Pr function for Biiso (cuda)===========================//////////////////
 int FAME_Matrix_Vector_Production_Pr(   CULIB_HANDLES cuHandles, 
                                         FFT_BUFFER fft_buffer, 
-                                        cuDoubleComplex* vec_x, 
+                                        cmpxGPU* vec_x, 
                                         int Nx, int Ny, int Nz, int Nd, 
-                                        cuDoubleComplex* D_k,
-                                        cuDoubleComplex* Pi_Pr, 
-                                        cuDoubleComplex* vec_y)
+                                        cmpxGPU* D_k,
+                                        cmpxGPU* Pi_Pr, 
+                                        cmpxGPU* vec_y)
 {
     int N = Nx*Ny*Nz;
-    //cuDoubleComplex* temp = cuHandles.N3_temp1;
-	cuDoubleComplex* temp;
-    checkCudaErrors(cudaMalloc((void**)&temp, 3*N*sizeof(cuDoubleComplex)));
+    //cmpxGPU* temp = cuHandles.N3_temp1;
+	cmpxGPU* temp;
+    checkCudaErrors(cudaMalloc((void**)&temp, 3*N*sizeof(cmpxGPU)));
     dim3 DimBlock(BLOCK_SIZE,1,1);
     dim3 DimGrid((Nd-1)/BLOCK_SIZE +1,1,1);
 
 	// Initial
 
-    checkCudaErrors(cudaMemset(temp, 0, N * 3 * sizeof(cuDoubleComplex)));
+    checkCudaErrors(cudaMemset(temp, 0, N * 3 * sizeof(cmpxGPU)));
 
     vp_add_vp<<<DimGrid, DimBlock>>>(Nd, Pi_Pr,         Pi_Pr+3*Nd, vec_x, vec_x+Nd, temp+N-Nd);
     cudaDeviceSynchronize();
@@ -40,16 +40,16 @@ int FAME_Matrix_Vector_Production_Pr(   CULIB_HANDLES cuHandles,
     return 0;
 }
 
-int FAME_Matrix_Vector_Production_Pr(CULIB_HANDLES cuHandles, FFT_BUFFER fft_buffer, cuDoubleComplex* vec_x, int Nx, int Ny, int Nz, int Nd, cuDoubleComplex* D_kx, cuDoubleComplex* D_ky, cuDoubleComplex* D_kz, cuDoubleComplex* Pi_Pr, cuDoubleComplex* vec_y)
+int FAME_Matrix_Vector_Production_Pr(CULIB_HANDLES cuHandles, FFT_BUFFER fft_buffer, cmpxGPU* vec_x, int Nx, int Ny, int Nz, int Nd, cmpxGPU* D_kx, cmpxGPU* D_ky, cmpxGPU* D_kz, cmpxGPU* Pi_Pr, cmpxGPU* vec_y)
 {
     int N = Nx*Ny*Nz;
     int N3 = N * 3;
     dim3 DimBlock(BLOCK_SIZE,1,1);
     dim3 DimGrid((Nd-1)/BLOCK_SIZE +1,1,1);
-    cuDoubleComplex* temp;
-    checkCudaErrors(cudaMalloc((void**)&temp, N3*sizeof(cuDoubleComplex)));
+    cmpxGPU* temp;
+    checkCudaErrors(cudaMalloc((void**)&temp, N3*sizeof(cmpxGPU)));
 
-    checkCudaErrors(cudaMemset(temp, 0, N3 * sizeof(cuDoubleComplex)));
+    checkCudaErrors(cudaMemset(temp, 0, N3 * sizeof(cmpxGPU)));
 
     //printDeviceArray( vec_x, 2*Nd, "print_vec_x.txt");
     vp_add_vp<<<DimGrid, DimBlock>>>(Nd, Pi_Pr,         Pi_Pr+3*Nd, vec_x, vec_x+Nd, temp+N-Nd);
@@ -64,7 +64,7 @@ int FAME_Matrix_Vector_Production_Pr(CULIB_HANDLES cuHandles, FFT_BUFFER fft_buf
     return 0;
 }
 
-static __global__ void vp_add_vp(int size, cuDoubleComplex* L_1, cuDoubleComplex* L_2, cuDoubleComplex* vec_1, cuDoubleComplex* vec_2,cuDoubleComplex* vec_out)
+static __global__ void vp_add_vp(int size, cmpxGPU* L_1, cmpxGPU* L_2, cmpxGPU* vec_1, cmpxGPU* vec_2,cmpxGPU* vec_out)
 {
     int idx = blockIdx.x*blockDim.x + threadIdx.x;
     if (idx < size)

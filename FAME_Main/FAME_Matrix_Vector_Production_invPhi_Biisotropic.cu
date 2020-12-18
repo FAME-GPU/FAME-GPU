@@ -4,12 +4,12 @@
 
 
 static __global__ void dot_pro( int size,
-                                double* B_invPhi,
-                                cuDoubleComplex* temp_vec_y_ele,
-                                cuDoubleComplex* vec_y_ele);
+                                realGPU* B_invPhi,
+                                cmpxGPU* temp_vec_y_ele,
+                                cmpxGPU* vec_y_ele);
 
 void FAME_Matrix_Vector_Production_invPhi_Biisotropic
-	(CULIB_HANDLES cuHandles, int size, double* invPhi, cuDoubleComplex* vec_y_ele_in, cuDoubleComplex* vec_y_ele_out)
+	(CULIB_HANDLES cuHandles, int size, realGPU* invPhi, cmpxGPU* vec_y_ele_in, cmpxGPU* vec_y_ele_out)
 {
 
 	dim3 DimBlock(BLOCK_SIZE,1,1);
@@ -20,9 +20,9 @@ void FAME_Matrix_Vector_Production_invPhi_Biisotropic
 }
 
 static __global__ void dot_pro( int size,
-                                double* B_invPhi,
-                                cuDoubleComplex* temp_vec_y_ele,
-                                cuDoubleComplex* vec_y_ele)
+                                realGPU* B_invPhi,
+                                cmpxGPU* temp_vec_y_ele,
+                                cmpxGPU* vec_y_ele)
 {
     int idx = blockIdx.x*blockDim.x + threadIdx.x;
     if( idx < size )

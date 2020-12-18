@@ -1,21 +1,21 @@
 #include "FAME_Internal_Common.h"
 #include "FAME_CUDA.h"
 
-int FAME_Matrix_B_Isotropic(double* dB_eps, double* dinvB_eps, MATERIAL material, int N)
+int FAME_Matrix_B_Isotropic(realCPU* dB_eps, realCPU* dinvB_eps, MATERIAL material, int N)
 {
 	int i, j;
 	int N3 = N * 3;
 
-	double* B_eps    = (double*) malloc(N3 * sizeof(double));
-	double* invB_eps = (double*) malloc(N3 * sizeof(double));
-	double* temp_ele_permitt_in;
+	realCPU* B_eps    = (realCPU*) malloc(N3 * sizeof(realCPU));
+	realCPU* invB_eps = (realCPU*) malloc(N3 * sizeof(realCPU));
+	realCPU* temp_ele_permitt_in;
 
 	if (material.material_num > material.num_ele_permitt_in)
 	{
-		temp_ele_permitt_in = (double*) malloc(material.material_num * sizeof(double));
+		temp_ele_permitt_in = (realCPU*) malloc(material.material_num * sizeof(realCPU));
 		printf("The input number of num_ele_permitt_in (%d) is less than material_num (%d).\n", material.num_ele_permitt_in, material.material_num);
 		
-		printf("Please input %d ele_permitt_in (in double precision).\n", material.material_num);
+		printf("Please input %d ele_permitt_in (in realCPU precision).\n", material.material_num);
 		for(i = 0; i <material.material_num; i++)
 		{
 			printf("No.%d ele_permitt_in : ", i + 1);
@@ -24,8 +24,8 @@ int FAME_Matrix_B_Isotropic(double* dB_eps, double* dinvB_eps, MATERIAL material
 	}
 	else
 	{
-		temp_ele_permitt_in = (double*) malloc(material.num_ele_permitt_in * sizeof(double));
-		memcpy(temp_ele_permitt_in, material.ele_permitt_in, material.num_ele_permitt_in * sizeof(double));
+		temp_ele_permitt_in = (realCPU*) malloc(material.num_ele_permitt_in * sizeof(realCPU));
+		memcpy(temp_ele_permitt_in, material.ele_permitt_in, material.num_ele_permitt_in * sizeof(realCPU));
 	}
 
 	int temp = N * material.material_num;
@@ -61,8 +61,8 @@ int FAME_Matrix_B_Isotropic(double* dB_eps, double* dinvB_eps, MATERIAL material
         }
     }
 
-	checkCudaErrors(cudaMemcpy(dB_eps,       B_eps, N3 * sizeof(double), cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(dinvB_eps, invB_eps, N3 * sizeof(double), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(dB_eps,       B_eps, N3 * sizeof(realCPU), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(dinvB_eps, invB_eps, N3 * sizeof(realCPU), cudaMemcpyHostToDevice));
 
 	free(B_eps);
 	free(invB_eps);

@@ -18,36 +18,36 @@ int CG_Biiso
 	(	CULIB_HANDLES cuHandles, 
 		FFT_BUFFER 	fft_buffer,
 		MTX_B            mtx_B,
-		double Tol, 
+		realGPU Tol, 
 		int Maxit, 
-		cuDoubleComplex* rhs, 
+		cmpxGPU* rhs, 
 		int Nx, int Ny, int Nz, int Nd, 
-		cuDoubleComplex* D_k, 
-		cuDoubleComplex* D_ks, 
-		cuDoubleComplex* Pi_Qr,
-		cuDoubleComplex* Pi_Pr,
-		cuDoubleComplex* Pi_Qrs,		
-		cuDoubleComplex* Pi_Prs,
-		cuDoubleComplex* vec_y,
+		cmpxGPU* D_k, 
+		cmpxGPU* D_ks, 
+		cmpxGPU* Pi_Qr,
+		cmpxGPU* Pi_Pr,
+		cmpxGPU* Pi_Qrs,		
+		cmpxGPU* Pi_Prs,
+		cmpxGPU* vec_y,
         PROFILE* Profile)
 {
 	//cout << "===========================In CG========================" << endl;
 	int dim = 4 * Nd;
-    double res, temp, b;
+    realGPU res, temp, b;
     cublasStatus_t cublasStatus;
 
-    cuDoubleComplex a, na, dot, r0, r1;
-    cuDoubleComplex one; one.x = 1.0, one.y = 0.0;
+    cmpxGPU a, na, dot, r0, r1;
+    cmpxGPU one; one.x = 1.0, one.y = 0.0;
 
-    cuDoubleComplex* r  = cuHandles.Nd2_temp2;
-    cuDoubleComplex* p  = cuHandles.Nd2_temp3;
-    cuDoubleComplex* Ap = cuHandles.Nd2_temp4;
+    cmpxGPU* r  = cuHandles.Nd2_temp2;
+    cmpxGPU* p  = cuHandles.Nd2_temp3;
+    cmpxGPU* Ap = cuHandles.Nd2_temp4;
 
-    checkCudaErrors(cudaMemset(vec_y, 0, dim * sizeof(cuDoubleComplex)));
+    checkCudaErrors(cudaMemset(vec_y, 0, dim * sizeof(cmpxGPU)));
     // r = rhs - A * x0 = rhs;
-    cublasZcopy_v2(cuHandles.cublas_handle, dim, rhs, 1, r, 1);
+    PC_cublas_copy(cuHandles.cublas_handle, dim, rhs, 1, r, 1);
     // r1 = dot(r, r);
-    cublasStatus = cublasZdotc_v2(cuHandles.cublas_handle, dim, r, 1, r, 1, &r1);
+    cublasStatus = PC_cublas_dot(cuHandles.cublas_handle, dim, r, 1, r, 1, &r1);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
 
@@ -59,15 +59,15 @@ int CG_Biiso
             // r0 & r1 are real.
             // p = r + b * p;
             b = r1.x / r0.x;
-            cublasStatus = cublasZdscal_v2(cuHandles.cublas_handle, dim, &b, p, 1);
+            cublasStatus = PC_cublas_dscal(cuHandles.cublas_handle, dim, &b, p, 1);
             assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
-            cublasStatus = cublasZaxpy_v2(cuHandles.cublas_handle, dim, &one, r, 1, p, 1);
+            cublasStatus = PC_cublas_axpy(cuHandles.cublas_handle, dim, &one, r, 1, p, 1);
             assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
         }
         else
         {
             // p = r;
-            cublasStatus = cublasZcopy_v2(cuHandles.cublas_handle, dim, r, 1, p, 1);
+            cublasStatus = PC_cublas_copy(cuHandles.cublas_handle, dim, r, 1, p, 1);
             assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
         }
 
@@ -76,7 +76,7 @@ int CG_Biiso
         
 
 		// dot = dot(p, Ap);
-        cublasStatus = cublasZdotc_v2(cuHandles.cublas_handle, dim, p, 1, Ap, 1, &dot);
+        cublasStatus = PC_cublas_dot(cuHandles.cublas_handle, dim, p, 1, Ap, 1, &dot);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
         // a = r1 / dot;
@@ -85,19 +85,19 @@ int CG_Biiso
         a.y = -r1.x * dot.y / temp;
 
         // x = a * p + x;
-        cublasStatus = cublasZaxpy_v2(cuHandles.cublas_handle, dim, &a, p, 1, vec_y, 1);
+        cublasStatus = PC_cublas_axpy(cuHandles.cublas_handle, dim, &a, p, 1, vec_y, 1);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
         // na = -a;
         na.x = -a.x;
         na.y = -a.y;
         // r = -a * Ap + r;
-        cublasStatus = cublasZaxpy_v2(cuHandles.cublas_handle, dim, &na, Ap, 1, r, 1);
+        cublasStatus = PC_cublas_axpy(cuHandles.cublas_handle, dim, &na, Ap, 1, r, 1);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
         r0.x = r1.x;
         // r1 = dot(r, r);
-        cublasStatus = cublasZdotc_v2(cuHandles.cublas_handle, dim, r, 1, r, 1, &r1);
+        cublasStatus = PC_cublas_dot(cuHandles.cublas_handle, dim, r, 1, r, 1, &r1);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
         k++;
     }
@@ -117,40 +117,40 @@ int CG_Biiso
 	(	CULIB_HANDLES cuHandles, 
 		FFT_BUFFER fft_buffer,
 		MTX_B            mtx_B,
-		double Tol, 
+		realGPU Tol, 
 		int Maxit, 
-		cuDoubleComplex* rhs, 
+		cmpxGPU* rhs, 
 		int Nx, 
 		int Ny, 
 		int Nz, 
 		int Nd, 
-		cuDoubleComplex* D_kx, 
-		cuDoubleComplex* D_ky, 
-		cuDoubleComplex* D_kz, 
-		cuDoubleComplex* Pi_Qr,
-		cuDoubleComplex* Pi_Pr,
-		cuDoubleComplex* Pi_Qrs,		
-		cuDoubleComplex* Pi_Prs,
-		cuDoubleComplex* vec_y,
+		cmpxGPU* D_kx, 
+		cmpxGPU* D_ky, 
+		cmpxGPU* D_kz, 
+		cmpxGPU* Pi_Qr,
+		cmpxGPU* Pi_Pr,
+		cmpxGPU* Pi_Qrs,		
+		cmpxGPU* Pi_Prs,
+		cmpxGPU* vec_y,
         PROFILE* Profile)
 {
     int dim = 4 * Nd;
-    double res, temp, b;
+    realGPU res, temp, b;
     cublasStatus_t cublasStatus;
 
-    cuDoubleComplex a, na, dot, r0, r1;
-    cuDoubleComplex one; one.x = 1.0, one.y = 0.0;
+    cmpxGPU a, na, dot, r0, r1;
+    cmpxGPU one; one.x = 1.0, one.y = 0.0;
 
-    cuDoubleComplex* r  = cuHandles.Nd2_temp2;
-    cuDoubleComplex* p  = cuHandles.Nd2_temp3;
-    cuDoubleComplex* Ap = cuHandles.Nd2_temp4;
+    cmpxGPU* r  = cuHandles.Nd2_temp2;
+    cmpxGPU* p  = cuHandles.Nd2_temp3;
+    cmpxGPU* Ap = cuHandles.Nd2_temp4;
 
-    checkCudaErrors(cudaMemset(vec_y, 0, dim * sizeof(cuDoubleComplex)));
+    checkCudaErrors(cudaMemset(vec_y, 0, dim * sizeof(cmpxGPU)));
     // r = rhs - A * x0 = rhs;
-    cublasStatus = cublasZcopy_v2(cuHandles.cublas_handle, dim, rhs, 1, r, 1);
+    cublasStatus = PC_cublas_copy(cuHandles.cublas_handle, dim, rhs, 1, r, 1);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
     // r1 = dot(r, r);
-    cublasStatus = cublasZdotc_v2(cuHandles.cublas_handle, dim, r, 1, r, 1, &r1);
+    cublasStatus = PC_cublas_dot(cuHandles.cublas_handle, dim, r, 1, r, 1, &r1);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
     int k = 1;
@@ -161,15 +161,15 @@ int CG_Biiso
             // r0 & r1 are real.
             // p = r + b * p;
             b = r1.x / r0.x;
-            cublasStatus = cublasZdscal_v2(cuHandles.cublas_handle, dim, &b, p, 1);
+            cublasStatus = PC_cublas_dscal(cuHandles.cublas_handle, dim, &b, p, 1);
             assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
-            cublasStatus = cublasZaxpy_v2(cuHandles.cublas_handle, dim, &one, r, 1, p, 1);
+            cublasStatus = PC_cublas_axpy(cuHandles.cublas_handle, dim, &one, r, 1, p, 1);
             assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
         }
         else
         {
             // p = r;
-            cublasStatus = cublasZcopy_v2(cuHandles.cublas_handle, dim, r, 1, p, 1);
+            cublasStatus = PC_cublas_copy(cuHandles.cublas_handle, dim, r, 1, p, 1);
             assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
         }
 
@@ -178,7 +178,7 @@ int CG_Biiso
                 D_kx, D_ky, D_kz, Ap, Profile);	
         // dot = dot(p, Ap);
         
-        cublasStatus = cublasZdotc_v2(cuHandles.cublas_handle, dim, p, 1, Ap, 1, &dot);
+        cublasStatus = PC_cublas_dot(cuHandles.cublas_handle, dim, p, 1, Ap, 1, &dot);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
         // a = r1 / dot;
@@ -187,19 +187,19 @@ int CG_Biiso
         a.y = -r1.x * dot.y / temp;
         
         // x = a * p + x;
-        cublasStatus = cublasZaxpy_v2(cuHandles.cublas_handle, dim, &a, p, 1, vec_y, 1);
+        cublasStatus = PC_cublas_axpy(cuHandles.cublas_handle, dim, &a, p, 1, vec_y, 1);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
         // na = -a;
         na.x = -a.x;
         na.y = -a.y;
         // r = -a * Ap + r;
-        cublasStatus = cublasZaxpy_v2(cuHandles.cublas_handle, dim, &na, Ap, 1, r, 1);
+        cublasStatus = PC_cublas_axpy(cuHandles.cublas_handle, dim, &na, Ap, 1, r, 1);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
         r0.x = r1.x;
         // r1 = dot(r, r);
-        cublasStatus = cublasZdotc_v2(cuHandles.cublas_handle, dim, r, 1, r, 1, &r1);
+        cublasStatus = PC_cublas_dot(cuHandles.cublas_handle, dim, r, 1, r, 1, &r1);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
         k++;
     }

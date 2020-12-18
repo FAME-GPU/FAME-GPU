@@ -16,49 +16,49 @@ Author  : yilin
 Date    : 2018/10/30
 */
 static __global__ void dot_pro_add( int size,
-                                    cuDoubleComplex* B_zeta,
-                                    cuDoubleComplex* vec_y_ele,
-                                    cuDoubleComplex* vec_y_mag,
-                                    cuDoubleComplex* ovec);
+                                    cmpxGPU* B_zeta,
+                                    cmpxGPU* vec_y_ele,
+                                    cmpxGPU* vec_y_mag,
+                                    cmpxGPU* ovec);
 static __global__ void dot_pro_minus(   int size,
-                                        cuDoubleComplex* B_zeta,
-                                        cuDoubleComplex* vec_y_ele,
-                                        cuDoubleComplex* vec_y_mag,
-                                        cuDoubleComplex* ovec);
+                                        cmpxGPU* B_zeta,
+                                        cmpxGPU* vec_y_ele,
+                                        cmpxGPU* vec_y_mag,
+                                        cmpxGPU* ovec);
 
 
 // (Matlab : FAME_Matrix_Vector_Production_Biisotropic_Ar_Simple
 void FAME_Matrix_Vector_Production_Biisotropic_Ar
 		(CULIB_HANDLES cuHandles,
 		 FFT_BUFFER fft_buffer,
-		 cuDoubleComplex* vec_x,
+		 cmpxGPU* vec_x,
 		 MTX_B mtx_B,
 		 int Nx,
 		 int Ny, 
 		 int Nz, 
 		 int Nd,
-		 cuDoubleComplex* Pi_Qr,  
-		 cuDoubleComplex* Pi_Pr,
-		 cuDoubleComplex* Pi_Qrs, 
-		 cuDoubleComplex* Pi_Prs,
-		 cuDoubleComplex* D_k,
-		 cuDoubleComplex* D_ks,
-		 cuDoubleComplex* vec_y,
+		 cmpxGPU* Pi_Qr,  
+		 cmpxGPU* Pi_Pr,
+		 cmpxGPU* Pi_Qrs, 
+		 cmpxGPU* Pi_Prs,
+		 cmpxGPU* D_k,
+		 cmpxGPU* D_ks,
+		 cmpxGPU* vec_y,
 		 PROFILE* Profile)
 {
 	dim3 DimBlock(BLOCK_SIZE,1,1);
     dim3 DimGrid((Nd-1)/BLOCK_SIZE +1,1,1);
 	cublasStatus_t cublasStatus;
 
-	cuDoubleComplex* temp_vec_y_ele;
-	cuDoubleComplex* temp_vec_y_mag;
-	cuDoubleComplex* vec_y_ele;
-	cuDoubleComplex* vec_y_mag;
+	cmpxGPU* temp_vec_y_ele;
+	cmpxGPU* temp_vec_y_mag;
+	cmpxGPU* vec_y_ele;
+	cmpxGPU* vec_y_mag;
 
 
 	int N=Nx*Ny*Nz;
 	int size = 3*N;
-	int memsize = size*sizeof(cuDoubleComplex);
+	int memsize = size*sizeof(cmpxGPU);
 	cudaMalloc((void**)&vec_y_ele, memsize);
 	cudaMalloc((void**)&vec_y_mag, memsize);	
 	cudaMalloc((void**)&temp_vec_y_ele, memsize);
@@ -73,8 +73,8 @@ void FAME_Matrix_Vector_Production_Biisotropic_Ar
 	dot_pro_add<<<DimGrid, DimBlock>>>( N, mtx_B.B_zeta_s, vec_y_ele, vec_y_mag, temp_vec_y_ele); 
 	
 	// temp_vec_y_mag = -vec_y_ele;
-	double alpha = -1.0;
-	cublasStatus=cublasZdscal(cuHandles.cublas_handle, size, &alpha, vec_y_ele, 1); 
+	realGPU alpha = -1.0;
+	cublasStatus=PC_cublas_dscal(cuHandles.cublas_handle, size, &alpha, vec_y_ele, 1); 
 	assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 	
 	checkCudaErrors(cudaMemcpy(vec_y_mag, vec_y_ele, memsize, cudaMemcpyDeviceToDevice));
@@ -100,36 +100,36 @@ void FAME_Matrix_Vector_Production_Biisotropic_Ar
 void FAME_Matrix_Vector_Production_Biisotropic_Ar
         (CULIB_HANDLES cuHandles,
 		 FFT_BUFFER fft_buffer,
-         cuDoubleComplex* vec_x,
+         cmpxGPU* vec_x,
          MTX_B mtx_B,
          int Nx,
          int Ny,
          int Nz,
          int Nd,
-         cuDoubleComplex* Pi_Qr,
-         cuDoubleComplex* Pi_Pr,
-         cuDoubleComplex* Pi_Qrs,
-		 cuDoubleComplex* Pi_Prs,
-		 cuDoubleComplex* D_kx,
-         cuDoubleComplex* D_ky,
-         cuDoubleComplex* D_kz,
-         cuDoubleComplex* vec_y, PROFILE* Profile)
+         cmpxGPU* Pi_Qr,
+         cmpxGPU* Pi_Pr,
+         cmpxGPU* Pi_Qrs,
+		 cmpxGPU* Pi_Prs,
+		 cmpxGPU* D_kx,
+         cmpxGPU* D_ky,
+         cmpxGPU* D_kz,
+         cmpxGPU* vec_y, PROFILE* Profile)
 {
 	dim3 DimBlock(BLOCK_SIZE,1,1);
     dim3 DimGrid((Nd-1)/BLOCK_SIZE +1,1,1);
 	cublasStatus_t cublasStatus;
 
-	cuDoubleComplex* temp_vec_y_ele;
-    cuDoubleComplex* temp_vec_y_mag;
-    cuDoubleComplex* vec_y_ele;
-    cuDoubleComplex* vec_y_mag;
+	cmpxGPU* temp_vec_y_ele;
+    cmpxGPU* temp_vec_y_mag;
+    cmpxGPU* vec_y_ele;
+    cmpxGPU* vec_y_mag;
 
-    //int memsize = 3*Nd*sizeof(cuDoubleComplex);
+    //int memsize = 3*Nd*sizeof(cmpxGPU);
     
 	
 	int N=Nx*Ny*Nz;
 	int size = 3*N;
-    int memsize = size*sizeof(cuDoubleComplex);
+    int memsize = size*sizeof(cmpxGPU);
     checkCudaErrors(cudaMalloc((void**)&vec_y_ele, memsize));
 	checkCudaErrors(cudaMalloc((void**)&vec_y_mag, memsize));
 	checkCudaErrors(cudaMalloc((void**)&temp_vec_y_ele, memsize));
@@ -144,8 +144,8 @@ void FAME_Matrix_Vector_Production_Biisotropic_Ar
 	dot_pro_add<<<DimGrid, DimBlock>>>( N, mtx_B.B_zeta_s, vec_y_ele, vec_y_mag, temp_vec_y_ele);
 
 
-	double alpha = -1.0;
-	cublasStatus = cublasZdscal(cuHandles.cublas_handle, size, &alpha, vec_y_ele, 1);
+	realGPU alpha = -1.0;
+	cublasStatus = PC_cublas_dscal(cuHandles.cublas_handle, size, &alpha, vec_y_ele, 1);
 	assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
     checkCudaErrors(cudaMemcpy(vec_y_mag, vec_y_ele, memsize, cudaMemcpyDeviceToDevice));
 
@@ -166,10 +166,10 @@ void FAME_Matrix_Vector_Production_Biisotropic_Ar
 }
 
 static __global__ void dot_pro_add(	int size,
-									cuDoubleComplex* B_zeta_s, 
-								   	cuDoubleComplex* vec_y_ele, 
-									cuDoubleComplex* vec_y_mag,
-									cuDoubleComplex* ovec)
+									cmpxGPU* B_zeta_s, 
+								   	cmpxGPU* vec_y_ele, 
+									cmpxGPU* vec_y_mag,
+									cmpxGPU* ovec)
 {
 	int idx = blockIdx.x*blockDim.x + threadIdx.x;
 	if( idx < size )
@@ -187,10 +187,10 @@ static __global__ void dot_pro_add(	int size,
 	
 }
 static __global__ void dot_pro_minus( 	int size,
-                                    	cuDoubleComplex* B_zeta,
-                                    	cuDoubleComplex* vec_y_ele,
-                                    	cuDoubleComplex* vec_y_mag,
-                                    	cuDoubleComplex* ovec)
+                                    	cmpxGPU* B_zeta,
+                                    	cmpxGPU* vec_y_ele,
+                                    	cmpxGPU* vec_y_mag,
+                                    	cmpxGPU* ovec)
 {
     int idx = blockIdx.x*blockDim.x + threadIdx.x;
     if( idx < size )

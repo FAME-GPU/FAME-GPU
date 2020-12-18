@@ -13,13 +13,13 @@ Element : n = n1*n2*n3
 	  length of ele_permitt_in = 100;
 */
 
-static __global__ void alpha_ones(int N, double* vec, double alpha, double beta, int* par_idx);
-static __global__ void xi(int N, cuDoubleComplex* vec, double rep_in, double rep_out, double chi_in, double chi_out, int* par_idx);
-static __global__ void zeta(int N, cuDoubleComplex* vec, double rep_in, double rep_out, double chi_in, double chi_out, int* par_idx);
-static __global__ void create_invPhi(int size, double* B_eps, double* B_mu, cuDoubleComplex* B_xi, cuDoubleComplex* B_zeta, double* inv_Phi);
-static __global__ void conjugate(int size, cuDoubleComplex* ivec, cuDoubleComplex* ovec);
+static __global__ void alpha_ones(int N, realCPU* vec, realCPU alpha, realCPU beta, int* par_idx);
+static __global__ void xi(int N, cmpxGPU* vec, realCPU rep_in, realCPU rep_out, realCPU chi_in, realCPU chi_out, int* par_idx);
+static __global__ void zeta(int N, cmpxGPU* vec, realCPU rep_in, realCPU rep_out, realCPU chi_in, realCPU chi_out, int* par_idx);
+static __global__ void create_invPhi(int size, realCPU* B_eps, realCPU* B_mu, cmpxGPU* B_xi, cmpxGPU* B_zeta, realCPU* inv_Phi);
+static __global__ void conjugate(int size, cmpxGPU* ivec, cmpxGPU* ovec);
 
-int FAME_Matrix_B_Biisotropic(int n, MATERIAL material, double* B_eps, double* B_mu, cuDoubleComplex* B_xi, cuDoubleComplex* B_zeta, cuDoubleComplex* B_zeta_s, double* inv_Phi)
+int FAME_Matrix_B_Biisotropic(int n, MATERIAL material, realCPU* B_eps, realCPU* B_mu, cmpxGPU* B_xi, cmpxGPU* B_zeta, cmpxGPU* B_zeta_s, realCPU* inv_Phi)
 {
     printf("in FAME_Matrix_B_Biisotropic\n");
 	int N_material_handle = material.material_num;
@@ -43,7 +43,7 @@ int FAME_Matrix_B_Biisotropic(int n, MATERIAL material, double* B_eps, double* B
 	int* dB_inout;
 	cudaMalloc((void**) &dB_inout, 2*N*sizeof(int));
 
-	double* temp_1 = (double*)calloc(tn, sizeof(double));
+	realCPU* temp_1 = (realCPU*)calloc(tn, sizeof(realCPU));
 
 	for(int ii=0; ii<tn; ii++)
 		temp_1[ii] = material.ele_permitt_out;
@@ -52,16 +52,16 @@ int FAME_Matrix_B_Biisotropic(int n, MATERIAL material, double* B_eps, double* B
 
 	cudaMemcpy(dB_inout, material.Binout, 2*N*sizeof(int), cudaMemcpyHostToDevice);
 
-	cudaMemcpy(B_eps,  temp_1, tn*sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(B_eps,  temp_1, tn*sizeof(realCPU), cudaMemcpyHostToDevice);
 	
-	cudaMemcpy(B_mu,   temp_1, tn*sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(B_mu,   temp_1, tn*sizeof(realCPU), cudaMemcpyHostToDevice);
 
-	cmpx* temp_2 = (cmpx*)calloc(tn, sizeof(cmpx));
+	cmpxCPU* temp_2 = (cmpxCPU*)calloc(tn, sizeof(cmpxCPU));
 	for(int ii=0; ii<tn; ii++)
 		temp_2[ii] = material.reciprocity_out;
 	
-	cudaMemcpy(B_xi,   temp_2, tn*sizeof(cuDoubleComplex), cudaMemcpyHostToDevice);
-	cudaMemcpy(B_zeta, temp_2, tn*sizeof(cuDoubleComplex), cudaMemcpyHostToDevice);
+	cudaMemcpy(B_xi,   temp_2, tn*sizeof(cmpxGPU), cudaMemcpyHostToDevice);
+	cudaMemcpy(B_zeta, temp_2, tn*sizeof(cmpxGPU), cudaMemcpyHostToDevice);
 
 	
 	for(int i = 0; i<N_material_handle; i++)
@@ -105,7 +105,7 @@ int FAME_Matrix_B_Biisotropic(int n, MATERIAL material, double* B_eps, double* B
     return 0;
 }
 
-static __global__ void alpha_ones(int N, double* vec, double alpha, double beta, int* par_idx)
+static __global__ void alpha_ones(int N, realCPU* vec, realCPU alpha, realCPU beta, int* par_idx)
 {
 	int idx = blockIdx.x*blockDim.x + threadIdx.x;
 	if(idx < N)
@@ -115,7 +115,7 @@ static __global__ void alpha_ones(int N, double* vec, double alpha, double beta,
 	}
 }
 
-static __global__ void xi(int N, cuDoubleComplex* vec, double rep_in, double rep_out, double chi_in, double chi_out, int* par_idx)
+static __global__ void xi(int N, cmpxGPU* vec, realCPU rep_in, realCPU rep_out, realCPU chi_in, realCPU chi_out, int* par_idx)
 {
 	int idx = blockIdx.x*blockDim.x + threadIdx.x;
 	if(idx < N)
@@ -126,7 +126,7 @@ static __global__ void xi(int N, cuDoubleComplex* vec, double rep_in, double rep
     }
 }
 
-static __global__ void zeta(int N, cuDoubleComplex* vec, double rep_in, double rep_out, double chi_in, double chi_out, int* par_idx)
+static __global__ void zeta(int N, cmpxGPU* vec, realCPU rep_in, realCPU rep_out, realCPU chi_in, realCPU chi_out, int* par_idx)
 {
 	int idx = blockIdx.x*blockDim.x + threadIdx.x;
 	if(idx < N)
@@ -138,7 +138,7 @@ static __global__ void zeta(int N, cuDoubleComplex* vec, double rep_in, double r
 
 }
 
-static __global__ void conjugate(int size, cuDoubleComplex* ivec, cuDoubleComplex* ovec)
+static __global__ void conjugate(int size, cmpxGPU* ivec, cmpxGPU* ovec)
 {
     int idx = blockIdx.x*blockDim.x + threadIdx.x;
     if( idx < size )
@@ -154,12 +154,12 @@ static __global__ void conjugate(int size, cuDoubleComplex* ivec, cuDoubleComple
     }
 }
 
-static __global__ void create_invPhi(int size, double* B_eps, double* B_mu, cuDoubleComplex* B_xi, cuDoubleComplex* B_zeta, double* inv_Phi)
+static __global__ void create_invPhi(int size, realCPU* B_eps, realCPU* B_mu, cmpxGPU* B_xi, cmpxGPU* B_zeta, realCPU* inv_Phi)
 {
     int idx = blockIdx.x*blockDim.x + threadIdx.x;
     if( idx < size )
     {
-        double tmp;
+        realCPU tmp;
 		tmp = B_eps[idx*3] - (B_xi[idx*3].x*B_zeta[idx*3].x - B_xi[idx*3].y*B_zeta[idx*3].y)/B_mu[idx*3];
         inv_Phi[idx*3] = 1.0/tmp;
 

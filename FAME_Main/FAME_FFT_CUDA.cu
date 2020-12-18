@@ -5,47 +5,47 @@
 #define NN 16
 #define N1 1
 
-static __global__ void D_k_product(cuDoubleComplex* vec_y, cuDoubleComplex* dD_k, cuDoubleComplex* vec_x, int N);
-static __global__ void D_ks_product(cuDoubleComplex* vec_y, cuDoubleComplex* dD_k, cuDoubleComplex* vec_x, int N);
+static __global__ void D_k_product(cmpxGPU* vec_y, cmpxGPU* dD_k, cmpxGPU* vec_x, int N);
+static __global__ void D_ks_product(cmpxGPU* vec_y, cmpxGPU* dD_k, cmpxGPU* vec_x, int N);
 
-static __global__ void ConjMulti_Conj_transpose_1_1616(cuDoubleComplex *odata, cuDoubleComplex *idata, int n1, int n2, int n3, cuDoubleComplex* mtx);
-static __global__ void Dan_Multi_transpose_1_1616(cuDoubleComplex *odata, cuDoubleComplex *idata, int n1, int n2, int n3, cuDoubleComplex* mtx);
-static __global__ void DanMulti_conj(cuDoubleComplex* out, cuDoubleComplex *d_Dan, cuDoubleComplex *p, const int n);
-static __global__ void Dan_Multi_trans(cuDoubleComplex* out, cuDoubleComplex* in, cuDoubleComplex* mtx, int n, int n1, int n2, int n3, int Gx, int Gz, double one_over_Gx, double one_over_Gz, int k2);
-static __global__ void Dan_Multi_Complex_scale(cuDoubleComplex* out, cuDoubleComplex *d_Dan, cuDoubleComplex *p, int n);
-static __global__ void Conj_Dan_trans(cuDoubleComplex* out, cuDoubleComplex* in, cuDoubleComplex* mtx, int n, int n1, int n2, int n3, int Gx, int Gz, double one_over_Gx, double one_over_Gz, int k2);
+static __global__ void ConjMulti_Conj_transpose_1_1616(cmpxGPU *odata, cmpxGPU *idata, int n1, int n2, int n3, cmpxGPU* mtx);
+static __global__ void Dan_Multi_transpose_1_1616(cmpxGPU *odata, cmpxGPU *idata, int n1, int n2, int n3, cmpxGPU* mtx);
+static __global__ void DanMulti_conj(cmpxGPU* out, cmpxGPU *d_Dan, cmpxGPU *p, const int n);
+static __global__ void Dan_Multi_trans(cmpxGPU* out, cmpxGPU* in, cmpxGPU* mtx, int n, int n1, int n2, int n3, int Gx, int Gz, realCPU one_over_Gx, realCPU one_over_Gz, int k2);
+static __global__ void Dan_Multi_Complex_scale(cmpxGPU* out, cmpxGPU *d_Dan, cmpxGPU *p, int n);
+static __global__ void Conj_Dan_trans(cmpxGPU* out, cmpxGPU* in, cmpxGPU* mtx, int n, int n1, int n2, int n3, int Gx, int Gz, realCPU one_over_Gx, realCPU one_over_Gz, int k2);
 
 ////////////=========================== Create FFT (simple) function for Biiso (cuda)===========================//////////////////
-int FFT_CUDA(cuDoubleComplex* vec_y, cuDoubleComplex* vec_x, cuDoubleComplex* dD_ks, FFT_BUFFER fftBuffer, CULIB_HANDLES cuHandles, int Nx, int Ny, int Nz)
+int FFT_CUDA(cmpxGPU* vec_y, cmpxGPU* vec_x, cmpxGPU* dD_ks, FFT_BUFFER fftBuffer, CULIB_HANDLES cuHandles, int Nx, int Ny, int Nz)
 {
 
     int N = Nx * Ny * Nz;
     int N2 = N * 2;
     cufftResult cufftRe;
     cublasStatus_t cublasStatus;
-    double alpha = 1 / sqrt((double)N);
+    realCPU alpha = 1 / sqrt((realCPU)N);
 
     dim3 DimBlock(BLOCK_SIZE, 1, 1);
     dim3 DimGrid((N*3 - 1) / BLOCK_SIZE + 1, 1, 1);
 
-    cuDoubleComplex* temp = fftBuffer.d_A;
+    cmpxGPU* temp = fftBuffer.d_A;
 
     D_ks_product<<<DimGrid, DimBlock>>>(temp, dD_ks, vec_x, N);
 
-    cufftRe = cufftExecZ2Z(cuHandles.cufft_plan, temp,    vec_y,    CUFFT_FORWARD);
+    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, temp,    vec_y,    CUFFT_FORWARD);
     assert( cufftRe == CUFFT_SUCCESS );
-    cufftRe = cufftExecZ2Z(cuHandles.cufft_plan, temp+N,  vec_y+N,  CUFFT_FORWARD);
+    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, temp+N,  vec_y+N,  CUFFT_FORWARD);
     assert( cufftRe == CUFFT_SUCCESS );
-    cufftRe = cufftExecZ2Z(cuHandles.cufft_plan, temp+N2, vec_y+N2, CUFFT_FORWARD);
+    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, temp+N2, vec_y+N2, CUFFT_FORWARD);
     assert( cufftRe == CUFFT_SUCCESS );
 
-    cublasStatus = cublasZdscal_v2(cuHandles.cublas_handle, N * 3, &alpha, vec_y, 1);
+    cublasStatus = PC_cublas_dscal(cuHandles.cublas_handle, N * 3, &alpha, vec_y, 1);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
     return 0;
 }
 
-int IFFT_CUDA(cuDoubleComplex* vec_y, cuDoubleComplex* vec_x, cuDoubleComplex* dD_k, FFT_BUFFER fftBuffer, CULIB_HANDLES cuHandles, int Nx, int Ny, int Nz)
+int IFFT_CUDA(cmpxGPU* vec_y, cmpxGPU* vec_x, cmpxGPU* dD_k, FFT_BUFFER fftBuffer, CULIB_HANDLES cuHandles, int Nx, int Ny, int Nz)
 {
 
     int N = Nx * Ny * Nz;
@@ -55,36 +55,36 @@ int IFFT_CUDA(cuDoubleComplex* vec_y, cuDoubleComplex* vec_x, cuDoubleComplex* d
     dim3 DimBlock(BLOCK_SIZE, 1, 1);
     dim3 DimGrid((N*3 - 1) / BLOCK_SIZE + 1, 1, 1);
     
-    // double alpha = 1.0 / (double)N;
+    // realCPU alpha = 1.0 / (realCPU)N;
     
-    double alpha = 1.0 / sqrt((double) N);
+    realCPU alpha = 1.0 / sqrt((realCPU) N);
 
-    cuDoubleComplex* temp = fftBuffer.d_A;
+    cmpxGPU* temp = fftBuffer.d_A;
 
-    cufftRe = cufftExecZ2Z(cuHandles.cufft_plan, vec_x,    temp,    CUFFT_INVERSE);
+    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, vec_x,    temp,    CUFFT_INVERSE);
     assert( cufftRe == CUFFT_SUCCESS );
 
-    cufftRe = cufftExecZ2Z(cuHandles.cufft_plan, vec_x+N,  temp+N,  CUFFT_INVERSE);
+    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, vec_x+N,  temp+N,  CUFFT_INVERSE);
     assert( cufftRe == CUFFT_SUCCESS );
-    cufftRe = cufftExecZ2Z(cuHandles.cufft_plan, vec_x+N2, temp+N2, CUFFT_INVERSE);
+    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, vec_x+N2, temp+N2, CUFFT_INVERSE);
     assert( cufftRe == CUFFT_SUCCESS );
 
     D_k_product<<<DimGrid, DimBlock>>>(vec_y, dD_k, temp, N);
 
-    cublasStatus =cublasZdscal_v2(cuHandles.cublas_handle, N * 3, &alpha, vec_y, 1);
+    cublasStatus =PC_cublas_dscal(cuHandles.cublas_handle, N * 3, &alpha, vec_y, 1);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
     return 0;
 }
 
 /* main work function */
 int spMV_fastT_gpu( 
-    cuDoubleComplex *out,
-    cuDoubleComplex *p,
+    cmpxGPU *out,
+    cmpxGPU *p,
     CULIB_HANDLES cuHandles,
     FFT_BUFFER *fftBuffer, 
-    cuDoubleComplex *mtx_D_kx,   // D_kx
-    cuDoubleComplex *mtx_D_jx,   // D_ky
-    cuDoubleComplex *mtx_D_jell, // D_kz 
+    cmpxGPU *mtx_D_kx,   // D_kx
+    cmpxGPU *mtx_D_jx,   // D_ky
+    cmpxGPU *mtx_D_jell, // D_kz 
     const int n1, 
     const int n2, 
     const int n3, 
@@ -93,52 +93,53 @@ int spMV_fastT_gpu(
 
     int n = n1*n2*n3;
     cufftResult    cufftErr;
+    cublasStatus_t cublasStatus;
     dim3 DimBlock(BLOCK_SIZE, 1, 1);
     dim3 DimGrid( (n-1)/BLOCK_SIZE+1, 1, 1);
 
     // for Dan_Multi_trans
     int k1, k2, Gx, Gz;
-    double db_n2 = (double)(n2);
+    realCPU db_n2 = (realCPU)(n2);
     Gx = (n1 + BLOCK_DIM_TR-1)/BLOCK_DIM_TR;
     Gz = (n3 + BLOCK_DIM_TR-1)/BLOCK_DIM_TR;
     int max_k1 = (int) floor( sqrt(db_n2));
     for ( k1 = max_k1 ; 1 <= k1 ; k1--){
-        k2 = (int) ceil( db_n2/((double)k1));
+        k2 = (int) ceil( db_n2/((realCPU)k1));
         if ( 1>= (k1*k2 - n2))
             break;
     }
-    double one_over_Gx = 1.0/((double)Gx);
-    double one_over_Gz = 1.0/((double)Gz);
+    realCPU one_over_Gx = 1.0/((realCPU)Gx);
+    realCPU one_over_Gz = 1.0/((realCPU)Gz);
     dim3 DimBlock_dantr(BLOCK_DIM_TR, BLOCK_DIM_TR, 1);
     dim3 DimGrid_dantr(k2*Gz, k1*Gx, 1);
 
     dim3 DimBlock_1616(NN, NN, N1);
-//  dim3 DimGrid_1616((n1-1)/NN +1,(n2-1)/NN +1,(n3-1)/N1 +1);
     dim3 DimGrid_1616((n3-1)/NN +1,(n2-1)/NN +1,(n1-1)/N1 +1);
     switch (flag)
     {
         /* (T) p */
         case 1:
         {
-            cufftErr = cufftExecZ2Z(cuHandles.cufft_plan_1d_z, p, p, CUFFT_INVERSE );
+            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_z, p, p, CUFFT_INVERSE );
             assert(cufftErr == CUFFT_SUCCESS);
 
             Dan_Multi_transpose_1_1616<<<DimGrid_1616, DimBlock_1616>>>(fftBuffer->d_A, p, n1, n2, n3, mtx_D_jell);
             cudaDeviceSynchronize();
 
-            cufftErr = cufftExecZ2Z(cuHandles.cufft_plan_1d_y, fftBuffer->d_A, fftBuffer->d_A, CUFFT_INVERSE );
+            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_y, fftBuffer->d_A, fftBuffer->d_A, CUFFT_INVERSE );
             assert(cufftErr == CUFFT_SUCCESS);
 
             Dan_Multi_trans<<<DimGrid_dantr , DimBlock_dantr>>>(p, fftBuffer->d_A, mtx_D_jx, n, n1, n2, n3, Gx, Gz, one_over_Gx, one_over_Gz, k2);
             cudaDeviceSynchronize();
 
-            cufftErr = cufftExecZ2Z(cuHandles.cufft_plan_1d_x, p, fftBuffer->d_A, CUFFT_INVERSE);
+            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_x, p, fftBuffer->d_A, CUFFT_INVERSE);
             assert(cufftErr == CUFFT_SUCCESS);
 
             Dan_Multi_Complex_scale<<<DimGrid, DimBlock>>>(p, mtx_D_kx, fftBuffer->d_A, n);
             cudaDeviceSynchronize();
 
-            cublasZcopy_v2(cuHandles.cublas_handle, n, p, 1, out, 1);
+            cublasStatus = PC_cublas_copy(cuHandles.cublas_handle, n, p, 1, out, 1);
+            assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
             break;
         }
             /* (T*) p */
@@ -148,22 +149,24 @@ int spMV_fastT_gpu(
             DanMulti_conj<<<DimGrid, DimBlock>>>(fftBuffer->d_A, mtx_D_kx, p, n);
             cudaDeviceSynchronize();
 
-            cufftErr = cufftExecZ2Z(cuHandles.cufft_plan_1d_x, fftBuffer->d_A, fftBuffer->d_A, CUFFT_FORWARD );
+            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_x, fftBuffer->d_A, fftBuffer->d_A, CUFFT_FORWARD );
+
             assert(cufftErr == CUFFT_SUCCESS);
 
             Conj_Dan_trans<<<DimGrid_dantr, DimBlock_dantr>>>(p, fftBuffer->d_A, mtx_D_jx, n, n1, n2, n3, Gx, Gz, one_over_Gx, one_over_Gz, k2);
             cudaDeviceSynchronize();
 
-            cufftErr = cufftExecZ2Z(cuHandles.cufft_plan_1d_y, p, fftBuffer->d_A, CUFFT_FORWARD );
+            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_y, p, fftBuffer->d_A, CUFFT_FORWARD );
             assert(cufftErr == CUFFT_SUCCESS);
 
             ConjMulti_Conj_transpose_1_1616<<<DimGrid_1616, DimBlock_1616>>>(p, fftBuffer->d_A, n1, n2, n3, mtx_D_jell);
             cudaDeviceSynchronize();
 
-            cufftErr = cufftExecZ2Z(cuHandles.cufft_plan_1d_z, p, p, CUFFT_FORWARD );
+            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_z, p, p, CUFFT_FORWARD );
             assert(cufftErr == CUFFT_SUCCESS);
 
-            cublasZcopy_v2(cuHandles.cublas_handle, n, p, 1, out, 1);
+            cublasStatus = PC_cublas_copy(cuHandles.cublas_handle, n, p, 1, out, 1);
+            assert(cublasStatus == CUBLAS_STATUS_SUCCESS);
             break;
         }
         default:
@@ -176,7 +179,7 @@ int spMV_fastT_gpu(
     return 0;
 }
 
-static __global__ void D_k_product(cuDoubleComplex* vec_y, cuDoubleComplex* dD_k, cuDoubleComplex* vec_x, int N)
+static __global__ void D_k_product(cmpxGPU* vec_y, cmpxGPU* dD_k, cmpxGPU* vec_x, int N)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if(idx < N * 3)
@@ -186,7 +189,7 @@ static __global__ void D_k_product(cuDoubleComplex* vec_y, cuDoubleComplex* dD_k
     }
 }
 
-static __global__ void D_ks_product(cuDoubleComplex* vec_y, cuDoubleComplex* dD_ks, cuDoubleComplex* vec_x, int N)
+static __global__ void D_ks_product(cmpxGPU* vec_y, cmpxGPU* dD_ks, cmpxGPU* vec_x, int N)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if(idx < N * 3)
@@ -197,9 +200,9 @@ static __global__ void D_ks_product(cuDoubleComplex* vec_y, cuDoubleComplex* dD_
 }
 
 // matrix-vector multiplication A*x (a_H.*b)
-static __global__ void DanMulti_conj(cuDoubleComplex* out, cuDoubleComplex *d_Dan, cuDoubleComplex *p, const int n){
+static __global__ void DanMulti_conj(cmpxGPU* out, cmpxGPU *d_Dan, cmpxGPU *p, const int n){
 
-    __shared__ cuDoubleComplex tmp1[BLOCK_SIZE], tmp2[BLOCK_SIZE];
+    __shared__ cmpxGPU tmp1[BLOCK_SIZE], tmp2[BLOCK_SIZE];
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(idx<n){
@@ -212,9 +215,9 @@ static __global__ void DanMulti_conj(cuDoubleComplex* out, cuDoubleComplex *d_Da
 }
 
 // (x,y,z) -> (y,z,x)
-static __global__ void Dan_Multi_trans(cuDoubleComplex* out, cuDoubleComplex* in, cuDoubleComplex* mtx, int n, int n1, int n2, int n3, int Gx, int Gz, double one_over_Gx, double one_over_Gz, int k2)
-{   __shared__ cuDoubleComplex block[BLOCK_DIM_TR][BLOCK_DIM_TR+3];
-    double tmp1;
+static __global__ void Dan_Multi_trans(cmpxGPU* out, cmpxGPU* in, cmpxGPU* mtx, int n, int n1, int n2, int n3, int Gx, int Gz, realCPU one_over_Gx, realCPU one_over_Gz, int k2)
+{   __shared__ cmpxGPU block[BLOCK_DIM_TR][BLOCK_DIM_TR+3];
+    realCPU tmp1;
     int s1, s2, t1, t2;
     int xIndex, yIndex, zIndex;
     int index_in, index_out;
@@ -235,8 +238,8 @@ static __global__ void Dan_Multi_trans(cuDoubleComplex* out, cuDoubleComplex* in
     xIndex   = t2 * BLOCK_DIM_TR + threadIdx.y;
     if ((yIndex < n2) && (xIndex < n1) && (zIndex < n3)){
         index_in = (xIndex * n2 + yIndex) * n3 + zIndex;
-        cuDoubleComplex input = in[index_in];
-        cuDoubleComplex dan = mtx[index_in];
+        cmpxGPU input = in[index_in];
+        cmpxGPU dan = mtx[index_in];
         block[threadIdx.y][threadIdx.x].x = input.x * dan.x - input.y * dan.y;
         block[threadIdx.y][threadIdx.x].y = input.y * dan.x + input.x * dan.y;
         //      block[threadIdx.y][threadIdx.x] = in[index_in];
@@ -250,8 +253,8 @@ static __global__ void Dan_Multi_trans(cuDoubleComplex* out, cuDoubleComplex* in
     }
 
 }
-static __global__ void Dan_Multi_Complex_scale(cuDoubleComplex* out, cuDoubleComplex *d_Dan, cuDoubleComplex *p, int n){
-    __shared__ cuDoubleComplex tmp1[BLOCK_SIZE], tmp2[BLOCK_SIZE];
+static __global__ void Dan_Multi_Complex_scale(cmpxGPU* out, cmpxGPU *d_Dan, cmpxGPU *p, int n){
+    __shared__ cmpxGPU tmp1[BLOCK_SIZE], tmp2[BLOCK_SIZE];
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx<n){
@@ -263,8 +266,8 @@ static __global__ void Dan_Multi_Complex_scale(cuDoubleComplex* out, cuDoubleCom
 
 }
 
-static __global__ void Conj_Dan_trans(cuDoubleComplex* out, cuDoubleComplex* in, cuDoubleComplex* mtx, int n, int n1, int n2, int n3, int Gx, int Gz, double one_over_Gx, double one_over_Gz, int k2)
-{   __shared__ cuDoubleComplex block[BLOCK_DIM_TR][BLOCK_DIM_TR+2];
+static __global__ void Conj_Dan_trans(cmpxGPU* out, cmpxGPU* in, cmpxGPU* mtx, int n, int n1, int n2, int n3, int Gx, int Gz, realCPU one_over_Gx, realCPU one_over_Gz, int k2)
+{   __shared__ cmpxGPU block[BLOCK_DIM_TR][BLOCK_DIM_TR+2];
     float tmp1;
     int s1, s2, t1, t2;
     int xIndex, yIndex, zIndex;
@@ -297,9 +300,9 @@ static __global__ void Conj_Dan_trans(cuDoubleComplex* out, cuDoubleComplex* in,
     }
 
 }
-static __global__ void Dan_Multi_transpose_1_1616(cuDoubleComplex *odata, cuDoubleComplex *idata, int n1, int n2, int n3, cuDoubleComplex* mtx)
+static __global__ void Dan_Multi_transpose_1_1616(cmpxGPU *odata, cmpxGPU *idata, int n1, int n2, int n3, cmpxGPU* mtx)
 {
-    __shared__ cuDoubleComplex block[NN][NN+1];
+    __shared__ cmpxGPU block[NN][NN+1];
     // read the matrix tile into shared memory
     int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
     int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
@@ -324,16 +327,19 @@ static __global__ void Dan_Multi_transpose_1_1616(cuDoubleComplex *odata, cuDoub
         odata[index_out] = block[threadIdx.x][threadIdx.y];
     }
 }
-static __global__ void ConjMulti_Conj_transpose_1_1616(cuDoubleComplex *odata, cuDoubleComplex *idata, int n1, int n2, int n3, cuDoubleComplex* mtx)
+static __global__ void ConjMulti_Conj_transpose_1_1616(cmpxGPU *odata, cmpxGPU *idata, int n1, int n2, int n3, cmpxGPU* mtx)
 {
-    __shared__ cuDoubleComplex block[NN][NN+1];
+    __shared__ cmpxGPU block[NN][NN+1];
     // read the matrix tile into shared memory
+//  uint xIndex = blockIdx.x * blockDim.x + threadIdx.x;
+//  uint yIndex = blockIdx.y * blockDim.y + threadIdx.y;
     int xIndex = blockIdx.y * blockDim.y + threadIdx.x;
     int yIndex = blockIdx.x * blockDim.x + threadIdx.y;
     int zIndex = blockIdx.z * blockDim.z + threadIdx.z;
-
+//  if( xIndex < n1 && yIndex < n2 && zIndex < n3 )
     if( xIndex < n2 && yIndex < n3 && zIndex < n1 )
     {
+//      uint index_in = zIndex * n1 * n2 + yIndex * n2 + xIndex;
         int index_in = zIndex * n2 * n3 + yIndex * n2 + xIndex;
         block[threadIdx.y][threadIdx.x] = idata[index_in];
 
@@ -342,11 +348,14 @@ static __global__ void ConjMulti_Conj_transpose_1_1616(cuDoubleComplex *odata, c
 
 
     // write the transposed matrix tile to global memory
+//  xIndex = blockIdx.y * blockDim.y + threadIdx.x;
+//  yIndex = blockIdx.x * blockDim.x + threadIdx.y;
     xIndex = blockIdx.x * blockDim.x + threadIdx.x;
     yIndex = blockIdx.y * blockDim.y + threadIdx.y;
-
+//  if( xIndex < n1 && yIndex <  n2 && zIndex < n3)
     if( xIndex < n3 && yIndex <  n2 && zIndex < n1)
     {
+//      uint index_out = zIndex * n1 * n2 + yIndex * n1 + xIndex;
         int index_out = zIndex * n2 * n3 + yIndex * n3 + xIndex;
         odata[index_out].x = mtx[index_out].x * block[threadIdx.x][threadIdx.y].x + mtx[index_out].y * block[threadIdx.x][threadIdx.y].y;
         odata[index_out].y = mtx[index_out].x * block[threadIdx.x][threadIdx.y].y - mtx[index_out].y * block[threadIdx.x][threadIdx.y].x;

@@ -3,25 +3,25 @@
 #include "FAME_Matrix_Vector_Production_Qr.cuh"
 #include "FAME_Matrix_Vector_Production_Qrs.cuh"
 
-static __global__ void dot_product(cuDoubleComplex* vec_y, double* invB_eps, int size);
+static __global__ void dot_product(cmpxGPU* vec_y, realGPU* invB_eps, int size);
 
 int FAME_Matrix_Vector_Production_Isotropic_QBQ(
-	cuDoubleComplex* vec_y,
-	cuDoubleComplex* vec_x,
+	cmpxGPU* vec_y,
+	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles,
 	FFT_BUFFER       fft_buffer,
 	MTX_B            mtx_B,
-	cuDoubleComplex* D_k,
-	cuDoubleComplex* D_ks,
-	cuDoubleComplex* Pi_Qr,
-	cuDoubleComplex* Pi_Qrs,
+	cmpxGPU* D_k,
+	cmpxGPU* D_ks,
+	cmpxGPU* Pi_Qr,
+	cmpxGPU* Pi_Qrs,
 	int Nx, int Ny, int Nz, int Nd,
 	PROFILE* Profile)
 {
     int N = Nx * Ny * Nz;
     int N3 = N * 3;
 
-	cuDoubleComplex* vec_y_1 = cuHandles.N3_temp1;
+	cmpxGPU* vec_y_1 = cuHandles.N3_temp1;
 
 	dim3 DimBlock(BLOCK_SIZE, 1, 1);
     dim3 DimGrid((N3 - 1) / BLOCK_SIZE + 1, 1, 1);
@@ -36,23 +36,23 @@ int FAME_Matrix_Vector_Production_Isotropic_QBQ(
 }
 
 int FAME_Matrix_Vector_Production_Isotropic_QBQ(
-	cuDoubleComplex* vec_y,
-	cuDoubleComplex* vec_x,
+	cmpxGPU* vec_y,
+	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles,
 	FFT_BUFFER       fft_buffer,
 	MTX_B            mtx_B,
-	cuDoubleComplex* D_kx,
-	cuDoubleComplex* D_ky,
-	cuDoubleComplex* D_kz,
-	cuDoubleComplex* Pi_Qr,
-	cuDoubleComplex* Pi_Qrs,
+	cmpxGPU* D_kx,
+	cmpxGPU* D_ky,
+	cmpxGPU* D_kz,
+	cmpxGPU* Pi_Qr,
+	cmpxGPU* Pi_Qrs,
 	int Nx, int Ny, int Nz, int Nd,
 	PROFILE* Profile)
 {
     int N = Nx * Ny * Nz;
     int N3 = N * 3;
 
-	cuDoubleComplex* vec_y_1 = cuHandles.N3_temp1;
+	cmpxGPU* vec_y_1 = cuHandles.N3_temp1;
 
 	dim3 DimBlock(BLOCK_SIZE, 1, 1);
     dim3 DimGrid((N3 - 1) / BLOCK_SIZE + 1, 1, 1);
@@ -68,7 +68,7 @@ int FAME_Matrix_Vector_Production_Isotropic_QBQ(
     return 0;
 }
 
-static __global__ void dot_product(cuDoubleComplex* vec_y, double* invB_eps, int size)
+static __global__ void dot_product(cmpxGPU* vec_y, realGPU* invB_eps, int size)
 {
 	int idx = blockIdx.x*blockDim.x + threadIdx.x;
 	if (idx < size)

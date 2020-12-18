@@ -5,23 +5,22 @@
 
 #include "printDeviceArray.cuh"
 
-#define BLOCK_SIZE 256
-void givens(double* c, double* s, double a, double b);
+void givens(realGPU* c, realGPU* s, realGPU a, realGPU b);
 
-int Lanczos_LockPurge(CULIB_HANDLES cuHandles,  LANCZOS_BUFFER* lBuffer, cuDoubleComplex* ev, 
+int Lanczos_LockPurge(CULIB_HANDLES cuHandles,  LANCZOS_BUFFER* lBuffer, cmpxGPU* ev, 
     int length, int Nstep, int size)
 {   
     int     j, i;
-    double c  = 0;
-    double s  = 0;
-    double zj,zjj;
-    double temp[4],gamma;
+    realGPU c  = 0;
+    realGPU s  = 0;
+    realGPU zj,zjj;
+    realGPU temp[4],gamma;
     dim3 DimBlock( BLOCK_SIZE, 1, 1);
     dim3 DimGrid( (size-1)/BLOCK_SIZE +1, 1, 1);
 
-    double* LT0 = lBuffer->LT0;
-    double* beta = lBuffer->T2;
-    cmpx *z = lBuffer->z;
+    realGPU* LT0 = lBuffer->LT0;
+    realGPU* beta = lBuffer->T2;
+    cmpxCPU *z = lBuffer->z;
  
     
     for (i=0;i<length;i++)
@@ -55,7 +54,7 @@ int Lanczos_LockPurge(CULIB_HANDLES cuHandles,  LANCZOS_BUFFER* lBuffer, cuDoubl
         }
 
         //ev=ev*G';
-        cublasStatus=cublasZdrot_v2(cublas_handle, size, ev+j*size, 1, ev+(j+1)*size, 1, &c, &s);
+        cublasStatus=PC_cublas_rot(cublas_handle, size, ev+j*size, 1, ev+(j+1)*size, 1, &c, &s);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 
         if(j>0)
@@ -80,7 +79,7 @@ int Lanczos_LockPurge(CULIB_HANDLES cuHandles,  LANCZOS_BUFFER* lBuffer, cuDoubl
                     beta[i-2]=c*beta[i-2];
                 }
 
-                cublasStatus=cublasZdrot_v2(cublas_handle, size, ev+(i-1)*size, 1, ev+i*size, 1, &c, &s);
+                cublasStatus=PC_cublas_rot(cublas_handle, size, ev+(i-1)*size, 1, ev+i*size, 1, &c, &s);
                 assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
             }
 
@@ -93,9 +92,9 @@ int Lanczos_LockPurge(CULIB_HANDLES cuHandles,  LANCZOS_BUFFER* lBuffer, cuDoubl
 }
 
 
-void givens(double* c, double* s, double a, double b)
+void givens(realGPU* c, realGPU* s, realGPU a, realGPU b)
 {
-    double t;
+    realGPU t;
     if (fabs(b) < 1e-15)
     {
         c[0]=1;s[0]=0;

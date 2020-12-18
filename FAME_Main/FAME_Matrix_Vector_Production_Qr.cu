@@ -3,16 +3,16 @@
 #include "FAME_FFT_CUDA.cuh"
 #include "printDeviceArray.cuh"
 
-static __global__ void vp_add_vp(int size, cuDoubleComplex* L_1, cuDoubleComplex* L_2, cuDoubleComplex* vec_1, cuDoubleComplex* vec_2,cuDoubleComplex* vec_out);
+static __global__ void vp_add_vp(int size, cmpxGPU* L_1, cmpxGPU* L_2, cmpxGPU* vec_1, cmpxGPU* vec_2,cmpxGPU* vec_out);
 ////////////=========================== Create Qr function for Biiso (cuda)===========================//////////////////
 
 int FAME_Matrix_Vector_Production_Qr(
-	cuDoubleComplex* vec_y,
-	cuDoubleComplex* vec_x,
+	cmpxGPU* vec_y,
+	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles, 
 	FFT_BUFFER       fft_buffer, 
-	cuDoubleComplex* D_k, 
-	cuDoubleComplex* Pi_Qr,
+	cmpxGPU* D_k, 
+	cmpxGPU* Pi_Qr,
 	int Nx, int Ny, int Nz, int Nd, PROFILE* Profile)
 {
     int N  = Nx * Ny * Nz;
@@ -23,10 +23,10 @@ int FAME_Matrix_Vector_Production_Qr(
     dim3 DimGrid((Nd - 1)/BLOCK_SIZE +1, 1, 1);	
 	
 	// cuHandles.N3_temp2 is used in QBQ
-	cuDoubleComplex* temp = cuHandles.N3_temp2;	
+	cmpxGPU* temp = cuHandles.N3_temp2;	
 	
 
-	checkCudaErrors(cudaMemset(temp, 0, N3 * sizeof(cuDoubleComplex)));
+	checkCudaErrors(cudaMemset(temp, 0, N3 * sizeof(cmpxGPU)));
 
     //temp = Pi_Qr * vec_x
     vp_add_vp<<<DimGrid, DimBlock>>>(Nd, Pi_Qr,      Pi_Qr+3*Nd, vec_x, vec_x+Nd, temp+N-Nd);
@@ -45,14 +45,14 @@ int FAME_Matrix_Vector_Production_Qr(
 }
 
 int FAME_Matrix_Vector_Production_Qr(
-	cuDoubleComplex* vec_y,
-	cuDoubleComplex* vec_x,
+	cmpxGPU* vec_y,
+	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles, 
 	FFT_BUFFER       fft_buffer, 
-	cuDoubleComplex* D_kx, 
-	cuDoubleComplex* D_ky, 
-	cuDoubleComplex* D_kz, 
-	cuDoubleComplex* Pi_Qr,
+	cmpxGPU* D_kx, 
+	cmpxGPU* D_ky, 
+	cmpxGPU* D_kz, 
+	cmpxGPU* Pi_Qr,
 	int Nx, int Ny, int Nz, int Nd,PROFILE* Profile)
 {
     int N  = Nx * Ny * Nz;
@@ -60,15 +60,15 @@ int FAME_Matrix_Vector_Production_Qr(
     int N3 = N * 3;
 
     // cuHandles.N3_temp2 is used in QBQ
-    cuDoubleComplex* temp = cuHandles.N3_temp2;
-	//cuDoubleComplex* temp;
-	//checkCudaErrors(cudaMalloc((void**)&temp, N3*sizeof(cuDoubleComplex)));
+    cmpxGPU* temp = cuHandles.N3_temp2;
+	//cmpxGPU* temp;
+	//checkCudaErrors(cudaMalloc((void**)&temp, N3*sizeof(cmpxGPU)));
 
     dim3 DimBlock(BLOCK_SIZE, 1, 1);
     dim3 DimGrid((Nd - 1)/BLOCK_SIZE +1, 1, 1);
 
 	// Initial
-	checkCudaErrors(cudaMemset(temp, 0, N3 * sizeof(cuDoubleComplex)));
+	checkCudaErrors(cudaMemset(temp, 0, N3 * sizeof(cmpxGPU)));
 	
 
 	
@@ -87,7 +87,7 @@ int FAME_Matrix_Vector_Production_Qr(
 }
 
 // temp = Pi_Qr_1 dot vec_1 + Pi_Qr_2 dot vec_2
-static __global__ void vp_add_vp(int size, cuDoubleComplex* L_1, cuDoubleComplex* L_2, cuDoubleComplex* vec_1, cuDoubleComplex* vec_2,cuDoubleComplex* vec_out)
+static __global__ void vp_add_vp(int size, cmpxGPU* L_1, cmpxGPU* L_2, cmpxGPU* vec_1, cmpxGPU* vec_2,cmpxGPU* vec_out)
 {
     int idx = blockIdx.x*blockDim.x + threadIdx.x;
     if (idx < size)

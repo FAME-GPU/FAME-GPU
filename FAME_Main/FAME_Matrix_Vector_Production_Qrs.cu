@@ -2,15 +2,15 @@
 #include "FAME_CUDA.h"
 #include "FAME_FFT_CUDA.cuh"
 
-static __global__ void vp_add_vp_add_vp(int N, int Nd, int Nd_2, cuDoubleComplex* L, cuDoubleComplex* vec, cuDoubleComplex* vec_out);
+static __global__ void vp_add_vp_add_vp(int N, int Nd, int Nd_2, cmpxGPU* L, cmpxGPU* vec, cmpxGPU* vec_out);
 ////////////=========================== Create Qrs function for Biiso (cuda)===========================//////////////////
 int FAME_Matrix_Vector_Production_Qrs(
-	cuDoubleComplex* vec_y,
-	cuDoubleComplex* vec_x,
+	cmpxGPU* vec_y,
+	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles, 
 	FFT_BUFFER       fft_buffer, 
-	cuDoubleComplex* D_ks, 
-	cuDoubleComplex* Pi_Qrs, 
+	cmpxGPU* D_ks, 
+	cmpxGPU* Pi_Qrs, 
 	int Nx, int Ny, int Nz, int Nd, PROFILE* Profile)
 {
     int N   = Nx * Ny * Nz;
@@ -33,14 +33,14 @@ int FAME_Matrix_Vector_Production_Qrs(
 }
 
 int FAME_Matrix_Vector_Production_Qrs(
-	cuDoubleComplex* vec_y,
-	cuDoubleComplex* vec_x,
+	cmpxGPU* vec_y,
+	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles, 
 	FFT_BUFFER       fft_buffer, 
-	cuDoubleComplex* D_kx, 
-	cuDoubleComplex* D_ky, 
-	cuDoubleComplex* D_kz, 
-	cuDoubleComplex* Pi_Qrs, 
+	cmpxGPU* D_kx, 
+	cmpxGPU* D_ky, 
+	cmpxGPU* D_kz, 
+	cmpxGPU* Pi_Qrs, 
 	int Nx, int Ny, int Nz, int Nd, PROFILE* Profile)
 {
 
@@ -66,7 +66,7 @@ int FAME_Matrix_Vector_Production_Qrs(
  	return 0;
 }
 
-static __global__ void vp_add_vp_add_vp(int N, int Nd, int Nd_2, cuDoubleComplex* L, cuDoubleComplex* vec, cuDoubleComplex* vec_out)
+static __global__ void vp_add_vp_add_vp(int N, int Nd, int Nd_2, cmpxGPU* L, cmpxGPU* vec, cmpxGPU* vec_out)
 {
     int idx = blockIdx.x*blockDim.x + threadIdx.x;
     if(idx < Nd)

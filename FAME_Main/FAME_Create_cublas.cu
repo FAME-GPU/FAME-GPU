@@ -13,16 +13,16 @@ int FAME_Create_cublas(CULIB_HANDLES* cuHandles, int Nx, int Ny, int Nz)
     cublasErr = cublasSetPointerMode(cuHandles->cublas_handle, CUBLAS_POINTER_MODE_HOST);
     assert(cublasErr == CUBLAS_STATUS_SUCCESS);
 
-    cufftErr = cufftPlan1d(&cuHandles->cufft_plan_1d_x, Nx, CUFFT_Z2Z, Ny*Nz);
+    cufftErr = cufftPlan1d(&cuHandles->cufft_plan_1d_x, Nx, PC_cufft_type, Ny*Nz);
     assert(cufftErr == CUFFT_SUCCESS);
 
-    cufftErr = cufftPlan1d(&cuHandles->cufft_plan_1d_y, Ny, CUFFT_Z2Z, Nx*Nz);
+    cufftErr = cufftPlan1d(&cuHandles->cufft_plan_1d_y, Ny, PC_cufft_type, Nx*Nz);
     assert(cufftErr == CUFFT_SUCCESS);
 
-    cufftErr = cufftPlan1d(&cuHandles->cufft_plan_1d_z, Nz, CUFFT_Z2Z, Nx*Ny);
+    cufftErr = cufftPlan1d(&cuHandles->cufft_plan_1d_z, Nz, PC_cufft_type, Nx*Ny);
     assert(cufftErr == CUFFT_SUCCESS);
 
-    cufftErr = cufftPlan3d(&cuHandles->cufft_plan, Nz, Ny, Nx, CUFFT_Z2Z);
+    cufftErr = cufftPlan3d(&cuHandles->cufft_plan, Nz, Ny, Nx, PC_cufft_type);
     assert(cufftErr == CUFFT_SUCCESS);
 
     return 0;

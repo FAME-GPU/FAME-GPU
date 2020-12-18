@@ -4,17 +4,17 @@
 //#include <iostream>
 //using namespace std;
 
-void FAME_Matrix_Curl_Simple( double* wave_vec,int* grid_num, double* edge_len, double* mesh_len, LATTICE lattice,
-						      int* C1_r, int* C1_c, cmpx* C1_v,
-						      int* C2_r, int* C2_c, cmpx* C2_v,
-						      int* C3_r, int* C3_c, cmpx* C3_v);
-void FAME_Matrix_Curl_General( double* wave_vec,int* grid_num, double* edge_len, double* mesh_len, LATTICE lattice,
-						       int* C1_r, int* C1_c, cmpx* C1_v,
-						       int* C2_r, int* C2_c, cmpx* C2_v,
-						       int* C3_r, int* C3_c, cmpx* C3_v);
-void spMTX_FDM_1d_quasiperiodic(int dim , double mesh_len, cmpx theta, int* K_row, int* K_col, cmpx* K_val);
-void spMTX_FDM_2d_quasiperiodic(int dim2, int dim1, double mesh_len, cmpx theta, int* K_row, int* K_col, cmpx* K_val);
-void spMTX_FDM_3d_quasiperiodic(int dim3, int dim2, int dim1, double mesh_len, cmpx theta, int* K_row, int* K_col, cmpx* K_val);
+void FAME_Matrix_Curl_Simple( realCPU* wave_vec,int* grid_num, realCPU* edge_len, realCPU* mesh_len, LATTICE lattice,
+						      int* C1_r, int* C1_c, cmpxCPU* C1_v,
+						      int* C2_r, int* C2_c, cmpxCPU* C2_v,
+						      int* C3_r, int* C3_c, cmpxCPU* C3_v);
+void FAME_Matrix_Curl_General( realCPU* wave_vec,int* grid_num, realCPU* edge_len, realCPU* mesh_len, LATTICE lattice,
+						       int* C1_r, int* C1_c, cmpxCPU* C1_v,
+						       int* C2_r, int* C2_c, cmpxCPU* C2_v,
+						       int* C3_r, int* C3_c, cmpxCPU* C3_v);
+void spMTX_FDM_1d_quasiperiodic(int dim , realCPU mesh_len, cmpxCPU theta, int* K_row, int* K_col, cmpxCPU* K_val);
+void spMTX_FDM_2d_quasiperiodic(int dim2, int dim1, realCPU mesh_len, cmpxCPU theta, int* K_row, int* K_col, cmpxCPU* K_val);
+void spMTX_FDM_3d_quasiperiodic(int dim3, int dim2, int dim1, realCPU mesh_len, cmpxCPU theta, int* K_row, int* K_col, cmpxCPU* K_val);
 
 void speye(int dim, int* row, int* col, int* val)
 {
@@ -26,9 +26,9 @@ void speye(int dim, int* row, int* col, int* val)
 	}
 }
 
-double dot(double* array1, double* array2, int len)
+realCPU dot(realCPU* array1, realCPU* array2, int len)
 {
-    double sum = 0.0;
+    realCPU sum = 0.0;
     for( int i = 0; i < len; i++ )
     	sum += array1[i]*array2[i];
     return sum;
@@ -49,8 +49,8 @@ int spkron_mm(int*  row1, int*  col1, int*  val1, int size1, int len1,
 }
 
 int spkron_mm( int*  row1, int*  col1,  int*  val1, int size1, int len1,
-	         int*  row2, int*  col2, cmpx*  val2, int size2, int len2,
-	         int* out_r, int* out_c, cmpx* out_v)
+	         int*  row2, int*  col2, cmpxCPU*  val2, int size2, int len2,
+	         int* out_r, int* out_c, cmpxCPU* out_v)
 {
     for( int i = 0; i < len1; i++ )
         for( int j = 0; j < len2; j++ )
@@ -62,9 +62,9 @@ int spkron_mm( int*  row1, int*  col1,  int*  val1, int size1, int len1,
     return 0;
 }
 
-int spkron_mm( int*  row1, int*  col1, cmpx*  val1, int size1, int len1,
+int spkron_mm( int*  row1, int*  col1, cmpxCPU*  val1, int size1, int len1,
 	         int*  row2, int*  col2,  int*  val2, int size2, int len2,
-	         int* out_r, int* out_c, cmpx* out_v)
+	         int* out_r, int* out_c, cmpxCPU* out_v)
 {
     for( int i = 0; i < len1; i++ )
         for( int j = 0; j < len2; j++ )
@@ -76,9 +76,9 @@ int spkron_mm( int*  row1, int*  col1, cmpx*  val1, int size1, int len1,
     return 0;
 }
 
-int spkron_mm( int*  row1, int*  col1, cmpx*  val1, int size1, int len1,
-	         int*  row2, int*  col2, cmpx*  val2, int size2, int len2,
-	         int* out_r, int* out_c, cmpx* out_v)
+int spkron_mm( int*  row1, int*  col1, cmpxCPU*  val1, int size1, int len1,
+	         int*  row2, int*  col2, cmpxCPU*  val2, int size2, int len2,
+	         int* out_r, int* out_c, cmpxCPU* out_v)
 {
     for( int i = 0; i < len1; i++ )
         for( int j = 0; j < len2; j++ )
@@ -90,7 +90,7 @@ int spkron_mm( int*  row1, int*  col1, cmpx*  val1, int size1, int len1,
     return 0;
 }
 
-int FAME_Matrix_Curl(MTX_C* mtx_C, double* wave_vec,int* grid_num, double* edge_len, double* mesh_len, LATTICE lattice)
+int FAME_Matrix_Curl(MTX_C* mtx_C, realCPU* wave_vec,int* grid_num, realCPU* edge_len, realCPU* mesh_len, LATTICE lattice)
 {
 	if( (strcmp(lattice.lattice_type, "simple_cubic"          ) == 0) || \
 		(strcmp(lattice.lattice_type, "primitive_orthorhombic") == 0) || \
@@ -134,21 +134,21 @@ int FAME_Matrix_Curl(MTX_C* mtx_C, double* wave_vec,int* grid_num, double* edge_
 	return 0;
 }
 
-void FAME_Matrix_Curl_Simple( double* wave_vec,int* grid_num, double* edge_len, double* mesh_len, LATTICE lattice,
-						    int* C1_r, int* C1_c, cmpx* C1_v,
-						    int* C2_r, int* C2_c, cmpx* C2_v,
-						    int* C3_r, int* C3_c, cmpx* C3_v )
+void FAME_Matrix_Curl_Simple( realCPU* wave_vec,int* grid_num, realCPU* edge_len, realCPU* mesh_len, LATTICE lattice,
+						    int* C1_r, int* C1_c, cmpxCPU* C1_v,
+						    int* C2_r, int* C2_c, cmpxCPU* C2_v,
+						    int* C3_r, int* C3_c, cmpxCPU* C3_v )
 {
 	int n1 = grid_num[0], n2 = grid_num[1], n3 = grid_num[2];
 
-    cmpx i2pika1 = idouble_pi*dot(&lattice.lattice_vec_a[0], wave_vec, 3);
-    cmpx i2pika2 = idouble_pi*dot(&lattice.lattice_vec_a[3], wave_vec, 3);
-    cmpx i2pika3 = idouble_pi*dot(&lattice.lattice_vec_a[6], wave_vec, 3);
+    cmpxCPU i2pika1 = idouble_pi*dot(&lattice.lattice_vec_a[0], wave_vec, 3);
+    cmpxCPU i2pika2 = idouble_pi*dot(&lattice.lattice_vec_a[3], wave_vec, 3);
+    cmpxCPU i2pika3 = idouble_pi*dot(&lattice.lattice_vec_a[6], wave_vec, 3);
 
 	/////////////// Create C1 with quasi_periodic  boundary condtion ///////////////
 	int*  K_1_r = (int*) calloc( 2*n1, sizeof(int) );
 	int*  K_1_c = (int*) calloc( 2*n1, sizeof(int) );
-	cmpx* K_1_v = (cmpx*)calloc( 2*n1, sizeof(cmpx));
+	cmpxCPU* K_1_v = (cmpxCPU*)calloc( 2*n1, sizeof(cmpxCPU));
 
 	spMTX_FDM_1d_quasiperiodic( n1, mesh_len[0], i2pika1, K_1_r, K_1_c, K_1_v );
 
@@ -168,13 +168,13 @@ void FAME_Matrix_Curl_Simple( double* wave_vec,int* grid_num, double* edge_len, 
 	/////////////// Create C2 with quasi_periodic  boundary condtion ///////////////
 	int*  K_2_r = (int*) calloc( 2*n2, sizeof(int) );
 	int*  K_2_c = (int*) calloc( 2*n2, sizeof(int) );
-	cmpx* K_2_v = (cmpx*)calloc( 2*n2, sizeof(cmpx));
+	cmpxCPU* K_2_v = (cmpxCPU*)calloc( 2*n2, sizeof(cmpxCPU));
 
 	spMTX_FDM_1d_quasiperiodic( n2, mesh_len[1], i2pika2, K_2_r, K_2_c, K_2_v );
 
 	int*  temp_r = (int*) calloc( 2*n1*n2, sizeof(int) );
 	int*  temp_c = (int*) calloc( 2*n1*n2, sizeof(int) );
-	cmpx* temp_v = (cmpx*)calloc( 2*n1*n2, sizeof(cmpx));
+	cmpxCPU* temp_v = (cmpxCPU*)calloc( 2*n1*n2, sizeof(cmpxCPU));
 
 	int* I_x_r = (int*)malloc( n1*sizeof(int));
     int* I_x_c = (int*)malloc( n1*sizeof(int));
@@ -205,7 +205,7 @@ void FAME_Matrix_Curl_Simple( double* wave_vec,int* grid_num, double* edge_len, 
 	/////////////// Create C3 with quasi_periodic  boundary condtion ///////////////
 	int*  K_3_r = (int*) calloc( 2*n3, sizeof(int) );
 	int*  K_3_c = (int*) calloc( 2*n3, sizeof(int) );
-	cmpx* K_3_v = (cmpx*)calloc( 2*n3, sizeof(cmpx));
+	cmpxCPU* K_3_v = (cmpxCPU*)calloc( 2*n3, sizeof(cmpxCPU));
 
 	spMTX_FDM_1d_quasiperiodic( n3, mesh_len[2], i2pika3, K_3_r, K_3_c, K_3_v );
 
@@ -222,27 +222,27 @@ void FAME_Matrix_Curl_Simple( double* wave_vec,int* grid_num, double* edge_len, 
 	free(K_3_r);   free(K_3_c);   free(K_3_v);
 	free(I_yx_r);  free(I_yx_c);  free(I_yx_v);
 }
-void FAME_Matrix_Curl_General( double* wave_vec,int* grid_num, double* edge_len, double* mesh_len, LATTICE lattice,
-						       int* C1_r, int* C1_c, cmpx* C1_v,
-						       int* C2_r, int* C2_c, cmpx* C2_v,
-						       int* C3_r, int* C3_c, cmpx* C3_v )
+void FAME_Matrix_Curl_General( realCPU* wave_vec,int* grid_num, realCPU* edge_len, realCPU* mesh_len, LATTICE lattice,
+						       int* C1_r, int* C1_c, cmpxCPU* C1_v,
+						       int* C2_r, int* C2_c, cmpxCPU* C2_v,
+						       int* C3_r, int* C3_c, cmpxCPU* C3_v )
 {
 	int n1 = grid_num[0], n2 = grid_num[1], n3 = grid_num[2];
 	int i;
 
-    cmpx i2pika1 = idouble_pi*dot(&lattice.lattice_vec_a[0], wave_vec, 3);
-    cmpx i2pika2 = idouble_pi*dot(&lattice.lattice_vec_a[3], wave_vec, 3);
-    cmpx i2pika3 = idouble_pi*dot(&lattice.lattice_vec_a[6], wave_vec, 3);
+    cmpxCPU i2pika1 = idouble_pi*dot(&lattice.lattice_vec_a[0], wave_vec, 3);
+    cmpxCPU i2pika2 = idouble_pi*dot(&lattice.lattice_vec_a[3], wave_vec, 3);
+    cmpxCPU i2pika3 = idouble_pi*dot(&lattice.lattice_vec_a[6], wave_vec, 3);
 
-    cmpx i2pikt1 = idouble_pi*dot(lattice.lattice_constant.t1, wave_vec, 3);
-    cmpx i2pikt2 = idouble_pi*dot(lattice.lattice_constant.t2, wave_vec, 3);
-    cmpx i2pikt3 = idouble_pi*dot(lattice.lattice_constant.t3, wave_vec, 3);
-    cmpx i2pikt4 = idouble_pi*dot(lattice.lattice_constant.t4, wave_vec, 3);
+    cmpxCPU i2pikt1 = idouble_pi*dot(lattice.lattice_constant.t1, wave_vec, 3);
+    cmpxCPU i2pikt2 = idouble_pi*dot(lattice.lattice_constant.t2, wave_vec, 3);
+    cmpxCPU i2pikt3 = idouble_pi*dot(lattice.lattice_constant.t3, wave_vec, 3);
+    cmpxCPU i2pikt4 = idouble_pi*dot(lattice.lattice_constant.t4, wave_vec, 3);
 
 	/////////////// Create C1 with quasi_periodic  boundary condtion ///////////////
 	int*  K_1_r = (int*) calloc( 2*n1, sizeof(int) );
 	int*  K_1_c = (int*) calloc( 2*n1, sizeof(int) );
-	cmpx* K_1_v = (cmpx*)calloc( 2*n1, sizeof(cmpx));
+	cmpxCPU* K_1_v = (cmpxCPU*)calloc( 2*n1, sizeof(cmpxCPU));
 
 	spMTX_FDM_1d_quasiperiodic( n1, mesh_len[0], i2pika1, K_1_r, K_1_c, K_1_v );
 
@@ -262,7 +262,7 @@ void FAME_Matrix_Curl_General( double* wave_vec,int* grid_num, double* edge_len,
 	/////////////// Create C2 with quasi_periodic  boundary condtion ///////////////
 	int*  K_2_r = (int*) calloc( 2*n2*n1, sizeof(int) );
 	int*  K_2_c = (int*) calloc( 2*n2*n1, sizeof(int) );
-	cmpx* K_2_v = (cmpx*)calloc( 2*n2*n1, sizeof(cmpx));
+	cmpxCPU* K_2_v = (cmpxCPU*)calloc( 2*n2*n1, sizeof(cmpxCPU));
 
 	spMTX_FDM_2d_quasiperiodic( n2, n1, mesh_len[1], 0.0, K_2_r, K_2_c, K_2_v );
 
@@ -306,7 +306,7 @@ void FAME_Matrix_Curl_General( double* wave_vec,int* grid_num, double* edge_len,
 	// Construct J31
 	int*  temp_J31_r = (int*) malloc( n1*sizeof(int) );
     int*  temp_J31_c = (int*) malloc( n1*sizeof(int) );
-    cmpx* temp_J31_v = (cmpx*)malloc( n1*sizeof(cmpx));
+    cmpxCPU* temp_J31_v = (cmpxCPU*)malloc( n1*sizeof(cmpxCPU));
 
 	//cout<<"lattice.lattice_constant.m3: "<<lattice.lattice_constant.m3<<endl;//M2=2,M3=1,m4=0
     for( i = 0; i < lattice.lattice_constant.m4; i++ )
@@ -326,7 +326,7 @@ void FAME_Matrix_Curl_General( double* wave_vec,int* grid_num, double* edge_len,
     int*  I_m3_v = (int*)malloc( lattice.lattice_constant.m3*sizeof(int));
     int*  J31_r = (int*) malloc( lattice.lattice_constant.m3*n1*sizeof(int) );
     int*  J31_c = (int*) malloc( lattice.lattice_constant.m3*n1*sizeof(int) );
-    cmpx* J31_v = (cmpx*)malloc( lattice.lattice_constant.m3*n1*sizeof(cmpx));
+    cmpxCPU* J31_v = (cmpxCPU*)malloc( lattice.lattice_constant.m3*n1*sizeof(cmpxCPU));
 
     speye( lattice.lattice_constant.m3, I_m3_r, I_m3_c, I_m3_v );
 
@@ -338,7 +338,7 @@ void FAME_Matrix_Curl_General( double* wave_vec,int* grid_num, double* edge_len,
     // Construct J32
     int*  temp_J32_r = (int*) malloc( n1*sizeof(int) );
     int*  temp_J32_c = (int*) malloc( n1*sizeof(int) );
-    cmpx* temp_J32_v = (cmpx*)malloc( n1*sizeof(cmpx));
+    cmpxCPU* temp_J32_v = (cmpxCPU*)malloc( n1*sizeof(cmpxCPU));
     for( i = 0; i < lattice.lattice_constant.m2; i++ )
     {
     	temp_J32_r[i] = i;
@@ -357,7 +357,7 @@ void FAME_Matrix_Curl_General( double* wave_vec,int* grid_num, double* edge_len,
     int*  I_n2m3_v = (int*)malloc( (n2-lattice.lattice_constant.m3)*sizeof(int));
     int*  J32_r = (int*) malloc( (n2-lattice.lattice_constant.m3)*n1*sizeof(int) );
     int*  J32_c = (int*) malloc( (n2-lattice.lattice_constant.m3)*n1*sizeof(int) );
-    cmpx* J32_v = (cmpx*)malloc( (n2-lattice.lattice_constant.m3)*n1*sizeof(cmpx));
+    cmpxCPU* J32_v = (cmpxCPU*)malloc( (n2-lattice.lattice_constant.m3)*n1*sizeof(cmpxCPU));
 
     speye( n2-lattice.lattice_constant.m3, I_n2m3_r, I_n2m3_c, I_n2m3_v );
 
@@ -382,9 +382,9 @@ void FAME_Matrix_Curl_General( double* wave_vec,int* grid_num, double* edge_len,
 }
 
 
-void spMTX_FDM_1d_quasiperiodic(int dim, double mesh_len, cmpx theta, int* K_row, int* K_col, cmpx* K_val )
+void spMTX_FDM_1d_quasiperiodic(int dim, realCPU mesh_len, cmpxCPU theta, int* K_row, int* K_col, cmpxCPU* K_val )
 {
-	double temp = 1.0/mesh_len;
+	realCPU temp = 1.0/mesh_len;
 
 	for( int i = 0; i < dim; i++ )
 	{
@@ -402,9 +402,9 @@ void spMTX_FDM_1d_quasiperiodic(int dim, double mesh_len, cmpx theta, int* K_row
     K_col[2*dim - 1] = 0;
 	K_val[2*dim - 1] = temp*cexp(theta);
 }
-void spMTX_FDM_2d_quasiperiodic(int dim2, int dim1, double mesh_len, cmpx theta, int* K_row, int* K_col, cmpx* K_val )
+void spMTX_FDM_2d_quasiperiodic(int dim2, int dim1, realCPU mesh_len, cmpxCPU theta, int* K_row, int* K_col, cmpxCPU* K_val )
 {
-	double temp = 1.0/mesh_len;
+	realCPU temp = 1.0/mesh_len;
 
 	for( int i = 0; i < dim2*dim1; i++ )
 	{
@@ -425,9 +425,9 @@ void spMTX_FDM_2d_quasiperiodic(int dim2, int dim1, double mesh_len, cmpx theta,
 		K_val[i] = temp*cexp(theta);
 	}
 }
-void spMTX_FDM_3d_quasiperiodic(int dim3, int dim2, int dim1, double mesh_len, cmpx theta, int* K_row, int* K_col, cmpx* K_val )
+void spMTX_FDM_3d_quasiperiodic(int dim3, int dim2, int dim1, realCPU mesh_len, cmpxCPU theta, int* K_row, int* K_col, cmpxCPU* K_val )
 {
-	double temp = 1.0/mesh_len;
+	realCPU temp = 1.0/mesh_len;
 
 	for( int i = 0; i < dim3*dim2*dim1; i++ )
 	{

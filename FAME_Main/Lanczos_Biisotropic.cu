@@ -12,11 +12,11 @@
 #include "printDeviceArray.cuh"
 
 
-static __global__ void Lanczos_init_kernel(cuDoubleComplex *U, const int size);
+static __global__ void Lanczos_init_kernel(cmpxGPU *U, const int size);
 
-void quickSort (double* A,int* idx, int left, int right);
-int partition(double* arr, int *idx, int left, int right);
-void swap(double *arr, int *idx, int i, int j);
+void quickSort (realGPU* A,int* idx, int left, int right);
+int partition(realGPU* arr, int *idx, int left, int right);
+void swap(realGPU *arr, int *idx, int i, int j);
 
 int Lanczos_Biisotropic
 ( 	CULIB_HANDLES cuHandles, 
@@ -29,18 +29,18 @@ int Lanczos_Biisotropic
         int Nd,
         ES  es,
         LS  ls,
-        double* Lambda_q_sqrt,
-        cuDoubleComplex* Pi_Qr,
-        cuDoubleComplex* Pi_Pr,
-        cuDoubleComplex* Pi_Qrs,
-        cuDoubleComplex* Pi_Prs,
-        cuDoubleComplex* D_k,
-        cuDoubleComplex* D_ks,
-		cuDoubleComplex* D_kx,
-		cuDoubleComplex* D_ky,
-        cuDoubleComplex* D_kz,
-        double*          Freq_array, 
-        cuDoubleComplex* ev,
+        realGPU* Lambda_q_sqrt,
+        cmpxGPU* Pi_Qr,
+        cmpxGPU* Pi_Pr,
+        cmpxGPU* Pi_Qrs,
+        cmpxGPU* Pi_Prs,
+        cmpxGPU* D_k,
+        cmpxGPU* D_ks,
+		cmpxGPU* D_kx,
+		cmpxGPU* D_ky,
+        cmpxGPU* D_kz,
+        realGPU*          Freq_array, 
+        cmpxGPU* ev,
         string flag_CompType,
         PROFILE* Profile)
         
@@ -52,52 +52,52 @@ int Lanczos_Biisotropic
     int Nwant = es.nwant;
     int mNwant=Nwant+2;
     int Nstep = es.nstep;
-    double ls_tol = ls.tol;
-    double eig_tol = es.tol;
+    realGPU ls_tol = ls.tol;
+    realGPU eig_tol = es.tol;
     int e_max_iter = es.maxit;
     int l_max_iter = ls.maxit;
     
     int conv, tmpIdx, errFlag, iter, i;
-    cuDoubleComplex cublas_zcale, alpha_tmp, beta_tmp, Loss;
-    double cublas_scale;
+    cmpxGPU cublas_zcale, alpha_tmp, beta_tmp, Loss;
+    realGPU cublas_scale;
     int size = 4 * Nd;
 
     dim3 DimBlock( BLOCK_SIZE, 1, 1);
     dim3 DimGrid( (size-1)/BLOCK_SIZE +1, 1, 1);
  
     size_t memsize;
-    size_t z_size = Nstep * Nstep * sizeof(cuDoubleComplex);
+    size_t z_size = Nstep * Nstep * sizeof(cmpxGPU);
     int ewidx[9];
 
     lapack_int  n, lapack_info, ldz; 
     n = (lapack_int) Nstep;
     ldz = n;
-    double vl=0,vu=10;
+    realGPU vl=0,vu=10;
     lapack_int m,il=1,iu=1;
-    double* ew    = (double*) calloc(Nstep, sizeof(double));
+    realGPU* ew    = (realGPU*) calloc(Nstep, sizeof(realGPU));
     lapack_int *isuppz    = (lapack_int*) calloc(2*Nstep , sizeof(lapack_int));
     int *number =(int*) calloc(Nstep, sizeof(int));
     
 
-    cuDoubleComplex* dz  = lBuffer.dz;
-    cuDoubleComplex *U   = lBuffer.dU;
-    double *T0           = lBuffer.T0;
-    double *T1           = lBuffer.T1;
-    double *T2           = lBuffer.T2;
-    double *LT0          = lBuffer.LT0;
-    double *LT1          = lBuffer.LT1;
-    cmpx *z              = lBuffer.z;
+    cmpxGPU* dz  = lBuffer.dz;
+    cmpxGPU *U   = lBuffer.dU;
+    realGPU *T0           = lBuffer.T0;
+    realGPU *T1           = lBuffer.T1;
+    realGPU *T2           = lBuffer.T2;
+    realGPU *LT0          = lBuffer.LT0;
+    realGPU *LT1          = lBuffer.LT1;
+    cmpxCPU *z              = lBuffer.z;
 
-    cuDoubleComplex *w, *p, *r;
-    memsize = size * sizeof(cuDoubleComplex);
+    cmpxGPU *w, *p, *r;
+    memsize = size * sizeof(cmpxGPU);
     checkCudaErrors(cudaMalloc((void**)&w, memsize));
     checkCudaErrors(cudaMalloc((void**)&p, memsize));
 	checkCudaErrors(cudaMalloc((void**)&r, memsize));
    
-    cmpx *temp_z    = (cmpx*) calloc(Nstep*Nstep, sizeof(cmpx));
+    cmpxCPU *temp_z    = (cmpxCPU*) calloc(Nstep*Nstep, sizeof(cmpxCPU));
 
-    cuDoubleComplex one  = make_cuDoubleComplex(1.0, 0.0);
-    cuDoubleComplex zero = make_cuDoubleComplex(0.0, 0.0);
+    cmpxGPU one  = make_cucmpx(1.0, 0.0);
+    cmpxGPU zero = make_cucmpx(0.0, 0.0);
 
     Lanczos_init_kernel<<<DimGrid, DimBlock>>>(U, size);
  
@@ -118,13 +118,13 @@ int Lanczos_Biisotropic
             D_kx, D_ky, D_kz, r, Profile);
     }
 
-    cublasStatus = cublasZdotc_v2(cublas_handle, size, U, 1, r, 1, &beta_tmp);
+    cublasStatus = PC_cublas_dot(cublas_handle, size, U, 1, r, 1, &beta_tmp);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 
     T1[0] = sqrt(beta_tmp.x);
 
     cublas_scale = 1.0 / T1[0];
-    cublasStatus = cublasZdscal_v2( cublas_handle, size, &(cublas_scale), U, 1 );
+    cublasStatus = PC_cublas_dscal( cublas_handle, size, &(cublas_scale), U, 1 );
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 
  
@@ -133,25 +133,25 @@ int Lanczos_Biisotropic
                     Pi_Qr, Pi_Pr,Pi_Qrs, Pi_Prs,
                     D_k, D_ks, w);
 
-    cublasStatus = cublasZdotc_v2(cublas_handle, size, U, 1, w, 1, &alpha_tmp);
+    cublasStatus = PC_cublas_dot(cublas_handle, size, U, 1, w, 1, &alpha_tmp);
 
     checkCudaErrors(cudaMemcpy(p, r, memsize, cudaMemcpyDeviceToDevice));
-    cublasStatus = cublasZdscal_v2(cublas_handle, size, &(cublas_scale), p, 1);
+    cublasStatus = PC_cublas_dscal(cublas_handle, size, &(cublas_scale), p, 1);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 
-    cublas_zcale = make_cuDoubleComplex(-alpha_tmp.x, 0.0);
-    cublasStatus = cublasZaxpy_v2(cublas_handle, size, &cublas_zcale, p, 1, w, 1);
+    cublas_zcale = make_cucmpx(-alpha_tmp.x, 0.0);
+    cublasStatus = PC_cublas_axpy(cublas_handle, size, &cublas_zcale, p, 1, w, 1);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 
     checkCudaErrors(cudaMemcpy(r, w, memsize, cudaMemcpyDeviceToDevice));
 
     /* orthogonalization */
-    cublasStatus = cublasZdotc_v2(cublas_handle, size, U, 1, r, 1, &Loss );
+    cublasStatus = PC_cublas_dot(cublas_handle, size, U, 1, r, 1, &Loss );
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 
 
-    cublas_zcale = make_cuDoubleComplex( -Loss.x, -Loss.y );
-    cublasStatus = cublasZaxpy_v2(cublas_handle, size, &cublas_zcale, p, 1, r, 1);
+    cublas_zcale = make_cucmpx( -Loss.x, -Loss.y );
+    cublasStatus = PC_cublas_axpy(cublas_handle, size, &cublas_zcale, p, 1, r, 1);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS );  
     T0[0] = alpha_tmp.x + Loss.x;
 
@@ -174,12 +174,12 @@ int Lanczos_Biisotropic
     Profile->ls_time[Profile->idx] += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION;
 
    
-    cublasStatus = cublasZdotc_v2(cublas_handle, size, U+size, 1, r, 1, &beta_tmp);
+    cublasStatus = PC_cublas_dot(cublas_handle, size, U+size, 1, r, 1, &beta_tmp);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
     T1[1] = sqrt(beta_tmp.x);
 
     cublas_scale = 1.0 / T1[1];
-    cublasStatus = cublasZdscal_v2( cublas_handle, size, &(cublas_scale), U+size, 1 );
+    cublasStatus = PC_cublas_dscal( cublas_handle, size, &(cublas_scale), U+size, 1 );
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
     /* Initial Decomposition */
@@ -197,10 +197,10 @@ int Lanczos_Biisotropic
         assert(errFlag == 0);
 
         //cout<<"Lanczos decomposition completed!"<<endl;
-        memcpy(LT0, T0, Nstep * sizeof(double));
-        memcpy(LT1, T1+1, (Nstep-1) * sizeof(double));  
+        memcpy(LT0, T0, Nstep * sizeof(realGPU));
+        memcpy(LT1, T1+1, (Nstep-1) * sizeof(realGPU));  
 
-        lapack_info = LAPACKE_zstegr(LAPACK_COL_MAJOR, 'V','A', n, LT0, LT1, vl, vu, il, iu, eig_tol, &m, ew, temp_z, ldz, isuppz);
+        lapack_info = PC_lapacke_stegr(LAPACK_COL_MAJOR, 'V','A', n, LT0, LT1, vl, vu, il, iu, eig_tol, &m, ew, temp_z, ldz, isuppz);
         assert(lapack_info == 0);
  
         for(int i=0;i<Nstep;i++)
@@ -209,9 +209,9 @@ int Lanczos_Biisotropic
         quickSort(ew,number, 0, Nstep-1);
 
         for(int i=0;i<Nstep;i++)
-            memcpy(z+i*Nstep, temp_z+Nstep*number[i], Nstep* sizeof(cmpx));   
+            memcpy(z+i*Nstep, temp_z+Nstep*number[i], Nstep* sizeof(cmpxCPU));   
 
-        memcpy(LT0, ew, Nstep* sizeof(double));             
+        memcpy(LT0, ew, Nstep* sizeof(realGPU));             
         checkCudaErrors(cudaMemcpy(dz, z, z_size, cudaMemcpyHostToDevice));
 
         conv = 0;   
@@ -243,7 +243,7 @@ int Lanczos_Biisotropic
             break;
 
         /* Implicit Restart: Lock and Purge */
-        cublasStatus = cublasZgemm(cublas_handle,CUBLAS_OP_N, CUBLAS_OP_N,size, 2*mNwant, Nstep, &one, U, size, 
+        cublasStatus = PC_cublas_gemm(cublas_handle,CUBLAS_OP_N, CUBLAS_OP_N,size, 2*mNwant, Nstep, &one, U, size, 
             dz, Nstep, &zero, ev, size);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
@@ -251,13 +251,13 @@ int Lanczos_Biisotropic
         assert( errFlag == 0 );
         //cout<<"Implicit Restart complete!"<<endl;   
 
-        checkCudaErrors(cudaMemcpy(U, ev, sizeof(cuDoubleComplex)*size*2*mNwant, cudaMemcpyDeviceToDevice)); 
+        checkCudaErrors(cudaMemcpy(U, ev, sizeof(cmpxGPU)*size*2*mNwant, cudaMemcpyDeviceToDevice)); 
 
 
-        memcpy(T0, LT0, 2*mNwant * sizeof(double));
-        memcpy(T1+1, T2, (2*mNwant-1) * sizeof(double));
+        memcpy(T0, LT0, 2*mNwant * sizeof(realGPU));
+        memcpy(T1+1, T2, (2*mNwant-1) * sizeof(realGPU));
 
-        checkCudaErrors(cudaMemcpy(U+2*mNwant*size, U+Nstep*size, sizeof(cuDoubleComplex)*size, cudaMemcpyDeviceToDevice)); 
+        checkCudaErrors(cudaMemcpy(U+2*mNwant*size, U+Nstep*size, sizeof(cmpxGPU)*size, cudaMemcpyDeviceToDevice)); 
         T1[2*mNwant]=T2[2*mNwant-1]*T1[Nstep];
 
         restart_num ++;
@@ -267,15 +267,15 @@ int Lanczos_Biisotropic
     for(i = 0; i < Nwant; i++) 
     { 
         Freq_array[i] = 1.0 / LT0[ewidx[i]]; 
-        memcpy(temp_z+i*Nstep, z+ewidx[i]*Nstep, Nstep * sizeof(cmpx));  
+        memcpy(temp_z+i*Nstep, z+ewidx[i]*Nstep, Nstep * sizeof(cmpxCPU));  
     }
 
     Profile->es_iter[Profile->idx] = Nstep + (Nstep-2*mNwant) * restart_num;
 
-    checkCudaErrors(cudaMemcpy(dz, temp_z, Nwant*Nstep*sizeof(cuDoubleComplex), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(dz, temp_z, Nwant*Nstep*sizeof(cmpxGPU), cudaMemcpyHostToDevice));
 
 
-    cublasStatus = cublasZgemm(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_N, size, Nwant, Nstep, &one, U, size,
+    cublasStatus = PC_cublas_gemm(cublas_handle, CUBLAS_OP_N, CUBLAS_OP_N, size, Nwant, Nstep, &one, U, size,
          dz, Nstep, &zero, ev, size);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
@@ -286,7 +286,7 @@ int Lanczos_Biisotropic
 
 }
 
-void quickSort ( double* A, int* idx, int left, int right ) 
+void quickSort ( realGPU* A, int* idx, int left, int right ) 
 { 
     int partitionIndex;
     if (left < right) 
@@ -297,7 +297,7 @@ void quickSort ( double* A, int* idx, int left, int right )
     }
 }
  
-int partition ( double* arr, int *idx, int left, int right )
+int partition ( realGPU* arr, int *idx, int left, int right )
 {     
     int pivot = left,                      
         index = pivot + 1;
@@ -311,9 +311,9 @@ int partition ( double* arr, int *idx, int left, int right )
     return index-1;
 }
  
-void swap ( double *arr, int *idx, int i, int j ) 
+void swap ( realGPU *arr, int *idx, int i, int j ) 
 {
-    double temp = arr[i];
+    realGPU temp = arr[i];
     arr[i] = arr[j];
     arr[j] = temp;
     int tep=idx[i];
@@ -322,7 +322,7 @@ void swap ( double *arr, int *idx, int i, int j )
 }
 
 
-static __global__ void Lanczos_init_kernel(cuDoubleComplex *U, const int size)
+static __global__ void Lanczos_init_kernel(cmpxGPU *U, const int size)
 {
 
     int idx = blockIdx.x * blockDim.x + threadIdx.x;

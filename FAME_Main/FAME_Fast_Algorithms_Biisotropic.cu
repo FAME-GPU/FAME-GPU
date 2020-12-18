@@ -13,8 +13,8 @@
 int Eigen_Restoration_Biisotropic(  CULIB_HANDLES cuHandles,
                                     LAMBDAS_CUDA Lambdas_cuda,
                                     FFT_BUFFER    fft_buffer,
-                                    cuDoubleComplex* Input_eigvec_mat,
-                                    cuDoubleComplex* Output_eigvec_mat,
+                                    cmpxGPU* Input_eigvec_mat,
+                                    cmpxGPU* Output_eigvec_mat,
                                     MTX_B  mtx_B,
                                     int N_eig_wanted,
                                     int Nx,
@@ -23,13 +23,12 @@ int Eigen_Restoration_Biisotropic(  CULIB_HANDLES cuHandles,
                                     int Nd,
                                     std::string flag_CompType, PROFILE* Profile);
  
-static __global__ void scaling(int size, cuDoubleComplex* array, double norm_vec);
-static __global__ void ones(int size, cuDoubleComplex* array);
-static __global__ void initialize(cuDoubleComplex* vec, double real, double imag, int size);
+static __global__ void scaling(int size, cmpxGPU* array, realCPU norm_vec);
+static __global__ void initialize(cmpxGPU* vec, realCPU real, realCPU imag, int size);
 
 int FAME_Fast_Algorithms_Biisotropic
-	(double*        Freq_array,
-	 cmpx*          Ele_field_mtx,
+	(realCPU*        Freq_array,
+	 cmpxCPU*          Ele_field_mtx,
 	 CULIB_HANDLES cuHandles,
 	 LAMBDAS_CUDA  Lambdas_cuda, 
 	 LANCZOS_BUFFER lBuffer,
@@ -56,17 +55,17 @@ int FAME_Fast_Algorithms_Biisotropic
 	int eigen_wanted = es.nwant;
 	cublasStatus_t cublasStatus;
 
-	memsize = Nd4 * (es.nstep + 1) * sizeof(cuDoubleComplex);
+	memsize = Nd4 * (es.nstep + 1) * sizeof(cmpxGPU);
 	checkCudaErrors(cudaMalloc((void**) &lBuffer.dU, memsize));
 	
-	cuDoubleComplex* DEV_Back;
-	checkCudaErrors(cudaMalloc((void**)&DEV_Back,   sizeof(cuDoubleComplex)*6*N*eigen_wanted));
-	cuDoubleComplex* DEV;
-	checkCudaErrors(cudaMalloc((void**)&DEV,        sizeof(cuDoubleComplex)*4*Nd*(eigen_wanted+2)*2));
-	cuDoubleComplex* EW = (cuDoubleComplex*) malloc( eigen_wanted*sizeof(cuDoubleComplex));
+	cmpxGPU* DEV_Back;
+	checkCudaErrors(cudaMalloc((void**)&DEV_Back,   sizeof(cmpxGPU)*6*N*eigen_wanted));
+	cmpxGPU* DEV;
+	checkCudaErrors(cudaMalloc((void**)&DEV,        sizeof(cmpxGPU)*4*Nd*(eigen_wanted+2)*2));
+	cmpxGPU* EW = (cmpxGPU*) malloc( eigen_wanted*sizeof(cmpxGPU));
 
 
-	memsize = Nd4 * sizeof(cuDoubleComplex);
+	memsize = Nd4 * sizeof(cmpxGPU);
     checkCudaErrors(cudaMalloc((void**)&cuHandles.Nd2_temp1, memsize));
     checkCudaErrors(cudaMalloc((void**)&cuHandles.Nd2_temp2, memsize));
     checkCudaErrors(cudaMalloc((void**)&cuHandles.Nd2_temp3, memsize));
@@ -112,7 +111,7 @@ int FAME_Fast_Algorithms_Biisotropic
 	{
 			for(int i = es.nwant - 1; i >= 2 ; i--)
 			{
-				cublasStatus=cublasZswap_v2(cuHandles.cublas_handle, 6*N, DEV_Back + i * 6*N, 1, DEV_Back + (i - 2) * 6*N, 1);
+				cublasStatus=PC_cublas_swap(cuHandles.cublas_handle, 6*N, DEV_Back + i * 6*N, 1, DEV_Back + (i - 2) * 6*N, 1);
 				assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 				Freq_array[i] = Freq_array[i - 2];
 			}
@@ -120,14 +119,14 @@ int FAME_Fast_Algorithms_Biisotropic
 			Freq_array[0] = 0.0;
 			Freq_array[1] = 0.0;
 
-			double temp = 1.0 / sqrt(N6);
+			realCPU temp = 1.0 / sqrt(N6);
 			initialize<<<DimGrid, DimBlock>>>(DEV_Back,       temp, 0.0, N);
 			initialize<<<DimGrid, DimBlock>>>(DEV_Back + N6,  temp, 0.0, N);
 
 
 	}
 
-	checkCudaErrors(cudaMemcpy(Ele_field_mtx, DEV_Back, N6 * eigen_wanted * sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(Ele_field_mtx, DEV_Back, N6 * eigen_wanted * sizeof(cmpxGPU), cudaMemcpyDeviceToHost));
 
 	cudaFree(DEV); cudaFree(DEV_Back);
 	cudaFree(cuHandles.Nd2_temp1); cudaFree(cuHandles.Nd2_temp2); cudaFree(cuHandles.Nd2_temp3); cudaFree(cuHandles.Nd2_temp4);
@@ -137,8 +136,8 @@ int FAME_Fast_Algorithms_Biisotropic
 int Eigen_Restoration_Biisotropic( 	CULIB_HANDLES cuHandles,
 									LAMBDAS_CUDA Lambdas_cuda,
 									FFT_BUFFER    fft_buffer,
-									cuDoubleComplex* Input_eigvec_mat, 
-									cuDoubleComplex* Output_eigvec_mat,
+									cmpxGPU* Input_eigvec_mat, 
+									cmpxGPU* Output_eigvec_mat,
 									MTX_B  mtx_B,	
 									int N_eig_wanted, 
 									int Nx,
@@ -148,13 +147,13 @@ int Eigen_Restoration_Biisotropic( 	CULIB_HANDLES cuHandles,
 									string flag_CompType,PROFILE* Profile)
 {
 	int N = Nx*Ny*Nz;
-	double norm_vec = 0.0;
+	realCPU norm_vec = 0.0;
 	dim3 DimGrid(BLOCK_SIZE, 1, 1);
 	dim3 DimBlock((N-1)/BLOCK_SIZE+1, 1, 1);
 	cublasStatus_t cublasStatus;
 
-	cuDoubleComplex* vec_y;
-	checkCudaErrors(cudaMalloc((void**)&vec_y, 6*N*sizeof(cuDoubleComplex)));
+	cmpxGPU* vec_y;
+	checkCudaErrors(cudaMalloc((void**)&vec_y, 6*N*sizeof(cmpxGPU)));
 
 	// Start to restore the eigenvectors
 
@@ -209,7 +208,7 @@ int Eigen_Restoration_Biisotropic( 	CULIB_HANDLES cuHandles,
                                                     Output_eigvec_mat+6*N*ii);
 	
 	//Normalize the eigenvector
-	cublasStatus=cublasDznrm2(cuHandles.cublas_handle, 6*N, Output_eigvec_mat+6*N*ii, 1, &norm_vec );
+	cublasStatus=PC_cublas_nrm2(cuHandles.cublas_handle, 6*N, Output_eigvec_mat+6*N*ii, 1, &norm_vec );
 	assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 	scaling<<<DimGrid, DimBlock>>>(N, Output_eigvec_mat+6*N*ii, norm_vec);
 
@@ -221,7 +220,7 @@ int Eigen_Restoration_Biisotropic( 	CULIB_HANDLES cuHandles,
 
 
 
-static __global__ void scaling(int size, cuDoubleComplex* array, double norm_vec)
+static __global__ void scaling(int size, cmpxGPU* array, realCPU norm_vec)
 {
 	int idx = blockIdx.x*blockDim.x + threadIdx.x;
 	if(idx < size)
@@ -235,19 +234,7 @@ static __global__ void scaling(int size, cuDoubleComplex* array, double norm_vec
 
 }
 
-static __global__ void ones(int size, cuDoubleComplex* array)
-{
-	int idx = blockIdx.x*blockDim.x + threadIdx.x;	
-	if( idx < size )
-	{	for( int i=0; i<6; i++)
-		{
-			array[idx*6+i].x = 1.0; array[idx*6+i].y = 0.0;
-		}
-	}
-
-}
-
-static __global__ void initialize(cuDoubleComplex* vec, double real, double imag, int size)
+static __global__ void initialize(cmpxGPU* vec, realCPU real, realCPU imag, int size)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	// printf("%d\t", idx);

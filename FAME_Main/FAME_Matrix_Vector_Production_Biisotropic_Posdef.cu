@@ -11,26 +11,26 @@ Date    : 2018/11/21
 */
 
 
-static __global__ void i_inv_sigma_r(int size, double* L_q_s, cuDoubleComplex* ivec, cuDoubleComplex* ovec);
+static __global__ void i_inv_sigma_r(int size, realGPU* L_q_s, cmpxGPU* ivec, cmpxGPU* ovec);
 
-static __global__ void i_m_inv_sigma_r(int size, double* L_q_s, cuDoubleComplex* ivec, cuDoubleComplex* ovec);
+static __global__ void i_m_inv_sigma_r(int size, realGPU* L_q_s, cmpxGPU* ivec, cmpxGPU* ovec);
 
 void FAME_Matrix_Vector_Production_Biisotropic_Posdef
 	(	CULIB_HANDLES cuHandles,
-	 	cuDoubleComplex* vec_x,
+	 	cmpxGPU* vec_x,
 		MTX_B mtx_B,
 		int Nx,
         int Ny,
         int Nz,
         int Nd,
-		double* Lambda_q_sqrt,
-        cuDoubleComplex* Pi_Qr,
-        cuDoubleComplex* Pi_Pr,
-        cuDoubleComplex* Pi_Qrs,
-        cuDoubleComplex* Pi_Prs,
-		cuDoubleComplex* D_k,
-		cuDoubleComplex* D_ks,
-		cuDoubleComplex* vec_y)
+		realGPU* Lambda_q_sqrt,
+        cmpxGPU* Pi_Qr,
+        cmpxGPU* Pi_Pr,
+        cmpxGPU* Pi_Qrs,
+        cmpxGPU* Pi_Prs,
+		cmpxGPU* D_k,
+		cmpxGPU* D_ks,
+		cmpxGPU* vec_y)
 {
 	
 	dim3 DimBlock(BLOCK_SIZE,1,1);
@@ -41,7 +41,7 @@ void FAME_Matrix_Vector_Production_Biisotropic_Posdef
 
 }
 
-static __global__ void i_inv_sigma_r(int size, double* L_q_s, cuDoubleComplex* ivec, cuDoubleComplex* ovec)
+static __global__ void i_inv_sigma_r(int size, realGPU* L_q_s, cmpxGPU* ivec, cmpxGPU* ovec)
 {
 	int idx = blockIdx.x*blockDim.x + threadIdx.x;
 	if( idx < size )
@@ -53,7 +53,7 @@ static __global__ void i_inv_sigma_r(int size, double* L_q_s, cuDoubleComplex* i
 	}
 }
 
-static __global__ void i_m_inv_sigma_r(int size, double* L_q_s, cuDoubleComplex* ivec, cuDoubleComplex* ovec)
+static __global__ void i_m_inv_sigma_r(int size, realGPU* L_q_s, cmpxGPU* ivec, cmpxGPU* ovec)
 {
 	int idx = blockIdx.x*blockDim.x + threadIdx.x;
     if( idx < size )

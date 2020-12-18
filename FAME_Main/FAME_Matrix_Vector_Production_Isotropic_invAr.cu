@@ -2,12 +2,12 @@
 #include "FAME_CUDA.h"
 #include "CG.cuh"
 
-static __global__ void pointwise_div(cuDoubleComplex* vec_y, double* Lambda_q_sqrt, int size);
-static __global__ void pointwise_div(cuDoubleComplex* vec_y, cuDoubleComplex* vec_x, double* Lambda_q_sqrt, int size);
+static __global__ void pointwise_div(cmpxGPU* vec_y, realGPU* Lambda_q_sqrt, int size);
+static __global__ void pointwise_div(cmpxGPU* vec_y, cmpxGPU* vec_x, realGPU* Lambda_q_sqrt, int size);
 
 int FAME_Matrix_Vector_Production_Isotropic_invAr(
-	cuDoubleComplex* vec_y,
-	cuDoubleComplex* vec_x,
+	cmpxGPU* vec_y,
+	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles,
 	FFT_BUFFER       fft_buffer,
 	LAMBDAS_CUDA     Lambdas_cuda,
@@ -21,7 +21,7 @@ int FAME_Matrix_Vector_Production_Isotropic_invAr(
 	dim3 DimBlock(BLOCK_SIZE, 1, 1);
 	dim3 DimGrid((Nd2-1)/BLOCK_SIZE + 1, 1, 1 );
 
-	cuDoubleComplex* tmp = cuHandles.Nd2_temp1;
+	cmpxGPU* tmp = cuHandles.Nd2_temp1;
 
 	pointwise_div<<<DimGrid, DimBlock>>>(tmp, vec_x, Lambdas_cuda.Lambda_q_sqrt, Nd2);
 
@@ -47,7 +47,7 @@ int FAME_Matrix_Vector_Production_Isotropic_invAr(
 	return 0;
 }
 
-static __global__ void pointwise_div(cuDoubleComplex* vec_y, double* Lambda_q_sqrt, int size)
+static __global__ void pointwise_div(cmpxGPU* vec_y, realGPU* Lambda_q_sqrt, int size)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if(idx < size)
@@ -58,7 +58,7 @@ static __global__ void pointwise_div(cuDoubleComplex* vec_y, double* Lambda_q_sq
 
 }
 
-static __global__ void pointwise_div(cuDoubleComplex* vec_y, cuDoubleComplex* vec_x, double* Lambda_q_sqrt, int size)
+static __global__ void pointwise_div(cmpxGPU* vec_y, cmpxGPU* vec_x, realGPU* Lambda_q_sqrt, int size)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if(idx < size)
