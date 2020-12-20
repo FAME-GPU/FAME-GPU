@@ -48,8 +48,8 @@ void FAME_Fast_Algorithms_Driver(
 void Destroy_Lambdas(LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, char* lattice_type);
 void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, FFT_BUFFER fft_buffer, CULIB_HANDLES cuHandles,
 	int Nx, int Ny, int Nz, int Nd, int N, char* lattice_type, realCPU error, PROFILE* Profile);
-void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant);
-void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant);
+void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error);
+void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error);
 
 int FAME_Main_Code(PAR Par, PROFILE* Profile)
 {
@@ -68,10 +68,12 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 		Par.ce_error = 1e-4;
 		Par.es.tol = 1e-6;
 		Par.ls.tol = 1e-6;
+		realCPU cr_error = 1e-4;
 	#else
 		Par.ce_error = 1e-10;
 		Par.es.tol = 1e-12;
 		Par.ls.tol = 1e-12;
+		realCPU cr_error = 1e-9;
 	#endif 
 
 	realCPU accum;
@@ -178,11 +180,11 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 		clock_gettime (CLOCK_REALTIME, &start);
 		if(strcmp(Par.material.material_type, "isotropic") == 0)
 		{
-			Check_Residual(Freq_array+i*Nwant, Ele_field_mtx, mtx_B, mtx_C, N, Nwant);
+			Check_Residual(Freq_array+i*Nwant, Ele_field_mtx, mtx_B, mtx_C, N, Nwant, cr_error);
 		}
 		else if(strcmp(Par.material.material_type, "biisotropic") == 0)
 		{
-			Check_Residual_Biiso(Freq_array+i*Nwant, Ele_field_mtx, mtx_B, mtx_C, N, Nwant);
+			Check_Residual_Biiso(Freq_array+i*Nwant, Ele_field_mtx, mtx_B, mtx_C, N, Nwant, cr_error);
 		}
 		//getchar();
 		clock_gettime (CLOCK_REALTIME, &end);
@@ -470,7 +472,7 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 	free(vec_x); free(vec_y);
 }
 
-void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant)
+void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error)
 {
 	int Ele_field_mtx_N = N * 3;
 	int N12 = N * 12;
@@ -485,64 +487,32 @@ void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MT
 	realCPU res, omega2;
 	realCPU* B_eps = (realCPU*)calloc(Ele_field_mtx_N, sizeof(realCPU));
 	checkCudaErrors(cudaMemcpy(B_eps, mtx_B.B_eps, Ele_field_mtx_N*sizeof(realCPU), cudaMemcpyDeviceToHost));
-	
-	int single;
-	#if defined(USE_SINGLE)
-	single=1;
-	#else
-	single=0;
-	#endif 
 
-	if (single==1)
+	for(int i = 0; i < Nwant; i++)
 	{
-		for(int i = 0; i < Nwant; i++)
+		omega2 = -pow(Freq_array[i], 2);
+		mtx_prod(vec_temp, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*Ele_field_mtx_N, N12, Ele_field_mtx_N);
+		mtx_prod(vec_left, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, vec_temp, N12, Ele_field_mtx_N, "Conjugate Transpose");
+		mtx_dot_prod(B_eps, Ele_field_mtx + i*Ele_field_mtx_N, vec_temp, Ele_field_mtx_N, 1);
+		vec_plus(residual, 1.0, vec_left, omega2, vec_temp, Ele_field_mtx_N);
+
+		res = vec_norm(residual, Ele_field_mtx_N);
+
+		printf("                 ");
+		if(res > error)
 		{
-			omega2 = -pow(Freq_array[i], 2);
-			mtx_prod(vec_temp, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*Ele_field_mtx_N, N12, Ele_field_mtx_N);
-			mtx_prod(vec_left, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, vec_temp, N12, Ele_field_mtx_N, "Conjugate Transpose");
-			mtx_dot_prod(B_eps, Ele_field_mtx + i*Ele_field_mtx_N, vec_temp, Ele_field_mtx_N, 1);
-			vec_plus(residual, 1.0, vec_left, omega2, vec_temp, Ele_field_mtx_N);
-
-			res = vec_norm(residual, Ele_field_mtx_N);
-
-			printf("                 ");
-			if(res > 1e-4)
-			{
-				printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e.\033[0m\n", i, Freq_array[i], res);
-				// Freq_array[i] = -Freq_array[i];
-			}
-			else
-				printf("Freq(%2d) = %10.8f, residual = %e.\n", i, Freq_array[i], res);
-		}	
-	}
-	else
-	{
-		for(int i = 0; i < Nwant; i++)
-		{
-			omega2 = -pow(Freq_array[i], 2);
-			mtx_prod(vec_temp, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*Ele_field_mtx_N, N12, Ele_field_mtx_N);
-			mtx_prod(vec_left, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, vec_temp, N12, Ele_field_mtx_N, "Conjugate Transpose");
-			mtx_dot_prod(B_eps, Ele_field_mtx + i*Ele_field_mtx_N, vec_temp, Ele_field_mtx_N, 1);
-			vec_plus(residual, 1.0, vec_left, omega2, vec_temp, Ele_field_mtx_N);
-
-			res = vec_norm(residual, Ele_field_mtx_N);
-
-			printf("                 ");
-			if(res > 1e-9)
-			{
-				printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e.\033[0m\n", i, Freq_array[i], res);
-				// Freq_array[i] = -Freq_array[i];
-			}
-			else
-				printf("Freq(%2d) = %10.8f, residual = %e.\n", i, Freq_array[i], res);
-		}	
-	}
+			printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e.\033[0m\n", i, Freq_array[i], res);
+			// Freq_array[i] = -Freq_array[i];
+		}
+		else
+			printf("Freq(%2d) = %10.8f, residual = %e.\n", i, Freq_array[i], res);
+	}	
 
 	free(vec_temp); free(vec_left); free(residual);
 	free(B_eps);
 }
 
-void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant)
+void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error)
 {
 	int mtx_N = N * 6;
 	int N3 = N * 3;
@@ -566,76 +536,35 @@ void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx
 	checkCudaErrors(cudaMemcpy(B_mu, mtx_B.B_mu, N3*sizeof(realCPU), cudaMemcpyDeviceToHost));
 	checkCudaErrors(cudaMemcpy(B_xi, mtx_B.B_xi, N3*sizeof(cmpxGPU), cudaMemcpyDeviceToHost));
 
-	int single;
-	#if defined(USE_SINGLE)
-	single=1;
-	#else
-	single=0;
-	#endif 
 
-	if (single==1)
+	for(int i = 0; i < Nwant; i++)
 	{
-		for(int i = 0; i < Nwant; i++)
-		{
-			omega2 = -Freq_array[i];
+		omega2 = -Freq_array[i];
 
-			mtx_dot_prod(B_zeta, Ele_field_mtx + i*mtx_N, residual, N3, 1);
-			mtx_dot_prod(B_mu, Ele_field_mtx + i*mtx_N + N3, vec_left, N3, 1);
-			mtx_dot_prod(B_eps, Ele_field_mtx + i*mtx_N, residual + N3, N3, 1);
-			mtx_dot_prod(B_xi, Ele_field_mtx + i*mtx_N + N3, vec_left + N3, N3, 1);
+		mtx_dot_prod(B_zeta, Ele_field_mtx + i*mtx_N, residual, N3, 1);
+		mtx_dot_prod(B_mu, Ele_field_mtx + i*mtx_N + N3, vec_left, N3, 1);
+		mtx_dot_prod(B_eps, Ele_field_mtx + i*mtx_N, residual + N3, N3, 1);
+		mtx_dot_prod(B_xi, Ele_field_mtx + i*mtx_N + N3, vec_left + N3, N3, 1);
 
 
-			vec_plus(vec_temp, scal, vec_left, scal, residual, N3);
-			vec_plus(vec_temp + N3, -scal, vec_left + N3, -scal, residual + N3, N3);
+		vec_plus(vec_temp, scal, vec_left, scal, residual, N3);
+		vec_plus(vec_temp + N3, -scal, vec_left + N3, -scal, residual + N3, N3);
 
-			mtx_prod(vec_left, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*mtx_N, N12, N3);
-			mtx_prod(vec_left + N3, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*mtx_N + N3, N12, N3, "Conjugate Transpose");
+		mtx_prod(vec_left, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*mtx_N, N12, N3);
+		mtx_prod(vec_left + N3, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*mtx_N + N3, N12, N3, "Conjugate Transpose");
 			
-			vec_plus(residual, 1.0, vec_left, omega2, vec_temp, mtx_N);
+		vec_plus(residual, 1.0, vec_left, omega2, vec_temp, mtx_N);
 
-			res = vec_norm(residual, mtx_N);
+		res = vec_norm(residual, mtx_N);
 
-			printf("                 ");
-			if(res > 1e-4)
-			{
-				printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e.\033[0m\n", i, Freq_array[i], res);
-				//Freq_array[i] = -Freq_array[i];
-			}
-			else
-				printf("Freq(%2d) = %10.8f, residual = %e.\n", i, Freq_array[i], res);
-		}
-	}
-	else
-	{
-		for(int i = 0; i < Nwant; i++)
+		printf("                 ");
+		if(res > error)
 		{
-			omega2 = -Freq_array[i];
-
-			mtx_dot_prod(B_zeta, Ele_field_mtx + i*mtx_N, residual, N3, 1);
-			mtx_dot_prod(B_mu, Ele_field_mtx + i*mtx_N + N3, vec_left, N3, 1);
-			mtx_dot_prod(B_eps, Ele_field_mtx + i*mtx_N, residual + N3, N3, 1);
-			mtx_dot_prod(B_xi, Ele_field_mtx + i*mtx_N + N3, vec_left + N3, N3, 1);
-
-
-			vec_plus(vec_temp, scal, vec_left, scal, residual, N3);
-			vec_plus(vec_temp + N3, -scal, vec_left + N3, -scal, residual + N3, N3);
-
-			mtx_prod(vec_left, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*mtx_N, N12, N3);
-			mtx_prod(vec_left + N3, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*mtx_N + N3, N12, N3, "Conjugate Transpose");
-			
-			vec_plus(residual, 1.0, vec_left, omega2, vec_temp, mtx_N);
-
-			res = vec_norm(residual, mtx_N);
-
-			printf("                 ");
-			if(res > 1e-9)
-			{
-				printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e.\033[0m\n", i, Freq_array[i], res);
+			printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e.\033[0m\n", i, Freq_array[i], res);
 				//Freq_array[i] = -Freq_array[i];
-			}
-			else
-				printf("Freq(%2d) = %10.8f, residual = %e.\n", i, Freq_array[i], res);
 		}
+		else
+			printf("Freq(%2d) = %10.8f, residual = %e.\n", i, Freq_array[i], res);
 	}
 
 	free(vec_temp); free(vec_left); free(residual);
