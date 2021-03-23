@@ -34,12 +34,8 @@ int FAME_Matrix_Vector_Production_Qr(
     vp_add_vp<<<DimGrid, DimBlock>>>(Nd, Pi_Qr+2*Nd, Pi_Qr+5*Nd, vec_x, vec_x+Nd, temp+N3-Nd);
 
 	/*CUDA version (follow matlab) correct*/
-//	struct timespec start, end;
-//	clock_gettime (CLOCK_REALTIME, &start);
+
 	IFFT_CUDA(vec_y, temp, D_k, fft_buffer, cuHandles, Nx, Ny, Nz);
-	// Time end 
-//	clock_gettime (CLOCK_REALTIME, &end);	
-//	Profile->ifft_time[Profile->idx] += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION;
 
 	return 0;
 }
