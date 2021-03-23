@@ -19,13 +19,8 @@ int FAME_Matrix_Vector_Production_Qrs(
 
     dim3 DimBlock(BLOCK_SIZE,1,1);
     dim3 DimGrid((Nd-1)/BLOCK_SIZE +1,1,1);
-//	struct timespec start, end;
-//	clock_gettime (CLOCK_REALTIME, &start);
+
 	FFT_CUDA(vec_x, vec_x, D_ks, fft_buffer, cuHandles, Nx, Ny, Nz);
-// Time end 
-//	clock_gettime (CLOCK_REALTIME, &end);	
-//	Profile->fft_time[Profile->idx] += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION;
-	//cout<<"fft "<< (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION <<endl;
 
 	vp_add_vp_add_vp<<<DimGrid, DimBlock>>>(N, Nd, Nd2, Pi_Qrs,    vec_x+(N-Nd), vec_y);
 	vp_add_vp_add_vp<<<DimGrid, DimBlock>>>(N, Nd, Nd2, Pi_Qrs+Nd, vec_x+(N-Nd), vec_y+Nd);
@@ -51,8 +46,7 @@ int FAME_Matrix_Vector_Production_Qrs(
     dim3 DimBlock(BLOCK_SIZE,1,1);
     dim3 DimGrid((N-1)/BLOCK_SIZE +1,1,1);
 
-//	struct timespec start, end;
-//	clock_gettime (CLOCK_REALTIME, &start);
+
     spMV_fastT_gpu(vec_x,    vec_x,    cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, -1);
     spMV_fastT_gpu(vec_x+N,  vec_x+N,  cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, -1);
     spMV_fastT_gpu(vec_x+N2, vec_x+N2, cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, -1);
