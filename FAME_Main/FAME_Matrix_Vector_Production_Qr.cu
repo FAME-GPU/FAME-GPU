@@ -70,18 +70,15 @@ int FAME_Matrix_Vector_Production_Qr(
 	// Initial
 	checkCudaErrors(cudaMemset(temp, 0, N3 * sizeof(cmpxGPU)));
 	
-
-	
 	//Pi_Qr * vec_x
 	vp_add_vp<<<DimGrid, DimBlock>>>(Nd, Pi_Qr,      Pi_Qr+3*Nd, vec_x, vec_x+Nd, temp+N-Nd);
     vp_add_vp<<<DimGrid, DimBlock>>>(Nd, Pi_Qr+Nd,   Pi_Qr+4*Nd, vec_x, vec_x+Nd, temp+N2-Nd);
     vp_add_vp<<<DimGrid, DimBlock>>>(Nd, Pi_Qr+2*Nd, Pi_Qr+5*Nd, vec_x, vec_x+Nd, temp+N3-Nd);
 
-	
+
 	spMV_fastT_gpu(vec_y,    temp,    cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, 1);
 	spMV_fastT_gpu(vec_y+N,  temp+N,  cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, 1);
 	spMV_fastT_gpu(vec_y+N2, temp+N2, cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, 1);
-
 	
 	return 0;
 }

@@ -1,6 +1,7 @@
 #include "FAME_Internal_Common.h"
 #include "FAME_CUDA.h"
 #include "FAME_FFT_CUDA.cuh"
+#include "printDeviceArray.cuh"
 
 static __global__ void vp_add_vp_add_vp(int N, int Nd, int Nd_2, cmpxGPU* L, cmpxGPU* vec, cmpxGPU* vec_out);
 ////////////=========================== Create Qrs function for Biiso (cuda)===========================//////////////////
@@ -55,14 +56,12 @@ int FAME_Matrix_Vector_Production_Qrs(
     spMV_fastT_gpu(vec_x,    vec_x,    cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, -1);
     spMV_fastT_gpu(vec_x+N,  vec_x+N,  cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, -1);
     spMV_fastT_gpu(vec_x+N2, vec_x+N2, cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, -1);
-// Time end 
-//	clock_gettime (CLOCK_REALTIME, &end);	
-//	Profile->fft_time[Profile->idx] += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION;
+    
 	
 	// Pi_Qrs*vec
  	vp_add_vp_add_vp<<<DimGrid, DimBlock>>>(N, Nd, Nd2, Pi_Qrs,    vec_x+(N-Nd), vec_y);
  	vp_add_vp_add_vp<<<DimGrid, DimBlock>>>(N, Nd, Nd2, Pi_Qrs+Nd, vec_x+(N-Nd), vec_y+Nd);
-
+  
  	return 0;
 }
 

@@ -17,6 +17,7 @@ int Lanczos_decomp_gpu(
     int Nx, int Ny, int Nz, int Nd, int Nwant, int Nstep,
     string flag_CompType, PROFILE* Profile)
 {
+
     int i, j, loopStart;
     realGPU cublas_scale;
     cmpxGPU cublas_zcale, alpha_tmp, Loss;

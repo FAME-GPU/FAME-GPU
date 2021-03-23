@@ -30,6 +30,7 @@
 #include "mtx_dot_prod.h"
 #include "kron_vec.h"
 #include "inv3.h"
+#include "printDeviceArray.cuh"
 
 void FAME_Fast_Algorithms_Driver(
 	realCPU*        Freq_array,
@@ -65,15 +66,15 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 	realCPU wave_vec_array[3];
 	
 	#if defined(USE_SINGLE)
-		Par.ce_error = 1e-4;
+		Par.ce_error = 1e-1;
 		Par.es.tol = 1e-6;
 		Par.ls.tol = 1e-6;
-		realCPU cr_error = 1e-4;
+		realCPU cr_error = 1e-3;
 	#else
-		Par.ce_error = 1e-10;
+		Par.ce_error = 1e-7;
 		Par.es.tol = 1e-12;
 		Par.ls.tol = 1e-12;
-		realCPU cr_error = 1e-9;
+		realCPU cr_error = 1e-8;
 	#endif 
 
 	realCPU accum;
@@ -148,7 +149,7 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 	{
 		Profile->idx = i;
 
-		wave_vec_array[0] = Par.recip_lattice.WaveVector[3 * i];
+		  wave_vec_array[0] = Par.recip_lattice.WaveVector[3 * i];
     	wave_vec_array[1] = Par.recip_lattice.WaveVector[3 * i + 1];
     	wave_vec_array[2] = Par.recip_lattice.WaveVector[3 * i + 2];
 
@@ -331,9 +332,15 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 	//vec_x[i] = ((realCPU) rand()/(RAND_MAX + 1.0))  for test
 		vec_x[i] = ((realCPU) rand()/(RAND_MAX + 1.0)) +  I * ((realCPU) rand()/(RAND_MAX + 1.0));
 
+  realCPU vec_x_norm = vec_norm(vec_x, Ele_field_mtx_N);
+  /*for(i = 0; i < Ele_field_mtx_N; i++)
+    vec_x[i] = vec_x[i] /vec_x_norm;*/
+  
 	cmpxCPU *vec_y_1, *vec_y_2, *vec_y_3;
 
 	cudaMemcpy(N3_temp1, vec_x, dsizeEle_field_mtx_N, cudaMemcpyHostToDevice);
+  
+  //printDeviceArray(N3_temp1, Ele_field_mtx_N, "vec_x.txt");
 
 	if( (strcmp(lattice_type, "simple_cubic"          ) == 0) || \
 		(strcmp(lattice_type, "primitive_orthorhombic") == 0) || \
@@ -401,9 +408,9 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 	vec_plus(test_y, 1.0, &vec_temp[N] , -1.0, &vec_y[N] , N);
 	vec_plus(test_z, 1.0, &vec_temp[N2], -1.0, &vec_y[N2], N);
 	
-	realCPU C1_error = vec_norm(test_x, N);
-    realCPU C2_error = vec_norm(test_y, N);
-    realCPU C3_error = vec_norm(test_z, N);
+	realCPU C1_error = vec_norm(test_x, N)/sqrt(N);
+    realCPU C2_error = vec_norm(test_y, N)/sqrt(N);
+    realCPU C3_error = vec_norm(test_z, N)/sqrt(N);
 
 	free(test_x); free(test_y); free(test_z);
 
@@ -421,6 +428,8 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 	{
 		FAME_Matrix_Vector_Production_Qrs(Nd2_temp, N3_temp1, cuHandles, fft_buffer, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Qrs, Nx, Ny, Nz, Nd, Profile);
 	}
+  
+//  printDeviceArray(Nd2_temp, 2*Nd, "QRS.txt");
 
 	cudaMemcpy(Qrs_x, Nd2_temp, dsizeNd2, cudaMemcpyDeviceToHost);
 
@@ -432,6 +441,7 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 
 	cudaMemcpy(Nd2_temp, Qrs_x, dsizeNd2, cudaMemcpyHostToDevice);
 
+
 	if((strcmp(lattice_type, "simple_cubic"          ) == 0) || \
 	   (strcmp(lattice_type, "primitive_orthorhombic") == 0) || \
 	   (strcmp(lattice_type, "primitive_tetragonal"  ) == 0))
@@ -442,22 +452,30 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 	{
 		FAME_Matrix_Vector_Production_Pr(cuHandles, fft_buffer, Nd2_temp, Nx, Ny, Nz, Nd, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Pr, N3_temp1);
 	}
-
+  
+//  printDeviceArray(N3_temp1, Ele_field_mtx_N, "PrS.txt");
+//getchar();
+  
 	cudaMemcpy(vec_y, N3_temp1, dsizeEle_field_mtx_N, cudaMemcpyDeviceToHost);
 
 	mtx_prod(vec_temp, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, vec_x, N12, Ele_field_mtx_N);
 	
+/*cout<<"vec_temp "<<creal(vec_temp[0] )<<"  "<<cimag(vec_temp[0] )<<endl;
+cout<<"vec_temp "<<creal(vec_temp[1] )<<"  "<<cimag(vec_temp[1] )<<endl;
+cout<<" vec_x "<<creal( vec_x[0] )<<"  "<<cimag( vec_x[0] )<<endl;
+cout<<" vec_x "<<creal( vec_x[1] )<<"  "<<cimag( vec_x[1] )<<endl;*/
 
 	cmpxCPU* test = (cmpxCPU*) malloc(Ele_field_mtx_N * sizeof(cmpxCPU));
 	vec_plus(test, 1.0, vec_temp, -1.0, vec_y, Ele_field_mtx_N);
-	realCPU SVD_test_C = vec_norm(test, Ele_field_mtx_N);
+	realCPU SVD_test_C = vec_norm(test, Ele_field_mtx_N)/sqrt(Ele_field_mtx_N);
 
 	printf("          EigDecomp_test_C1 = %e\n", C1_error);
     printf("          EigDecomp_test_C2 = %e\n", C2_error);
     printf("          EigDecomp_test_C3 = %e\n", C3_error);
 	printf("          SVD_test_C        = %e\n", SVD_test_C);
 
-
+  //printDeviceArray(N3_temp1, Ele_field_mtx_N, "vec_y.txt");
+//getchar();
 	if(C1_error > error || C2_error > error || C3_error > error || SVD_test_C > error)
 	{
 		printf("\033[40;31mFAME_Main_Code(330):\033[0m\n");
@@ -467,6 +485,7 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 		assert(0);
 	}
 	
+  
 	cudaFree(Nd2_temp);
 	free(test); free(vec_temp); free(Qrs_x);
 	free(vec_x); free(vec_y);
@@ -484,7 +503,7 @@ void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MT
 	cmpxCPU* vec_left = (cmpxCPU*)malloc(size);
 	cmpxCPU* residual = (cmpxCPU*)malloc(size);
 
-	realCPU res, omega2;
+	realCPU res, omega2, res_inf;
 	realCPU* B_eps = (realCPU*)calloc(Ele_field_mtx_N, sizeof(realCPU));
 	checkCudaErrors(cudaMemcpy(B_eps, mtx_B.B_eps, Ele_field_mtx_N*sizeof(realCPU), cudaMemcpyDeviceToHost));
 
@@ -494,18 +513,25 @@ void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MT
 		mtx_prod(vec_temp, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*Ele_field_mtx_N, N12, Ele_field_mtx_N);
 		mtx_prod(vec_left, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, vec_temp, N12, Ele_field_mtx_N, "Conjugate Transpose");
 		mtx_dot_prod(B_eps, Ele_field_mtx + i*Ele_field_mtx_N, vec_temp, Ele_field_mtx_N, 1);
-		vec_plus(residual, 1.0, vec_left, omega2, vec_temp, Ele_field_mtx_N);
-
+   
+   vec_plus(residual, 1.0, vec_left, omega2, vec_temp, Ele_field_mtx_N);
 		res = vec_norm(residual, Ele_field_mtx_N);
-
+ 
+   res_inf = cabs(residual[0]);
+   for (int j=1; j<Ele_field_mtx_N; j++)
+   {
+       if(cabs(residual[j]) > res_inf)
+        res_inf = cabs(residual[j]);
+    }
+    
 		printf("                 ");
 		if(res > error)
 		{
-			printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e.\033[0m\n", i, Freq_array[i], res);
+			printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e\033[0m ,residual_inf = %e.\033[0m\n", i, Freq_array[i], res, res_inf);
 			// Freq_array[i] = -Freq_array[i];
 		}
 		else
-			printf("Freq(%2d) = %10.8f, residual = %e.\n", i, Freq_array[i], res);
+			printf("Freq(%2d) = %10.8f, residual = %e, residual_inf = %e.\033[0m\n", i, Freq_array[i], res, res_inf);
 	}	
 
 	free(vec_temp); free(vec_left); free(residual);
@@ -539,7 +565,7 @@ void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx
 
 	for(int i = 0; i < Nwant; i++)
 	{
-		omega2 = -Freq_array[i];
+		omega2 = Freq_array[i];
 
 		mtx_dot_prod(B_zeta, Ele_field_mtx + i*mtx_N, residual, N3, 1);
 		mtx_dot_prod(B_mu, Ele_field_mtx + i*mtx_N + N3, vec_left, N3, 1);

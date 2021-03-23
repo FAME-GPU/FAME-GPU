@@ -51,7 +51,7 @@ int CG(
         }
 
         // Ap = A * p;
- 
+                                     
         FAME_Matrix_Vector_Production_Isotropic_QBQ(Ap, p, cuHandles, fft_buffer, mtx_B,
                                      D_k, D_ks, Pi_Qr, Pi_Qrs, Nx, Ny, Nz, Nd, Profile);
         
@@ -139,6 +139,7 @@ int CG(
         }
 
         // Ap = A * p;
+                   
         FAME_Matrix_Vector_Production_Isotropic_QBQ(Ap, p, cuHandles, fft_buffer, mtx_B,
                                D_kx, D_ky, D_kz, Pi_Qr, Pi_Qrs, Nx, Ny, Nz, Nd, Profile);
     

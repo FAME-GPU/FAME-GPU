@@ -4,6 +4,13 @@
 #include "Lanczos_LockPurge.cuh"
 #include "cuda_profiler_api.h"
 #include <lapacke.h>
+#include "FAME_Matrix_Vector_Production_Isotropic_invAr.cuh"
+#include "printDeviceArray.cuh"
+#include "FAME_Matrix_Vector_Production_Isotropic_QBQ.cuh"
+
+
+static __global__ void dot_product(cmpxGPU* vec_y, realCPU* array, int size);
+static __global__ void dot_product(cmpxGPU* vec_y, cmpxGPU* vec_x, realGPU* Lambda_q_sqrt, int size);
 
 int Lanczos_Isotropic( 
     realGPU*          Freq_array, 
@@ -62,13 +69,13 @@ int Lanczos_Isotropic(
         assert(lapack_info == 0);
 
         cudaMemcpy(dz, z, z_size, cudaMemcpyHostToDevice);
-
+        
         /* Check convergence, T_e will store the residules */
         conv = 0;
         for(i = 0; i < Nwant; i++)
         {
             res = T1[Nstep - 1] * cabs(z[(i + 1) * Nstep - 1]);
-
+            //cout<<"res "<<res<<endl;
             if(res < es.tol)
                     conv++;
             else
@@ -106,6 +113,57 @@ int Lanczos_Isotropic(
 
     cublasStatus = PC_cublas_gemm(cuHandles.cublas_handle, CUBLAS_OP_N, CUBLAS_OP_N, Asize, Nwant, Nstep, &one, U, Asize, dz, Nstep, &zero, ev, Asize);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
+ 
+ 
+  /////Lanczos residual 
+    dim3 DimBlock(BLOCK_SIZE, 1, 1);
+    dim3 DimGrid((Asize - 1) / BLOCK_SIZE + 1, 1, 1);
+    cmpxGPU* tmp = cuHandles.Nd2_temp1;
+    cmpxGPU* tmp2 = cuHandles.Nd2_temp2;
+    
+    int idx = 0;
+    cmpxCPU *res_inf = (cmpxCPU*) malloc(Asize * sizeof(cmpxCPU));
+    for (int j=0;j<Nwant;j++)
+    {
+        dot_product<<<DimGrid, DimBlock>>>(tmp, ev+j*Asize, Lambdas_cuda.Lambda_q_sqrt, Asize);
+        
+        FAME_Matrix_Vector_Production_Isotropic_QBQ(tmp2, tmp, cuHandles, fft_buffer, mtx_B, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, 
+              Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Qr, Lambdas_cuda.dPi_Qrs, Nx, Ny, Nz, Nd,Profile);
+              
+        dot_product<<<DimGrid, DimBlock>>>(tmp2, Lambdas_cuda.Lambda_q_sqrt, Asize);
+
+        cmpxGPU cublas_zcale = make_cucmpx(-1/LT0[j], 0.0);
+        PC_cublas_axpy(cuHandles.cublas_handle, Asize, &cublas_zcale, ev+j*Asize, 1, tmp2, 1);    
+        PC_cublas_nrm2(cuHandles.cublas_handle, Asize, tmp2, 1, &res);
+        PC_cublas_amax(cuHandles.cublas_handle, Asize, tmp2, 1, &idx);
+        
+        checkCudaErrors(cudaMemcpy(res_inf, tmp2, Asize*sizeof(cmpxGPU), cudaMemcpyDeviceToHost));
+
+        printf("\033[40;31m idx %2d, Lanczos residual = %e\033[0m, residual_inf = %e.\033[0m \n", j, res, cabs(res_inf[idx-1]));
+        //cout<<"res "<<res<<endl;    
+    }
+    cudaFree(tmp2);
 
     return iter;
+}
+
+static __global__ void dot_product(cmpxGPU* vec_y, realCPU* array, int size)
+{
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if(idx < size)
+    {
+        vec_y[idx].x = vec_y[idx].x * array[idx];
+		vec_y[idx].y = vec_y[idx].y * array[idx];
+    }
+
+}
+static __global__ void dot_product(cmpxGPU* vec_y, cmpxGPU* vec_x, realGPU* Lambda_q_sqrt, int size)
+{
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if(idx < size)
+    {
+        vec_y[idx].x = vec_x[idx].x * Lambda_q_sqrt[idx];
+		    vec_y[idx].y = vec_x[idx].y * Lambda_q_sqrt[idx];
+    }
+
 }
