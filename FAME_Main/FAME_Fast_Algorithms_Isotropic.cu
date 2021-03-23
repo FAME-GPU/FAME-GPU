@@ -80,8 +80,7 @@ int FAME_Fast_Algorithms_Isotropic(
 	}
 
 	checkCudaErrors(cudaMemcpy(Ele_field_mtx, ev_back, N3 * es.nwant * sizeof(cmpxGPU), cudaMemcpyDeviceToHost));
-//	printDeviceArray(ev_back,N3 ,"ev_back.txt");
- //getchar();
+
 	cudaFree(ev); cudaFree(ev_back);cudaFree(lBuffer.dU);
 	cudaFree(cuHandles.Nd2_temp1); cudaFree(cuHandles.Nd2_temp2); cudaFree(cuHandles.Nd2_temp3); cudaFree(cuHandles.Nd2_temp4);
 	return 0;
@@ -121,12 +120,10 @@ int Eigen_Restoration_Isotropic(
 		dot_product<<<DimGrid, DimBlock>>>(Output_eigvec_mat+i*N3, mtx_B.invB_eps, N3);
 
 		PC_cublas_nrm2(cuHandles.cublas_handle, N3, Output_eigvec_mat+N3*i, 1, &norm);
-   norm=1.0/norm;
-//   cout<<norm<<endl;
-//printDeviceArray(Output_eigvec_mat+i*N3,N3 ,"Output1.txt");
+   		norm=1.0/norm;
+
 		PC_cublas_dscal(cuHandles.cublas_handle, N3, &norm, Output_eigvec_mat+N3*i, 1);
-//   printDeviceArray(Output_eigvec_mat+i*N3,N3 ,"Output.txt");
-//   getchar();
+
 	}
 	
 	return 0;
