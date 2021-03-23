@@ -9,8 +9,8 @@
 #include "FAME_Matrix_Vector_Production_Isotropic_QBQ.cuh"
 
 
-static __global__ void dot_product(cmpxGPU* vec_y, realCPU* array, int size);
-static __global__ void dot_product(cmpxGPU* vec_y, cmpxGPU* vec_x, realGPU* Lambda_q_sqrt, int size);
+//static __global__ void dot_product(cmpxGPU* vec_y, realCPU* array, int size);
+//static __global__ void dot_product(cmpxGPU* vec_y, cmpxGPU* vec_x, realGPU* Lambda_q_sqrt, int size);
 
 int Lanczos_Isotropic( 
     realGPU*          Freq_array, 
@@ -116,7 +116,7 @@ int Lanczos_Isotropic(
  
  
   /////Lanczos residual 
-    dim3 DimBlock(BLOCK_SIZE, 1, 1);
+ /*   dim3 DimBlock(BLOCK_SIZE, 1, 1);
     dim3 DimGrid((Asize - 1) / BLOCK_SIZE + 1, 1, 1);
     cmpxGPU* tmp = cuHandles.Nd2_temp1;
     cmpxGPU* tmp2 = cuHandles.Nd2_temp2;
@@ -142,12 +142,12 @@ int Lanczos_Isotropic(
         printf("\033[40;31m idx %2d, Lanczos residual = %e\033[0m, residual_inf = %e.\033[0m \n", j, res, cabs(res_inf[idx-1]));
         //cout<<"res "<<res<<endl;    
     }
-    cudaFree(tmp2);
+    cudaFree(tmp2);*/
 
     return iter;
 }
 
-static __global__ void dot_product(cmpxGPU* vec_y, realCPU* array, int size)
+/*static __global__ void dot_product(cmpxGPU* vec_y, realCPU* array, int size)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if(idx < size)
@@ -166,4 +166,4 @@ static __global__ void dot_product(cmpxGPU* vec_y, cmpxGPU* vec_x, realGPU* Lamb
 		    vec_y[idx].y = vec_x[idx].y * Lambda_q_sqrt[idx];
     }
 
-}
+}*/
