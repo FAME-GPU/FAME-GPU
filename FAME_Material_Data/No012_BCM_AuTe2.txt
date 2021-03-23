@@ -5,7 +5,7 @@
 # Lattice type
  base_centered_monoclinic
 # Lattice constant
- 7.189000  5.069000  4.407000 0.0 0.0  1.571494 
+ 4.407000  5.069000  7.189000  1.378810 0.0 0.0
 # Sphere number
  1
  2
