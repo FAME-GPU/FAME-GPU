@@ -446,21 +446,9 @@ int Construct_Lambdas_General(           LAMBDAS* Lambdas,
 	                  	  Lambdas->Lambda_z[i];
 	    cmpxCPU Lambda_p_i = conj(Lambda_s_i)*Lambda_s_i;
 
-	//	cmpxCPU normalize_term_Pi_2_i = csqrt((9*Lambda_q_i*Lambda_q_i - Lambda_p_i*Lambda_p_i)/(3*Lambda_q_i + Lambda_p_i));
    cmpxCPU normalize_term_Pi_2_i = (cmpxCPU) csqrt( 3*(double)Lambda_q_i -(double _Complex)Lambda_p_i);
-  // cmpxCPU normalize_term_Pi_2_i = csqrt( 3*Lambda_q_i -Lambda_p_i);
    cmpxCPU normalize_term_Pi_1_i = csqrt(Lambda_q_i)*normalize_term_Pi_2_i;
 
-  // cout<<"term_Pi_1_i "<<creal(3*Lambda_q_i*Lambda_q_i - Lambda_q_i*Lambda_p_i )<<"  "<<cimag( 3*Lambda_q_i*Lambda_q_i - Lambda_q_i*Lambda_p_i )<<endl;
-  // cout<<"term_Pi_2_i "<<creal(3*Lambda_q_i - Lambda_p_i )<<"  "<<cimag( 3*Lambda_q_i - Lambda_p_i )<<endl;
- //cout<<"normalize_term_Pi_1_i "<<creal(normalize_term_Pi_1_i)<<"  "<<cimag(normalize_term_Pi_1_i)<<endl;
-// cout<<"normalize_term_Pi_2_i "<<creal(normalize_term_Pi_2_i)<<"  "<<cimag(normalize_term_Pi_2_i)<<endl;
-/*printf("Lambda_p_i %.6lf  %.6f \n",creal(Lambda_p_i),cimag(Lambda_p_i));         
-printf("Lambda_s_i %.6lf  %.6f \n",creal(Lambda_s_i),cimag(Lambda_s_i));
-printf("Lambda_q_i %.6lf \n",Lambda_q_i);
-printf("normalize_term_Pi_1_i %.6lf \n",creal(normalize_term_Pi_1_i));   
-printf("normalize_term_Pi_2_i %.6lf \n",creal(normalize_term_Pi_2_i));*/
-//getchar();
 	    // Construct Lambda_q_sqrt entrywisely (Notice that Sigma_r = [Lambda_q_sqrt;Lambda_q_sqrt])
 	    Lambdas->Lambda_q_sqrt[i] = sqrt( Lambda_q_i );
 	    // Determine Pi_1 and Pi_2 entrywisely
