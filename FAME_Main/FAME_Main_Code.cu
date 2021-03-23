@@ -340,7 +340,6 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 
 	cudaMemcpy(N3_temp1, vec_x, dsizeEle_field_mtx_N, cudaMemcpyHostToDevice);
   
-  //printDeviceArray(N3_temp1, Ele_field_mtx_N, "vec_x.txt");
 
 	if( (strcmp(lattice_type, "simple_cubic"          ) == 0) || \
 		(strcmp(lattice_type, "primitive_orthorhombic") == 0) || \
@@ -428,8 +427,6 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 	{
 		FAME_Matrix_Vector_Production_Qrs(Nd2_temp, N3_temp1, cuHandles, fft_buffer, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Qrs, Nx, Ny, Nz, Nd, Profile);
 	}
-  
-//  printDeviceArray(Nd2_temp, 2*Nd, "QRS.txt");
 
 	cudaMemcpy(Qrs_x, Nd2_temp, dsizeNd2, cudaMemcpyDeviceToHost);
 
@@ -453,29 +450,22 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 		FAME_Matrix_Vector_Production_Pr(cuHandles, fft_buffer, Nd2_temp, Nx, Ny, Nz, Nd, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Pr, N3_temp1);
 	}
   
-//  printDeviceArray(N3_temp1, Ele_field_mtx_N, "PrS.txt");
-//getchar();
   
 	cudaMemcpy(vec_y, N3_temp1, dsizeEle_field_mtx_N, cudaMemcpyDeviceToHost);
 
 	mtx_prod(vec_temp, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, vec_x, N12, Ele_field_mtx_N);
 	
-/*cout<<"vec_temp "<<creal(vec_temp[0] )<<"  "<<cimag(vec_temp[0] )<<endl;
-cout<<"vec_temp "<<creal(vec_temp[1] )<<"  "<<cimag(vec_temp[1] )<<endl;
-cout<<" vec_x "<<creal( vec_x[0] )<<"  "<<cimag( vec_x[0] )<<endl;
-cout<<" vec_x "<<creal( vec_x[1] )<<"  "<<cimag( vec_x[1] )<<endl;*/
 
 	cmpxCPU* test = (cmpxCPU*) malloc(Ele_field_mtx_N * sizeof(cmpxCPU));
 	vec_plus(test, 1.0, vec_temp, -1.0, vec_y, Ele_field_mtx_N);
 	realCPU SVD_test_C = vec_norm(test, Ele_field_mtx_N)/sqrt(Ele_field_mtx_N);
 
 	printf("          EigDecomp_test_C1 = %e\n", C1_error);
-    printf("          EigDecomp_test_C2 = %e\n", C2_error);
-    printf("          EigDecomp_test_C3 = %e\n", C3_error);
+    	printf("          EigDecomp_test_C2 = %e\n", C2_error);
+    	printf("          EigDecomp_test_C3 = %e\n", C3_error);
 	printf("          SVD_test_C        = %e\n", SVD_test_C);
 
-  //printDeviceArray(N3_temp1, Ele_field_mtx_N, "vec_y.txt");
-//getchar();
+
 	if(C1_error > error || C2_error > error || C3_error > error || SVD_test_C > error)
 	{
 		printf("\033[40;31mFAME_Main_Code(330):\033[0m\n");
