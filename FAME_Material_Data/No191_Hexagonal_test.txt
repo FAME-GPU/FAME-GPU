@@ -7,6 +7,7 @@
 # Lattice constant
  6.500000 0.0  4.485000 0.0 0.0 0.0 
 # Sphere number
+ 0
 # Sphere centers
 
 # Sphere radius
