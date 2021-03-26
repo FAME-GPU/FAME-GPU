@@ -133,7 +133,7 @@ void default_path(LATTICE lattice, RECIP_LATTICE* recip_lattice)
     {
         strcpy(recip_lattice->path_string, "GXSYGZURTZ|YT|UX|SR");
     }
-    else if(strcmp(lattice.lattice_type, "c_base_centered_orthorhombic") == 0)
+    else if(strcmp(lattice.lattice_type, "c_base_centered_orthorhombic") == 0 || strcmp(lattice.lattice_type, "a_base_centered_orthorhombic") == 0 )
     {
         strcpy(recip_lattice->path_string, "GXSRAZGYCBTY|ZT");
     }
