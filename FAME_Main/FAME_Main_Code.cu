@@ -143,7 +143,7 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 
 
     FAME_Malloc_mtx_C(&mtx_C, N);
-	FAME_Print_Parameter(Par );
+
 	for(int i = 0; i < N_wave_vec; i++)
     //for(int i = 0; i < 1; i++)
 	{
