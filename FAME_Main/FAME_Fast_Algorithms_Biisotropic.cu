@@ -148,8 +148,8 @@ int Eigen_Restoration_Biisotropic( 	CULIB_HANDLES cuHandles,
 {
 	int N = Nx*Ny*Nz;
 	realCPU norm_vec = 0.0;
-	dim3 DimGrid(BLOCK_SIZE, 1, 1);
-	dim3 DimBlock((N-1)/BLOCK_SIZE+1, 1, 1);
+	dim3 DimBlock(BLOCK_SIZE, 1, 1);
+	dim3 DimGrid((N-1)/BLOCK_SIZE+1, 1, 1);
 	cublasStatus_t cublasStatus;
 
 	cmpxGPU* vec_y;
