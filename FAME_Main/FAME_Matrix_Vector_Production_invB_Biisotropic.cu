@@ -16,8 +16,9 @@ int FAME_Matrix_Vector_Production_invB_Biisotropic( CULIB_HANDLES cuHandles,
 													cmpxGPU* vec_y)
 {
 		int N_3 = 3*N; //3*Nx*Ny*Nz
-		dim3 DimGrid(BLOCK_SIZE, 1, 1);
-		dim3 DimBlock( (N-1)/BLOCK_SIZE + 1, 1, 1);
+		dim3 DimBlock(BLOCK_SIZE, 1, 1);
+		dim3 DimGrid((N-1)/BLOCK_SIZE+1, 1, 1);
+		
 		cublasStatus_t cublasStatus;
 
 		cmpxGPU one; one.x = 1.0; one.y = 0.0;
