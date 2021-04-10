@@ -38,7 +38,7 @@ int FAME_Matrix_B_Biisotropic(int n, MATERIAL material, realCPU* B_eps, realCPU*
 	int N = 3*size;// 3*Nx*Ny*Nz*t
 	
 	dim3 DimBlock(BLOCK_SIZE,1,1);
-    dim3 DimGrid((n-1)/BLOCK_SIZE +1,1,1);	
+    dim3 DimGrid((N-1)/BLOCK_SIZE +1,1,1);	
 
 	int* dB_inout;
 	cudaMalloc((void**) &dB_inout, 2*N*sizeof(int));
