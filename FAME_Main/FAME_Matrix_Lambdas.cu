@@ -180,12 +180,29 @@ int Construct_Lambdas_Simple( LAMBDAS* Lambdas, LAMBDAS_CUDA* Lambdas_cuda, real
 	}
 
 	// Construct Lambda_q_sqrt, temp(normalize_term_Pi_2) and tempPi(normalize_term_Pi_1) in matlab form
-	realCPU alpha = 3.,beta = 5.;
-	Lambdas->Lambda_q_sqrt = (realCPU*) malloc(  Nd*sizeof(realCPU));
+	realCPU alpha = 3.,beta0 = 5.;
+	Lambdas->Lambda_q_sqrt = (realCPU*)   malloc(  Nd*sizeof(realCPU)  );
 	Lambdas->Pi_Qr         = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
 	Lambdas->Pi_Pr         = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
 	Lambdas->Pi_Qrs        = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
 	Lambdas->Pi_Prs        = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Qr_110     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Pr_110     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Qrs_110    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Prs_110    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  ); 
+	Lambdas->Pi_Qr_101     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Pr_101     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Qrs_101    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Prs_101    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  ); 
+	Lambdas->Pi_Qr_011     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Pr_011     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Qrs_011    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Prs_011    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  ); 
+
+	cmpxCPU g1, g2, g3, g1mbeta, cg1mbeta, betacg1mbeta, g22;
+	cmpxCPU beta;
+	cmpxCPU* V = (cmpxCPU*)calloc(6, sizeof(cmpxCPU));
+
 	for( i = 0; i < Nd; i++ )
 	{
 		// Determine Lambda_q entrywisely
@@ -193,9 +210,9 @@ int Construct_Lambdas_Simple( LAMBDAS* Lambdas, LAMBDAS_CUDA* Lambdas_cuda, real
 	                  	           conj(Lambdas->Lambda_y[i])*Lambdas->Lambda_y[i] + \
 	                  	           conj(Lambdas->Lambda_z[i])*Lambdas->Lambda_z[i] );
 
-		cmpxCPU temp_1 =  beta*Lambdas->Lambda_z[i] -       Lambdas->Lambda_y[i];
+		cmpxCPU temp_1 =  beta0*Lambdas->Lambda_z[i] -       Lambdas->Lambda_y[i];
 		cmpxCPU temp_2 =       Lambdas->Lambda_x[i] - alpha*Lambdas->Lambda_z[i];
-		cmpxCPU temp_3 = alpha*Lambdas->Lambda_y[i] -  beta*Lambdas->Lambda_x[i];
+		cmpxCPU temp_3 = alpha*Lambdas->Lambda_y[i] -  beta0*Lambdas->Lambda_x[i];
 
 		cmpxCPU normalize_term_Pi_2_i = conj(temp_1)*temp_1 + conj(temp_2)*temp_2+ conj(temp_3)*temp_3;
 	    cmpxCPU normalize_term_Pi_1_i = normalize_term_Pi_2_i*Lambda_q_i;
@@ -203,15 +220,15 @@ int Construct_Lambdas_Simple( LAMBDAS* Lambdas, LAMBDAS_CUDA* Lambdas_cuda, real
 	    // Construct Lambda_q_sqrt entrywisely (Notice that Sigma_r = [Lambda_q_sqrt;Lambda_q_sqrt])
 	    Lambdas->Lambda_q_sqrt[i] = sqrt( Lambda_q_i );
 	    // Determine Pi_1 and Pi_2 entrywisely
-	    cmpxCPU temp_Pi_1_i     = ( (alpha*Lambdas->Lambda_y[i] -  beta*Lambdas->Lambda_x[i])*conj(Lambdas->Lambda_y[i])- \
+	    cmpxCPU temp_Pi_1_i     = ( (alpha*Lambdas->Lambda_y[i] -  beta0*Lambdas->Lambda_x[i])*conj(Lambdas->Lambda_y[i])- \
                                  (      Lambdas->Lambda_x[i] - alpha*Lambdas->Lambda_z[i])*conj(Lambdas->Lambda_z[i]) )/csqrt(normalize_term_Pi_1_i);
-		cmpxCPU temp_Pi_1_ipNd  = ( ( beta*Lambdas->Lambda_z[i] -       Lambdas->Lambda_y[i])*conj(Lambdas->Lambda_z[i])- \
-                                 (alpha*Lambdas->Lambda_y[i] -  beta*Lambdas->Lambda_x[i])*conj(Lambdas->Lambda_x[i]) )/csqrt(normalize_term_Pi_1_i);
+		cmpxCPU temp_Pi_1_ipNd  = ( ( beta0*Lambdas->Lambda_z[i] -       Lambdas->Lambda_y[i])*conj(Lambdas->Lambda_z[i])- \
+                                 (alpha*Lambdas->Lambda_y[i] -  beta0*Lambdas->Lambda_x[i])*conj(Lambdas->Lambda_x[i]) )/csqrt(normalize_term_Pi_1_i);
 		cmpxCPU temp_Pi_1_ip2Nd = ( (      Lambdas->Lambda_x[i] - alpha*Lambdas->Lambda_z[i])*conj(Lambdas->Lambda_x[i])- \
-                                 ( beta*Lambdas->Lambda_z[i] -       Lambdas->Lambda_y[i])*conj(Lambdas->Lambda_y[i]) )/csqrt(normalize_term_Pi_1_i);
-		cmpxCPU temp_Pi_2_i     = (  beta*conj(Lambdas->Lambda_z[i]) -       conj(Lambdas->Lambda_y[i]) )/csqrt(normalize_term_Pi_2_i);
+                                 ( beta0*Lambdas->Lambda_z[i] -       Lambdas->Lambda_y[i])*conj(Lambdas->Lambda_y[i]) )/csqrt(normalize_term_Pi_1_i);
+		cmpxCPU temp_Pi_2_i     = (  beta0*conj(Lambdas->Lambda_z[i]) -       conj(Lambdas->Lambda_y[i]) )/csqrt(normalize_term_Pi_2_i);
         cmpxCPU temp_Pi_2_ipNd  = (       conj(Lambdas->Lambda_x[i]) - alpha*conj(Lambdas->Lambda_z[i]) )/csqrt(normalize_term_Pi_2_i);
-        cmpxCPU temp_Pi_2_ip2Nd = ( alpha*conj(Lambdas->Lambda_y[i]) -  beta*conj(Lambdas->Lambda_x[i]) )/csqrt(normalize_term_Pi_2_i);
+        cmpxCPU temp_Pi_2_ip2Nd = ( alpha*conj(Lambdas->Lambda_y[i]) -  beta0*conj(Lambdas->Lambda_x[i]) )/csqrt(normalize_term_Pi_2_i);
         // Construct Pi_Qr and Pi_Pr entrywisely
         Lambdas->Pi_Qr[i     ] = temp_Pi_1_i;
 		Lambdas->Pi_Qr[i+Nd  ] = temp_Pi_1_ipNd;
@@ -240,6 +257,146 @@ int Construct_Lambdas_Simple( LAMBDAS* Lambdas, LAMBDAS_CUDA* Lambdas_cuda, real
 		Lambdas->Pi_Prs[i+3*Nd] = conj(Lambdas->Pi_Pr[i+4*Nd]);
 		Lambdas->Pi_Prs[i+4*Nd] = conj(Lambdas->Pi_Pr[i+2*Nd]);
 		Lambdas->Pi_Prs[i+5*Nd] = conj(Lambdas->Pi_Pr[i+5*Nd]);
+
+		// Derive Lambda for Lebedev grid
+
+		// cluster 110
+		g1 = -conj(Lambdas->Lambda_x[i]);
+		g2 = -conj(Lambdas->Lambda_y[i]);
+		g3 = Lambdas->Lambda_z[i];
+
+		beta = csqrt(conj(g1)*g1+conj(g2)*g2+conj(g3)*g3);
+		g1mbeta = g1 - beta;
+    	cg1mbeta = conj(g1) - beta;
+    	betacg1mbeta = beta * cg1mbeta;
+		g22 = conj(g2)*g2;
+		
+		V[0] = (conj(g2) * g1mbeta) / betacg1mbeta;
+    	V[1] = 1 + g22 / betacg1mbeta;
+    	V[2] = conj(g2) * g3 / betacg1mbeta;
+    	V[3] = - conj(g3) / beta;
+    	V[4] = conj(g3) * g2 / (- beta * g1mbeta);
+		V[5] = conj(g1) / beta + g22 / (beta * g1mbeta);
+		
+		Lambdas->Pi_Qr_110[i     ] = V[0];
+		Lambdas->Pi_Qr_110[i+Nd  ] = V[1];
+		Lambdas->Pi_Qr_110[i+2*Nd] = V[2];
+		Lambdas->Pi_Qr_110[i+3*Nd] = V[3];
+		Lambdas->Pi_Qr_110[i+4*Nd] = V[4];
+		Lambdas->Pi_Qr_110[i+5*Nd] = V[5];
+
+		Lambdas->Pi_Pr_110[i     ] = conj(V[3]);
+		Lambdas->Pi_Pr_110[i+Nd  ] = conj(V[4]);
+		Lambdas->Pi_Pr_110[i+2*Nd] = conj(V[5]);
+		Lambdas->Pi_Pr_110[i+3*Nd] = -conj(V[0]);
+		Lambdas->Pi_Pr_110[i+4*Nd] = -conj(V[1]);
+		Lambdas->Pi_Pr_110[i+5*Nd] = -conj(V[2]);
+
+		Lambdas->Pi_Qrs_110[i     ] = conj(Lambdas->Pi_Qr_110[i     ]);
+		Lambdas->Pi_Qrs_110[i+Nd  ] = conj(Lambdas->Pi_Qr_110[i+3*Nd]);
+		Lambdas->Pi_Qrs_110[i+2*Nd] = conj(Lambdas->Pi_Qr_110[i+1*Nd]);
+		Lambdas->Pi_Qrs_110[i+3*Nd] = conj(Lambdas->Pi_Qr_110[i+4*Nd]);
+		Lambdas->Pi_Qrs_110[i+4*Nd] = conj(Lambdas->Pi_Qr_110[i+2*Nd]);
+		Lambdas->Pi_Qrs_110[i+5*Nd] = conj(Lambdas->Pi_Qr_110[i+5*Nd]);
+
+		Lambdas->Pi_Prs_110[i     ] = conj(Lambdas->Pi_Pr_110[i     ]);
+		Lambdas->Pi_Prs_110[i+Nd  ] = conj(Lambdas->Pi_Pr_110[i+3*Nd]);
+		Lambdas->Pi_Prs_110[i+2*Nd] = conj(Lambdas->Pi_Pr_110[i+1*Nd]);
+		Lambdas->Pi_Prs_110[i+3*Nd] = conj(Lambdas->Pi_Pr_110[i+4*Nd]);
+		Lambdas->Pi_Prs_110[i+4*Nd] = conj(Lambdas->Pi_Pr_110[i+2*Nd]);
+		Lambdas->Pi_Prs_110[i+5*Nd] = conj(Lambdas->Pi_Pr_110[i+5*Nd]);
+
+		// cluster 101
+		g1 = -conj(Lambdas->Lambda_x[i]);
+		g2 = Lambdas->Lambda_y[i];
+		g3 = -conj(Lambdas->Lambda_z[i]);
+
+		beta = csqrt(conj(g1)*g1+conj(g2)*g2+conj(g3)*g3);
+		g1mbeta = g1 - beta;
+    	cg1mbeta = conj(g1) - beta;
+    	betacg1mbeta = beta * cg1mbeta;
+		g22 = conj(g2)*g2;
+		
+		V[0] = (conj(g2) * g1mbeta) / betacg1mbeta;
+    	V[1] = 1 + g22 / betacg1mbeta;
+    	V[2] = conj(g2) * g3 / betacg1mbeta;
+    	V[3] = - conj(g3) / beta;
+    	V[4] = conj(g3) * g2 / (- beta * g1mbeta);
+		V[5] = conj(g1) / beta + g22 / (beta * g1mbeta);
+		
+		Lambdas->Pi_Qr_101[i     ] = V[0];
+		Lambdas->Pi_Qr_101[i+Nd  ] = V[1];
+		Lambdas->Pi_Qr_101[i+2*Nd] = V[2];
+		Lambdas->Pi_Qr_101[i+3*Nd] = V[3];
+		Lambdas->Pi_Qr_101[i+4*Nd] = V[4];
+		Lambdas->Pi_Qr_101[i+5*Nd] = V[5];
+
+		Lambdas->Pi_Pr_101[i     ] = conj(V[3]);
+		Lambdas->Pi_Pr_101[i+Nd  ] = conj(V[4]);
+		Lambdas->Pi_Pr_101[i+2*Nd] = conj(V[5]);
+		Lambdas->Pi_Pr_101[i+3*Nd] = -conj(V[0]);
+		Lambdas->Pi_Pr_101[i+4*Nd] = -conj(V[1]);
+		Lambdas->Pi_Pr_101[i+5*Nd] = -conj(V[2]);
+
+		Lambdas->Pi_Qrs_101[i     ] = conj(Lambdas->Pi_Qr_101[i     ]);
+		Lambdas->Pi_Qrs_101[i+Nd  ] = conj(Lambdas->Pi_Qr_101[i+3*Nd]);
+		Lambdas->Pi_Qrs_101[i+2*Nd] = conj(Lambdas->Pi_Qr_101[i+1*Nd]);
+		Lambdas->Pi_Qrs_101[i+3*Nd] = conj(Lambdas->Pi_Qr_101[i+4*Nd]);
+		Lambdas->Pi_Qrs_101[i+4*Nd] = conj(Lambdas->Pi_Qr_101[i+2*Nd]);
+		Lambdas->Pi_Qrs_101[i+5*Nd] = conj(Lambdas->Pi_Qr_101[i+5*Nd]);
+
+		Lambdas->Pi_Prs_101[i     ] = conj(Lambdas->Pi_Pr_101[i     ]);
+		Lambdas->Pi_Prs_101[i+Nd  ] = conj(Lambdas->Pi_Pr_101[i+3*Nd]);
+		Lambdas->Pi_Prs_101[i+2*Nd] = conj(Lambdas->Pi_Pr_101[i+1*Nd]);
+		Lambdas->Pi_Prs_101[i+3*Nd] = conj(Lambdas->Pi_Pr_101[i+4*Nd]);
+		Lambdas->Pi_Prs_101[i+4*Nd] = conj(Lambdas->Pi_Pr_101[i+2*Nd]);
+		Lambdas->Pi_Prs_101[i+5*Nd] = conj(Lambdas->Pi_Pr_101[i+5*Nd]);
+
+		// cluster 011
+		g1 = Lambdas->Lambda_x[i];
+		g2 = -conj(Lambdas->Lambda_y[i]);
+		g3 = -conj(Lambdas->Lambda_z[i]);
+
+		beta = csqrt(conj(g1)*g1+conj(g2)*g2+conj(g3)*g3);
+		g1mbeta = g1 - beta;
+    	cg1mbeta = conj(g1) - beta;
+    	betacg1mbeta = beta * cg1mbeta;
+		g22 = conj(g2)*g2;
+		
+		V[0] = (conj(g2) * g1mbeta) / betacg1mbeta;
+    	V[1] = 1 + g22 / betacg1mbeta;
+    	V[2] = conj(g2) * g3 / betacg1mbeta;
+    	V[3] = - conj(g3) / beta;
+    	V[4] = conj(g3) * g2 / (- beta * g1mbeta);
+		V[5] = conj(g1) / beta + g22 / (beta * g1mbeta);
+		
+		Lambdas->Pi_Qr_011[i     ] = V[0];
+		Lambdas->Pi_Qr_011[i+Nd  ] = V[1];
+		Lambdas->Pi_Qr_011[i+2*Nd] = V[2];
+		Lambdas->Pi_Qr_011[i+3*Nd] = V[3];
+		Lambdas->Pi_Qr_011[i+4*Nd] = V[4];
+		Lambdas->Pi_Qr_011[i+5*Nd] = V[5];
+
+		Lambdas->Pi_Pr_011[i     ] = conj(V[3]);
+		Lambdas->Pi_Pr_011[i+Nd  ] = conj(V[4]);
+		Lambdas->Pi_Pr_011[i+2*Nd] = conj(V[5]);
+		Lambdas->Pi_Pr_011[i+3*Nd] = -conj(V[0]);
+		Lambdas->Pi_Pr_011[i+4*Nd] = -conj(V[1]);
+		Lambdas->Pi_Pr_011[i+5*Nd] = -conj(V[2]);
+
+		Lambdas->Pi_Qrs_011[i     ] = conj(Lambdas->Pi_Qr_011[i     ]);
+		Lambdas->Pi_Qrs_011[i+Nd  ] = conj(Lambdas->Pi_Qr_011[i+3*Nd]);
+		Lambdas->Pi_Qrs_011[i+2*Nd] = conj(Lambdas->Pi_Qr_011[i+1*Nd]);
+		Lambdas->Pi_Qrs_011[i+3*Nd] = conj(Lambdas->Pi_Qr_011[i+4*Nd]);
+		Lambdas->Pi_Qrs_011[i+4*Nd] = conj(Lambdas->Pi_Qr_011[i+2*Nd]);
+		Lambdas->Pi_Qrs_011[i+5*Nd] = conj(Lambdas->Pi_Qr_011[i+5*Nd]);
+
+		Lambdas->Pi_Prs_011[i     ] = conj(Lambdas->Pi_Pr_011[i     ]);
+		Lambdas->Pi_Prs_011[i+Nd  ] = conj(Lambdas->Pi_Pr_011[i+3*Nd]);
+		Lambdas->Pi_Prs_011[i+2*Nd] = conj(Lambdas->Pi_Pr_011[i+1*Nd]);
+		Lambdas->Pi_Prs_011[i+3*Nd] = conj(Lambdas->Pi_Pr_011[i+4*Nd]);
+		Lambdas->Pi_Prs_011[i+4*Nd] = conj(Lambdas->Pi_Pr_011[i+2*Nd]);
+		Lambdas->Pi_Prs_011[i+5*Nd] = conj(Lambdas->Pi_Pr_011[i+5*Nd]);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -258,17 +415,47 @@ int Construct_Lambdas_Simple( LAMBDAS* Lambdas, LAMBDAS_CUDA* Lambdas_cuda, real
 	cudaMalloc((void**)&(Lambdas_cuda->dPi_Qrs), 	memsize);
 	cudaMalloc((void**)&(Lambdas_cuda->dPi_Prs), 	memsize);
 
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Qr_110),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Pr_110),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Qrs_110),    memsize);
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Prs_110),    memsize);
+	
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Qr_101),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Pr_101),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Qrs_101),    memsize);
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Prs_101),    memsize);
+	
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Qr_011),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Pr_011),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Qrs_011),    memsize);
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Prs_011),    memsize);
+
 	cudaMemcpy(Lambdas_cuda->dPi_Qr,  Lambdas->Pi_Qr, memsize, cudaMemcpyHostToDevice);
 	cudaMemcpy(Lambdas_cuda->dPi_Qrs, Lambdas->Pi_Qrs, memsize, cudaMemcpyHostToDevice);
 	cudaMemcpy(Lambdas_cuda->dPi_Pr,  Lambdas->Pi_Pr, memsize, cudaMemcpyHostToDevice);
 	cudaMemcpy(Lambdas_cuda->dPi_Prs, Lambdas->Pi_Prs, memsize, cudaMemcpyHostToDevice);
 
-	memsize = sizeof(realCPU)*Nd;
-	realCPU* temp_Lambda_q_sqrt = (realCPU*) malloc(2 * memsize);
+	cudaMemcpy(Lambdas_cuda->dPi_Qr_110, Lambdas->Pi_Qr_110, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Qrs_110, Lambdas->Pi_Qrs_110, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Pr_110, Lambdas->Pi_Pr_110, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Prs_110, Lambdas->Pi_Prs_110, memsize, cudaMemcpyHostToDevice);
+
+	cudaMemcpy(Lambdas_cuda->dPi_Qr_101, Lambdas->Pi_Qr_101, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Qrs_101, Lambdas->Pi_Qrs_101, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Pr_101, Lambdas->Pi_Pr_101, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Prs_101, Lambdas->Pi_Prs_101, memsize, cudaMemcpyHostToDevice);
+
+	cudaMemcpy(Lambdas_cuda->dPi_Qr_011, Lambdas->Pi_Qr_011, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Qrs_011, Lambdas->Pi_Qrs_011, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Pr_011, Lambdas->Pi_Pr_011, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Prs_011, Lambdas->Pi_Prs_011, memsize, cudaMemcpyHostToDevice);
+
+	memsize = sizeof(realGPU)*Nd;
+	realGPU* temp_Lambda_q_sqrt = (realGPU*) malloc(2 * memsize);
 	memcpy(temp_Lambda_q_sqrt, Lambdas->Lambda_q_sqrt, memsize);
 	memcpy(temp_Lambda_q_sqrt + Nd, Lambdas->Lambda_q_sqrt, memsize);
 
-	memsize = 2*sizeof(realCPU)*Nd;
+	memsize = 2*sizeof(realGPU)*Nd;
 	cudaMalloc((void**)&(Lambdas_cuda->Lambda_q_sqrt), memsize);
 	cudaMemcpy(Lambdas_cuda->Lambda_q_sqrt, temp_Lambda_q_sqrt, memsize, cudaMemcpyHostToDevice);
 
@@ -429,11 +616,28 @@ int Construct_Lambdas_General(           LAMBDAS* Lambdas,
 	}
 
 	// Construct Lambda_q_sqrt, temp(normalize_term_Pi_2) and tempPi(normalize_term_Pi_1) in matlab form
-	Lambdas->Lambda_q_sqrt = (realCPU*) malloc(  Nd*sizeof(realCPU));
+	Lambdas->Lambda_q_sqrt = (realCPU*)   malloc(  Nd*sizeof(realCPU)  );
 	Lambdas->Pi_Qr         = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
 	Lambdas->Pi_Pr         = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
 	Lambdas->Pi_Qrs        = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
 	Lambdas->Pi_Prs        = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Qr_110     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Pr_110     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Qrs_110    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Prs_110    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  ); 
+	Lambdas->Pi_Qr_101     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Pr_101     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Qrs_101    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Prs_101    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  ); 
+	Lambdas->Pi_Qr_011     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Pr_011     = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Qrs_011    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  );
+	Lambdas->Pi_Prs_011    = (cmpxCPU*)   malloc(6*Nd*sizeof(cmpxCPU)  ); 
+
+	cmpxCPU g1, g2, g3, g1mbeta, cg1mbeta, betacg1mbeta, g22;
+	double beta;
+	cmpxCPU* V = (cmpxCPU*)malloc(6*sizeof(cmpxCPU));
+
 	for( i = 0; i < Nd; i++ )
 	{
 
@@ -446,9 +650,21 @@ int Construct_Lambdas_General(           LAMBDAS* Lambdas,
 	                  	  Lambdas->Lambda_z[i];
 	    cmpxCPU Lambda_p_i = conj(Lambda_s_i)*Lambda_s_i;
 
+//		cmpxCPU normalize_term_Pi_2_i = csqrt((9*Lambda_q_i*Lambda_q_i - Lambda_p_i*Lambda_p_i)/(3*Lambda_q_i + Lambda_p_i));
    cmpxCPU normalize_term_Pi_2_i = (cmpxCPU) csqrt( 3*(double)Lambda_q_i -(double _Complex)Lambda_p_i);
+  // cmpxCPU normalize_term_Pi_2_i = csqrt( 3*Lambda_q_i -Lambda_p_i);
    cmpxCPU normalize_term_Pi_1_i = csqrt(Lambda_q_i)*normalize_term_Pi_2_i;
 
+  // cout<<"term_Pi_1_i "<<creal(3*Lambda_q_i*Lambda_q_i - Lambda_q_i*Lambda_p_i )<<"  "<<cimag( 3*Lambda_q_i*Lambda_q_i - Lambda_q_i*Lambda_p_i )<<endl;
+  // cout<<"term_Pi_2_i "<<creal(3*Lambda_q_i - Lambda_p_i )<<"  "<<cimag( 3*Lambda_q_i - Lambda_p_i )<<endl;
+ //cout<<"normalize_term_Pi_1_i "<<creal(normalize_term_Pi_1_i)<<"  "<<cimag(normalize_term_Pi_1_i)<<endl;
+// cout<<"normalize_term_Pi_2_i "<<creal(normalize_term_Pi_2_i)<<"  "<<cimag(normalize_term_Pi_2_i)<<endl;
+/*printf("Lambda_p_i %.6lf  %.6f \n",creal(Lambda_p_i),cimag(Lambda_p_i));         
+printf("Lambda_s_i %.6lf  %.6f \n",creal(Lambda_s_i),cimag(Lambda_s_i));
+printf("Lambda_q_i %.6lf \n",Lambda_q_i);
+printf("normalize_term_Pi_1_i %.6lf \n",creal(normalize_term_Pi_1_i));   
+printf("normalize_term_Pi_2_i %.6lf \n",creal(normalize_term_Pi_2_i));*/
+//getchar();
 	    // Construct Lambda_q_sqrt entrywisely (Notice that Sigma_r = [Lambda_q_sqrt;Lambda_q_sqrt])
 	    Lambdas->Lambda_q_sqrt[i] = sqrt( Lambda_q_i );
 	    // Determine Pi_1 and Pi_2 entrywisely
@@ -486,6 +702,147 @@ int Construct_Lambdas_General(           LAMBDAS* Lambdas,
 		Lambdas->Pi_Prs[i+4*Nd] = conj(Lambdas->Pi_Pr[i+2*Nd]);
 		Lambdas->Pi_Prs[i+5*Nd] = conj(Lambdas->Pi_Pr[i+5*Nd]);
   
+		// Derive Lambda for Lebedev grid
+		// cluster 110
+		g1 = -conj(Lambdas->Lambda_x[i]);
+		g2 = -conj(Lambdas->Lambda_y[i]);
+		g3 = Lambdas->Lambda_z[i];
+
+		beta = sqrt(creal(conj(g1)*g1+conj(g2)*g2+conj(g3)*g3));
+		g1mbeta = g1 - beta;
+    	cg1mbeta = conj(g1) - beta;
+    	betacg1mbeta = beta * cg1mbeta;
+		g22 = conj(g2)*g2;
+		
+		V[0] = (conj(g2) * g1mbeta) / betacg1mbeta;
+    	V[1] = 1 + g22 / betacg1mbeta;
+    	V[2] = conj(g2) * g3 / betacg1mbeta;
+    	V[3] = - conj(g3) / beta;
+    	V[4] = conj(g3) * g2 / (- beta * g1mbeta);
+		V[5] = conj(g1) / beta + g22 / (beta * g1mbeta);
+
+		// cout<<creal(V[5])<<'\t'<<cimag(V[5])<<endl;
+		
+		Lambdas->Pi_Qr_110[i     ] = V[0];
+		Lambdas->Pi_Qr_110[i+Nd  ] = V[1];
+		Lambdas->Pi_Qr_110[i+2*Nd] = V[2];
+		Lambdas->Pi_Qr_110[i+3*Nd] = V[3];
+		Lambdas->Pi_Qr_110[i+4*Nd] = V[4];
+		Lambdas->Pi_Qr_110[i+5*Nd] = V[5];
+
+		Lambdas->Pi_Pr_110[i     ] = conj(V[3]);
+		Lambdas->Pi_Pr_110[i+Nd  ] = conj(V[4]);
+		Lambdas->Pi_Pr_110[i+2*Nd] = conj(V[5]);
+		Lambdas->Pi_Pr_110[i+3*Nd] = -conj(V[0]);
+		Lambdas->Pi_Pr_110[i+4*Nd] = -conj(V[1]);
+		Lambdas->Pi_Pr_110[i+5*Nd] = -conj(V[2]);
+
+		Lambdas->Pi_Qrs_110[i     ] = conj(Lambdas->Pi_Qr_110[i     ]);
+		Lambdas->Pi_Qrs_110[i+Nd  ] = conj(Lambdas->Pi_Qr_110[i+3*Nd]);
+		Lambdas->Pi_Qrs_110[i+2*Nd] = conj(Lambdas->Pi_Qr_110[i+1*Nd]);
+		Lambdas->Pi_Qrs_110[i+3*Nd] = conj(Lambdas->Pi_Qr_110[i+4*Nd]);
+		Lambdas->Pi_Qrs_110[i+4*Nd] = conj(Lambdas->Pi_Qr_110[i+2*Nd]);
+		Lambdas->Pi_Qrs_110[i+5*Nd] = conj(Lambdas->Pi_Qr_110[i+5*Nd]);
+
+		Lambdas->Pi_Prs_110[i     ] = conj(Lambdas->Pi_Pr_110[i     ]);
+		Lambdas->Pi_Prs_110[i+Nd  ] = conj(Lambdas->Pi_Pr_110[i+3*Nd]);
+		Lambdas->Pi_Prs_110[i+2*Nd] = conj(Lambdas->Pi_Pr_110[i+1*Nd]);
+		Lambdas->Pi_Prs_110[i+3*Nd] = conj(Lambdas->Pi_Pr_110[i+4*Nd]);
+		Lambdas->Pi_Prs_110[i+4*Nd] = conj(Lambdas->Pi_Pr_110[i+2*Nd]);
+		Lambdas->Pi_Prs_110[i+5*Nd] = conj(Lambdas->Pi_Pr_110[i+5*Nd]);
+
+		// cluster 101
+		g1 = -conj(Lambdas->Lambda_x[i]);
+		g2 = Lambdas->Lambda_y[i];
+		g3 = -conj(Lambdas->Lambda_z[i]);
+
+		beta = sqrt(creal(conj(g1)*g1+conj(g2)*g2+conj(g3)*g3));
+		g1mbeta = g1 - beta;
+    	cg1mbeta = conj(g1) - beta;
+    	betacg1mbeta = beta * cg1mbeta;
+		g22 = conj(g2)*g2;
+		
+		V[0] = (conj(g2) * g1mbeta) / betacg1mbeta;
+    	V[1] = 1 + g22 / betacg1mbeta;
+    	V[2] = conj(g2) * g3 / betacg1mbeta;
+    	V[3] = - conj(g3) / beta;
+    	V[4] = conj(g3) * g2 / (- beta * g1mbeta);
+		V[5] = conj(g1) / beta + g22 / (beta * g1mbeta);
+		
+		Lambdas->Pi_Qr_101[i     ] = V[0];
+		Lambdas->Pi_Qr_101[i+Nd  ] = V[1];
+		Lambdas->Pi_Qr_101[i+2*Nd] = V[2];
+		Lambdas->Pi_Qr_101[i+3*Nd] = V[3];
+		Lambdas->Pi_Qr_101[i+4*Nd] = V[4];
+		Lambdas->Pi_Qr_101[i+5*Nd] = V[5];
+
+		Lambdas->Pi_Pr_101[i     ] = conj(V[3]);
+		Lambdas->Pi_Pr_101[i+Nd  ] = conj(V[4]);
+		Lambdas->Pi_Pr_101[i+2*Nd] = conj(V[5]);
+		Lambdas->Pi_Pr_101[i+3*Nd] = -conj(V[0]);
+		Lambdas->Pi_Pr_101[i+4*Nd] = -conj(V[1]);
+		Lambdas->Pi_Pr_101[i+5*Nd] = -conj(V[2]);
+
+		Lambdas->Pi_Qrs_101[i     ] = conj(Lambdas->Pi_Qr_101[i     ]);
+		Lambdas->Pi_Qrs_101[i+Nd  ] = conj(Lambdas->Pi_Qr_101[i+3*Nd]);
+		Lambdas->Pi_Qrs_101[i+2*Nd] = conj(Lambdas->Pi_Qr_101[i+1*Nd]);
+		Lambdas->Pi_Qrs_101[i+3*Nd] = conj(Lambdas->Pi_Qr_101[i+4*Nd]);
+		Lambdas->Pi_Qrs_101[i+4*Nd] = conj(Lambdas->Pi_Qr_101[i+2*Nd]);
+		Lambdas->Pi_Qrs_101[i+5*Nd] = conj(Lambdas->Pi_Qr_101[i+5*Nd]);
+
+		Lambdas->Pi_Prs_101[i     ] = conj(Lambdas->Pi_Pr_101[i     ]);
+		Lambdas->Pi_Prs_101[i+Nd  ] = conj(Lambdas->Pi_Pr_101[i+3*Nd]);
+		Lambdas->Pi_Prs_101[i+2*Nd] = conj(Lambdas->Pi_Pr_101[i+1*Nd]);
+		Lambdas->Pi_Prs_101[i+3*Nd] = conj(Lambdas->Pi_Pr_101[i+4*Nd]);
+		Lambdas->Pi_Prs_101[i+4*Nd] = conj(Lambdas->Pi_Pr_101[i+2*Nd]);
+		Lambdas->Pi_Prs_101[i+5*Nd] = conj(Lambdas->Pi_Pr_101[i+5*Nd]);
+
+		// cluster 011
+		g1 = Lambdas->Lambda_x[i];
+		g2 = -conj(Lambdas->Lambda_y[i]);
+		g3 = -conj(Lambdas->Lambda_z[i]);
+
+		beta = sqrt(creal(conj(g1)*g1+conj(g2)*g2+conj(g3)*g3));
+		g1mbeta = g1 - beta;
+    	cg1mbeta = conj(g1) - beta;
+    	betacg1mbeta = beta * cg1mbeta;
+		g22 = conj(g2)*g2;
+		
+		V[0] = (conj(g2) * g1mbeta) / betacg1mbeta;
+    	V[1] = 1 + g22 / betacg1mbeta;
+    	V[2] = conj(g2) * g3 / betacg1mbeta;
+    	V[3] = - conj(g3) / beta;
+    	V[4] = conj(g3) * g2 / (- beta * g1mbeta);
+		V[5] = conj(g1) / beta + g22 / (beta * g1mbeta);
+		
+		Lambdas->Pi_Qr_011[i     ] = V[0];
+		Lambdas->Pi_Qr_011[i+Nd  ] = V[1];
+		Lambdas->Pi_Qr_011[i+2*Nd] = V[2];
+		Lambdas->Pi_Qr_011[i+3*Nd] = V[3];
+		Lambdas->Pi_Qr_011[i+4*Nd] = V[4];
+		Lambdas->Pi_Qr_011[i+5*Nd] = V[5];
+
+		Lambdas->Pi_Pr_011[i     ] = conj(V[3]);
+		Lambdas->Pi_Pr_011[i+Nd  ] = conj(V[4]);
+		Lambdas->Pi_Pr_011[i+2*Nd] = conj(V[5]);
+		Lambdas->Pi_Pr_011[i+3*Nd] = -conj(V[0]);
+		Lambdas->Pi_Pr_011[i+4*Nd] = -conj(V[1]);
+		Lambdas->Pi_Pr_011[i+5*Nd] = -conj(V[2]);
+
+		Lambdas->Pi_Qrs_011[i     ] = conj(Lambdas->Pi_Qr_011[i     ]);
+		Lambdas->Pi_Qrs_011[i+Nd  ] = conj(Lambdas->Pi_Qr_011[i+3*Nd]);
+		Lambdas->Pi_Qrs_011[i+2*Nd] = conj(Lambdas->Pi_Qr_011[i+1*Nd]);
+		Lambdas->Pi_Qrs_011[i+3*Nd] = conj(Lambdas->Pi_Qr_011[i+4*Nd]);
+		Lambdas->Pi_Qrs_011[i+4*Nd] = conj(Lambdas->Pi_Qr_011[i+2*Nd]);
+		Lambdas->Pi_Qrs_011[i+5*Nd] = conj(Lambdas->Pi_Qr_011[i+5*Nd]);
+
+		Lambdas->Pi_Prs_011[i     ] = conj(Lambdas->Pi_Pr_011[i     ]);
+		Lambdas->Pi_Prs_011[i+Nd  ] = conj(Lambdas->Pi_Pr_011[i+3*Nd]);
+		Lambdas->Pi_Prs_011[i+2*Nd] = conj(Lambdas->Pi_Pr_011[i+1*Nd]);
+		Lambdas->Pi_Prs_011[i+3*Nd] = conj(Lambdas->Pi_Pr_011[i+4*Nd]);
+		Lambdas->Pi_Prs_011[i+4*Nd] = conj(Lambdas->Pi_Pr_011[i+2*Nd]);
+		Lambdas->Pi_Prs_011[i+5*Nd] = conj(Lambdas->Pi_Pr_011[i+5*Nd]);
+
 	}
  
 	cudaError_t cudaErr;
@@ -518,22 +875,52 @@ int Construct_Lambdas_General(           LAMBDAS* Lambdas,
 
     size_t memsize = sizeof(cmpxGPU)*Nd*6;
 
-    cudaErr = cudaMalloc((void**)&(Lambdas_cuda->dPi_Qr),     memsize);assert( cudaErr == cudaSuccess );
-    cudaErr = cudaMalloc((void**)&(Lambdas_cuda->dPi_Pr),     memsize);assert( cudaErr == cudaSuccess );
-    cudaErr = cudaMalloc((void**)&(Lambdas_cuda->dPi_Qrs),    memsize);assert( cudaErr == cudaSuccess );
-    cudaErr = cudaMalloc((void**)&(Lambdas_cuda->dPi_Prs),    memsize);assert( cudaErr == cudaSuccess );
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Qr),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Pr),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Qrs),    memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Prs),    memsize);
 
-    cudaErr = cudaMemcpy(Lambdas_cuda->dPi_Qr, Lambdas->Pi_Qr, memsize, cudaMemcpyHostToDevice);assert( cudaErr == cudaSuccess );
-    cudaErr = cudaMemcpy(Lambdas_cuda->dPi_Qrs, Lambdas->Pi_Qrs, memsize, cudaMemcpyHostToDevice);assert( cudaErr == cudaSuccess );
-    cudaErr = cudaMemcpy(Lambdas_cuda->dPi_Pr, Lambdas->Pi_Pr, memsize, cudaMemcpyHostToDevice);assert( cudaErr == cudaSuccess );
-    cudaErr = cudaMemcpy(Lambdas_cuda->dPi_Prs, Lambdas->Pi_Prs, memsize, cudaMemcpyHostToDevice);assert( cudaErr == cudaSuccess );
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Qr_110),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Pr_110),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Qrs_110),    memsize);
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Prs_110),    memsize);
+	
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Qr_101),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Pr_101),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Qrs_101),    memsize);
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Prs_101),    memsize);
+	
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Qr_011),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Pr_011),     memsize);
+    cudaMalloc((void**)&(Lambdas_cuda->dPi_Qrs_011),    memsize);
+	cudaMalloc((void**)&(Lambdas_cuda->dPi_Prs_011),    memsize);
 
-    memsize = sizeof(realCPU)*Nd;
-	realCPU* temp_Lambda_q_sqrt = (realCPU*) malloc(2 * memsize);
+    cudaMemcpy(Lambdas_cuda->dPi_Qr, Lambdas->Pi_Qr, memsize, cudaMemcpyHostToDevice);
+    cudaMemcpy(Lambdas_cuda->dPi_Qrs, Lambdas->Pi_Qrs, memsize, cudaMemcpyHostToDevice);
+    cudaMemcpy(Lambdas_cuda->dPi_Pr, Lambdas->Pi_Pr, memsize, cudaMemcpyHostToDevice);
+    cudaMemcpy(Lambdas_cuda->dPi_Prs, Lambdas->Pi_Prs, memsize, cudaMemcpyHostToDevice);
+	
+	cudaMemcpy(Lambdas_cuda->dPi_Qr_110, Lambdas->Pi_Qr_110, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Qrs_110, Lambdas->Pi_Qrs_110, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Pr_110, Lambdas->Pi_Pr_110, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Prs_110, Lambdas->Pi_Prs_110, memsize, cudaMemcpyHostToDevice);
+
+	cudaMemcpy(Lambdas_cuda->dPi_Qr_101, Lambdas->Pi_Qr_101, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Qrs_101, Lambdas->Pi_Qrs_101, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Pr_101, Lambdas->Pi_Pr_101, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Prs_101, Lambdas->Pi_Prs_101, memsize, cudaMemcpyHostToDevice);
+
+	cudaMemcpy(Lambdas_cuda->dPi_Qr_011, Lambdas->Pi_Qr_011, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Qrs_011, Lambdas->Pi_Qrs_011, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Pr_011, Lambdas->Pi_Pr_011, memsize, cudaMemcpyHostToDevice);
+	cudaMemcpy(Lambdas_cuda->dPi_Prs_011, Lambdas->Pi_Prs_011, memsize, cudaMemcpyHostToDevice);
+
+    memsize = sizeof(realGPU)*Nd;
+	realGPU* temp_Lambda_q_sqrt = (realGPU*) malloc(2 * memsize);
 	memcpy(temp_Lambda_q_sqrt, Lambdas->Lambda_q_sqrt, memsize);
 	memcpy(temp_Lambda_q_sqrt + Nd, Lambdas->Lambda_q_sqrt, memsize);
 
-	memsize = 2*sizeof(realCPU)*Nd;
+	memsize = 2*sizeof(realGPU)*Nd;
 	cudaMalloc((void**)&(Lambdas_cuda->Lambda_q_sqrt), memsize);
 	cudaMemcpy(Lambdas_cuda->Lambda_q_sqrt, temp_Lambda_q_sqrt, memsize, cudaMemcpyHostToDevice);
 	/*
@@ -542,8 +929,7 @@ int Construct_Lambdas_General(           LAMBDAS* Lambdas,
     cudaErr = cudaMemcpy(Lambdas_cuda->Lambda_q_sqrt, Lambdas->Lambda_q_sqrt, memsize, cudaMemcpyHostToDevice);assert( cudaErr == cudaSuccess );
 */
 	///////////////////////////////////////////////////////////////////////////
- 
- 
+		
 	free(e_x); free(e_y); free(e_z);
 	free(mx); free(my); free(mz); free(mxy);
 	free(e_yx); free(e_zy); free(mxyz);

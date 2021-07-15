@@ -54,7 +54,7 @@ int Lanczos_decomp_Biisotropic(
 
     int iter;   
 
-    for(int ii=0; ii< loop_start; ii++)
+    for(int ii = 0; ii < loop_start; ii++)
     {
         if(flag_CompType == "Simple")
         {
@@ -78,9 +78,11 @@ int Lanczos_decomp_Biisotropic(
         FAME_Matrix_Vector_Production_Biisotropic_Ar(cuHandles, fft_buffer, U+loop_start*size, mtx_B,
              Nx, Ny, Nz, Nd, Pi_Qr, Pi_Pr,Pi_Qrs, Pi_Prs,D_kx, D_ky, D_kz, r, Profile);
     }
-    cublasErr = PC_cublas_dscal( cublas_handle, size, &T1[loop_start], r, 1 );
-    assert( cublasErr == CUBLAS_STATUS_SUCCESS );
-
+    cublasErr = FAME_cublas_dscal( cublas_handle, size, &T1[loop_start], r, 1 );
+    
+    
+    //cout<<  T1[loop_start]<<endl;
+    //getchar();
 
     for(j=loop_start; j<loop_end; j++)
     {
@@ -89,34 +91,38 @@ int Lanczos_decomp_Biisotropic(
         FAME_Matrix_Vector_Production_Biisotropic_Posdef(cuHandles, U+j*size, mtx_B, Nx, Ny, Nz, Nd, Lambda_q_sqrt,
                     Pi_Qr, Pi_Pr,Pi_Qrs, Pi_Prs,D_k, D_ks, w);
  
-        cublas_zcale = make_cucmpx(- T1[j], 0.0);  
+        cublas_zcale = make_cucmpx(-T1[j], 0.0);  
         
-        cublasErr = PC_cublas_axpy(cublas_handle, size, &cublas_zcale, P+(j-1)*size, 1, w, 1);
+        cublasErr = FAME_cublas_axpy(cublas_handle, size, &cublas_zcale, P+(j-1)*size, 1, w, 1);
         assert( cublasErr == CUBLAS_STATUS_SUCCESS );
  
-        cublasErr = PC_cublas_dot(cublas_handle, size, U+j*size, 1, w, 1, &alpha_tmp);
+        cublasErr = FAME_cublas_dot(cublas_handle, size, U+j*size, 1, w, 1, &alpha_tmp);
         assert( cublasErr == CUBLAS_STATUS_SUCCESS );
 
         cublas_scale = 1.0 / T1[j];
         checkCudaErrors(cudaMemcpy(P+j*size, r, memsize, cudaMemcpyDeviceToDevice));
-        cublasErr = PC_cublas_dscal(cublas_handle, size, &(cublas_scale), P+j*size, 1);
+        cublasErr = FAME_cublas_dscal(cublas_handle, size, &(cublas_scale), P+j*size, 1);
         assert( cublasErr == CUBLAS_STATUS_SUCCESS );
 
         cublas_zcale = make_cucmpx(-alpha_tmp.x, 0.0);
-        cublasErr = PC_cublas_axpy(cublas_handle, size, &cublas_zcale, P+j*size, 1, w, 1);
+        cublasErr = FAME_cublas_axpy(cublas_handle, size, &cublas_zcale, P+j*size, 1, w, 1);
         assert( cublasErr == CUBLAS_STATUS_SUCCESS );
 
         checkCudaErrors(cudaMemcpy(r, w, memsize, cudaMemcpyDeviceToDevice));
+           
+        /*printDeviceArray(r,Nd, "r.txt");           
+        printDeviceArray(U+j*size,Nd, "U.txt");
+        getchar();*/
 
         /* Full Reorthogonalization */
 
         for (i = 0; i < j; i++)
         {
-            cublasErr = PC_cublas_dot(cublas_handle, size, U+i*size, 1, r, 1, &Loss );
+            cublasErr = FAME_cublas_dot(cublas_handle, size, U+i*size, 1, r, 1, &Loss );
             assert( cublasErr == CUBLAS_STATUS_SUCCESS );            
 
             cublas_zcale = make_cucmpx( -Loss.x, -Loss.y);
-            cublasErr = PC_cublas_axpy(cublas_handle, size, &cublas_zcale, P+i*size, 1, r, 1);
+            cublasErr = FAME_cublas_axpy(cublas_handle, size, &cublas_zcale, P+i*size, 1, r, 1);
             assert( cublasErr == CUBLAS_STATUS_SUCCESS );
             
             if(i == j)
@@ -126,6 +132,9 @@ int Lanczos_decomp_Biisotropic(
         }
         T0[j] = alpha_tmp.x + Loss.x;
 
+        //cout<<  T1[j]<<endl;
+        //cout<<  T0[j]<<endl;
+        //getchar();
         struct timespec start, end;
         clock_gettime (CLOCK_REALTIME, &start);
 
@@ -143,13 +152,13 @@ int Lanczos_decomp_Biisotropic(
         Profile->ls_time[Profile->idx] += (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION;
 
 
-        cublasErr = PC_cublas_dot(cublas_handle, size, U+(j+1)*size, 1, r, 1, &beta_tmp);
+        cublasErr = FAME_cublas_dot(cublas_handle, size, U+(j+1)*size, 1, r, 1, &beta_tmp);
         assert( cublasErr == CUBLAS_STATUS_SUCCESS );
         T1[j+1] = sqrt(beta_tmp.x);
  
   
         cublas_scale = 1.0 / T1[j+1];
-        cublasErr = PC_cublas_dscal( cublas_handle, size, &(cublas_scale), U+(j+1)*size, 1 );
+        cublasErr = FAME_cublas_dscal( cublas_handle, size, &(cublas_scale), U+(j+1)*size, 1 );
         assert( cublasErr == CUBLAS_STATUS_SUCCESS );
         
 

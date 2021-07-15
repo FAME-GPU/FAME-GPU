@@ -2,9 +2,14 @@
 #include "FAME_CUDA.h"
 #include "FAME_FFT_CUDA.cuh"
 #include "FAME_Create_cublas.cuh"
-#include "FAME_Create_Buffer.cuh"
+#include "FAME_Create_Buffer_Isotropic.cuh"
+#include "FAME_Create_Buffer_Anisotropic.cuh"
 #include "FAME_Create_Buffer_Biisotropic.cuh"
+#include "FAME_Create_Buffer_Bianisotropic.cuh"
 #include "FAME_Matrix_B_Isotropic.cuh"
+#include "FAME_Matrix_B_Anisotropic.cuh"
+#include "FAME_Matrix_B_Biisotropic.cuh"
+#include "FAME_Matrix_B_Bianisotropic.cuh"
 #include "FAME_Malloc_mtx_C.h"
 #include "FAME_Matrix_Lambdas.cuh"
 #include "FAME_Matrix_Curl.h"
@@ -13,8 +18,9 @@
 #include "FAME_Profile.h"
 #include "FAME_Destroy_Main.cuh"
 #include "FAME_Fast_Algorithms_Isotropic.cuh"
+#include "FAME_Fast_Algorithms_Anisotropic.cuh"
 #include "FAME_Fast_Algorithms_Biisotropic.cuh"
-#include "FAME_Matrix_B_Biisotropic.cuh"
+#include "FAME_Fast_Algorithms_Bianisotropic.cuh"
 #include "FAME_Matrix_Vector_Production_Qrs.cuh"
 #include "FAME_Matrix_Vector_Production_Pr.cuh"
 #include "FAME_Print_Parameter.h"
@@ -34,32 +40,36 @@
 
 void FAME_Fast_Algorithms_Driver(
 	realCPU*        Freq_array,
-	cmpxCPU*          Ele_field_mtx,
-	CULIB_HANDLES  cuHandles,
-	LANCZOS_BUFFER lBuffer,
-	FFT_BUFFER     fft_buffer,
-	LAMBDAS_CUDA   Lambdas_cuda,
-	MTX_B          mtx_B,
-	MATERIAL 	   material,
-	ES             es,
-	LS             ls,
+	cmpxCPU*        Ele_field_mtx,
+	cmpxCPU*        Dis_field_mtx,
+	CULIB_HANDLES   cuHandles,
+	LANCZOS_BUFFER  lBuffer,
+	FFT_BUFFER      fft_buffer,
+	LAMBDAS_CUDA    Lambdas_cuda,
+	MTX_B           mtx_B,
+	MATERIAL 	    material,
+	ES              es,
+	LS              ls,
 	int Nx, int Ny, int Nz, int Nd, int N, 
 	char* lattice_type, PROFILE* Profile);
 
 void Destroy_Lambdas(LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, char* lattice_type);
 void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, FFT_BUFFER fft_buffer, CULIB_HANDLES cuHandles,
 	int Nx, int Ny, int Nz, int Nd, int N, char* lattice_type, realCPU error, PROFILE* Profile);
-void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error);
+void Check_Residual_Iso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error);
+void Check_Residual_Aniso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, cmpxCPU* Dis_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error);
 void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error);
+void Check_Residual_Bianiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, cmpxCPU* Dis_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error);
 
 int FAME_Main_Code(PAR Par, PROFILE* Profile)
 {
+
 	int Nx = Par.mesh.grid_nums[0];
     int Ny = Par.mesh.grid_nums[1];
 	int Nz = Par.mesh.grid_nums[2];
 	int Nd;
 	int N  = Nx * Ny * Nz;
-	int Ele_field_mtx_N=0;
+	int Ele_field_mtx_N = 0;
 	int Nwant = Par.es.nwant;
 	int Nstep = Par.es.nstep;
 	int N_wave_vec = Par.recip_lattice.Wave_vec_num;
@@ -77,8 +87,8 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 		realCPU cr_error = 1e-8;
 	#endif 
 
-	realCPU accum;
 	struct timespec start, end;
+	realCPU accum;
 
 	cudaSetDevice(Par.flag.device);
 	
@@ -92,26 +102,50 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 
 	FAME_Create_cublas(&cuHandles, Nx, Ny, Nz);
 
-
+	realCPU *Freq_array;
+	cmpxCPU *Ele_field_mtx, *Dis_field_mtx;
 	if(strcmp(Par.material.material_type, "isotropic") == 0)
 	{
 		Ele_field_mtx_N = N * 3;
+		Freq_array = (realCPU*) calloc(N_wave_vec * Nwant, sizeof(realCPU));
+		Ele_field_mtx = (cmpxCPU*) calloc(Ele_field_mtx_N * Nwant, sizeof(cmpxCPU));
+	}
+	else if(strcmp(Par.material.material_type, "anisotropic") == 0)
+	{
+		Ele_field_mtx_N = N * 12;
+		Freq_array = (realCPU*) calloc(N_wave_vec * Nwant, sizeof(realCPU));
+		Ele_field_mtx = (cmpxCPU*) calloc(Ele_field_mtx_N * Nwant, sizeof(cmpxCPU));
+		Dis_field_mtx = (cmpxCPU*) calloc(Ele_field_mtx_N * Nwant, sizeof(cmpxCPU));
 	}
 	else if(strcmp(Par.material.material_type, "biisotropic") == 0)
 	{
 		Ele_field_mtx_N = N * 6;
+		Freq_array = (realCPU*) calloc(N_wave_vec * Nwant, sizeof(realCPU));
+		Ele_field_mtx = (cmpxCPU*) calloc(Ele_field_mtx_N * Nwant, sizeof(cmpxCPU));
 	}
-	realCPU* Freq_array    = (realCPU*) calloc(N_wave_vec * Nwant, sizeof(realCPU));
-	cmpxCPU*   Ele_field_mtx = (cmpxCPU*)   calloc(Ele_field_mtx_N * Nwant, sizeof(cmpxCPU));
-	
+	else if(strcmp(Par.material.material_type, "bianisotropic") == 0)
+	{
+		Ele_field_mtx_N = N * 48;
+		Freq_array = (realCPU*) calloc(N_wave_vec * Nwant, sizeof(realCPU));
+		Ele_field_mtx = (cmpxCPU*) calloc(Ele_field_mtx_N * Nwant, sizeof(cmpxCPU));
+		Dis_field_mtx = (cmpxCPU*) calloc(Ele_field_mtx_N * Nwant, sizeof(cmpxCPU));
+	}
 	
 	if(strcmp(Par.material.material_type, "isotropic") == 0)
 	{
-		FAME_Create_Buffer(&cuHandles, &fft_buffer, &lBuffer, N, Nstep);
+		FAME_Create_Buffer_Isotropic(&cuHandles, &fft_buffer, &lBuffer, N, Nstep);
+	}
+	else if(strcmp(Par.material.material_type, "anisotropic") == 0)
+	{
+		FAME_Create_Buffer_Anisotropic(&cuHandles, &fft_buffer, &lBuffer, N, Nstep);
 	}
 	else if(strcmp(Par.material.material_type, "biisotropic") == 0)
 	{
-		FAME_Create_Buffer_Biisotropic(&cuHandles, &fft_buffer, &lBuffer,N, Nstep);
+		FAME_Create_Buffer_Biisotropic(&cuHandles, &fft_buffer, &lBuffer, N, Nstep);
+	}
+	else if(strcmp(Par.material.material_type, "bianisotropic") == 0)
+	{
+		FAME_Create_Buffer_Bianisotropic(&cuHandles, &fft_buffer, &lBuffer, N, Nstep);
 	}
 
 	
@@ -124,32 +158,54 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 		FAME_Matrix_B_Isotropic(mtx_B.B_eps, mtx_B.invB_eps, Par.material, N);
 	}
 
+	else if(strcmp(Par.material.material_type, "anisotropic") == 0)
+    {
+		printf("= = = = FAME_Matrix_B_Anisotropic = = = = = = = = = = = = = = = = = = = = = = = = =\n");
+		cudaMalloc((void**) &mtx_B.N, 9 * sizeof(cmpxGPU));
+		cudaMalloc((void**) &mtx_B.GInOut_index,  Par.material.BInOut_index_length[7] * sizeof(int));
+		mtx_B.GInOut_index_length = (int *) calloc(8, sizeof(int));
+    	cudaMemcpy(mtx_B.GInOut_index, Par.material.BInOut_index, Par.material.BInOut_index_length[7] * sizeof(int), cudaMemcpyHostToDevice);
+    	memcpy(mtx_B.GInOut_index_length, Par.material.BInOut_index_length, 8 * sizeof(int));
+
+		FAME_Matrix_B_Anisotropic(N, Par.material, mtx_B.N );
+	}
+
 	else if(strcmp(Par.material.material_type, "biisotropic") == 0)
     {
 		printf("= = = = FAME_Matrix_B_Biisotropic = = = = = = = = = = = = = = = = = = = = = = = = =\n");
-		size_t  size = 3*N*sizeof(realCPU);
+		size_t size = 3 * N * sizeof(realGPU);
 		cudaMalloc((void**) &mtx_B.B_eps, size);
 		cudaMalloc((void**) &mtx_B.B_mu, size);
-		cudaMalloc((void**) &mtx_B.invPhi,  size);
+		cudaMalloc((void**) &mtx_B.invPhi, size);
 
-		size = 3*N*sizeof(cmpxGPU);
+		size = 3 * N * sizeof(cmpxGPU);
 		cudaMalloc((void**) &mtx_B.B_zeta, size);
 		cudaMalloc((void**) &mtx_B.B_zeta_s, size);
 		cudaMalloc((void**) &mtx_B.B_xi, size);
 
-		FAME_Matrix_B_Biisotropic(N, Par.material, mtx_B.B_eps, mtx_B.B_mu, mtx_B.B_xi, mtx_B.B_zeta, mtx_B.B_zeta_s, mtx_B.invPhi );
+		FAME_Matrix_B_Biisotropic(N, Par.material, mtx_B.B_eps, mtx_B.B_mu, mtx_B.B_xi, mtx_B.B_zeta, mtx_B.B_zeta_s, mtx_B.invPhi);
+	}
 
+	else if(strcmp(Par.material.material_type, "bianisotropic") == 0)
+    {
+		printf("= = = = FAME_Matrix_B_Bianisotropic = = = = = = = = = = = = = = = = = = = = = = = = =\n");
+		cudaMalloc((void**) &mtx_B.G, 36 * sizeof(cmpxGPU));
+		cudaMalloc((void**) &mtx_B.GInOut_index,  Par.material.BInOut_index_length[7] * sizeof(int));
+		mtx_B.GInOut_index_length = (int *) calloc(8, sizeof(int));
+    	cudaMemcpy(mtx_B.GInOut_index, Par.material.BInOut_index, Par.material.BInOut_index_length[7] * sizeof(int), cudaMemcpyHostToDevice);
+    	memcpy(mtx_B.GInOut_index_length, Par.material.BInOut_index_length, 8 * sizeof(int));
+
+		FAME_Matrix_B_Bianisotropic(N, Par.material, mtx_B.G);
 	}
 
 
     FAME_Malloc_mtx_C(&mtx_C, N);
-
+	FAME_Print_Parameter(Par);
 	for(int i = 0; i < N_wave_vec; i++)
-    //for(int i = 0; i < 1; i++)
 	{
 		Profile->idx = i;
 
-		  wave_vec_array[0] = Par.recip_lattice.WaveVector[3 * i];
+	    wave_vec_array[0] = Par.recip_lattice.WaveVector[3 * i];
     	wave_vec_array[1] = Par.recip_lattice.WaveVector[3 * i + 1];
     	wave_vec_array[2] = Par.recip_lattice.WaveVector[3 * i + 2];
 
@@ -161,7 +217,6 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 		printf("= = = = FAME_Matrix_Lambdas = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
 		Nd = FAME_Matrix_Lambdas(&Lambdas_cuda, wave_vec_array, Par.mesh.grid_nums, Par.mesh.mesh_len, Par.lattice.lattice_vec_a, &Par, &Lambdas);
 		
-
 		printf("= = = = Check_Eigendecomp = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
 		clock_gettime(CLOCK_REALTIME, &start);
 		Check_Eigendecomp(mtx_C, Lambdas, Lambdas_cuda, fft_buffer, cuHandles, Nx, Ny, Nz, Nd, N, Par.lattice.lattice_type, Par.ce_error, Profile);
@@ -171,7 +226,7 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 
 		printf("= = = = FAME_Fast_Algorithms = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
 		clock_gettime (CLOCK_REALTIME, &start);
-		FAME_Fast_Algorithms_Driver(Freq_array+i*Nwant, Ele_field_mtx, 
+		FAME_Fast_Algorithms_Driver(Freq_array + i * Nwant, Ele_field_mtx, Dis_field_mtx, 
 			cuHandles, lBuffer, fft_buffer, Lambdas_cuda, mtx_B, Par.material, Par.es, Par.ls,
 			Nx, Ny, Nz, Nd, N, Par.lattice.lattice_type, Profile);
 		clock_gettime (CLOCK_REALTIME, &end);
@@ -181,16 +236,24 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 		clock_gettime (CLOCK_REALTIME, &start);
 		if(strcmp(Par.material.material_type, "isotropic") == 0)
 		{
-			Check_Residual(Freq_array+i*Nwant, Ele_field_mtx, mtx_B, mtx_C, N, Nwant, cr_error);
+			Check_Residual_Iso(Freq_array+i*Nwant, Ele_field_mtx, mtx_B, mtx_C, N, Nwant, cr_error);
+		}
+		else if(strcmp(Par.material.material_type, "anisotropic") == 0)
+		{
+			Check_Residual_Aniso(Freq_array+i*Nwant, Ele_field_mtx, Dis_field_mtx, mtx_B, mtx_C, N, Nwant, cr_error);
 		}
 		else if(strcmp(Par.material.material_type, "biisotropic") == 0)
 		{
 			Check_Residual_Biiso(Freq_array+i*Nwant, Ele_field_mtx, mtx_B, mtx_C, N, Nwant, cr_error);
 		}
-		//getchar();
+		else if(strcmp(Par.material.material_type, "bianisotropic") == 0)
+		{
+			Check_Residual_Bianiso(Freq_array+i*Nwant, Ele_field_mtx, Dis_field_mtx, mtx_B, mtx_C, N, Nwant, cr_error);
+		}
 		clock_gettime (CLOCK_REALTIME, &end);
 		accum = ( end.tv_sec - start.tv_sec ) + ( end.tv_nsec - start.tv_nsec ) / BILLION;
 		printf("%*s%8.2f sec.\n", 68, "", accum);
+		
 
 		if(Par.flag.save_eigen_vector)
 		{
@@ -213,7 +276,8 @@ int FAME_Main_Code(PAR Par, PROFILE* Profile)
 
 void FAME_Fast_Algorithms_Driver(
 	realCPU*        Freq_array,
-	cmpxCPU*          Ele_field_mtx,
+	cmpxCPU*        Ele_field_mtx,
+	cmpxCPU*        Dis_field_mtx, 
 	CULIB_HANDLES  cuHandles,
 	LANCZOS_BUFFER lBuffer,
 	FFT_BUFFER     fft_buffer,
@@ -234,12 +298,27 @@ void FAME_Fast_Algorithms_Driver(
 		{
 
 			FAME_Fast_Algorithms_Isotropic(Freq_array, Ele_field_mtx, cuHandles, lBuffer, fft_buffer,
-								  Lambdas_cuda, mtx_B, es, ls, Nx, Ny, Nz, Nd, N, "Simple", Profile);
+								    Lambdas_cuda, mtx_B, es, ls, Nx, Ny, Nz, Nd, N, "Simple", Profile);
 		}
 		else
 		{
 			FAME_Fast_Algorithms_Isotropic(Freq_array, Ele_field_mtx, cuHandles, lBuffer, fft_buffer,
-								 Lambdas_cuda, mtx_B, es, ls, Nx, Ny, Nz, Nd, N, "General", Profile);
+								 	Lambdas_cuda, mtx_B, es, ls, Nx, Ny, Nz, Nd, N, "General", Profile);
+		}
+	}
+	else if (strcmp(material.material_type, "anisotropic") == 0)
+	{
+		if( (strcmp(lattice_type, "simple_cubic"          ) == 0) || \
+			(strcmp(lattice_type, "primitive_orthorhombic") == 0) || \
+			(strcmp(lattice_type, "primitive_tetragonal"  ) == 0) )
+		{		
+			FAME_Fast_Algorithms_Anisotropic(Freq_array, Ele_field_mtx, Dis_field_mtx, cuHandles, lBuffer, fft_buffer,
+									Lambdas_cuda, mtx_B, es, ls, Nx, Ny, Nz, Nd, N, "Simple", Profile);		
+		}
+		else
+		{
+			FAME_Fast_Algorithms_Anisotropic(Freq_array, Ele_field_mtx, Dis_field_mtx, cuHandles, lBuffer, fft_buffer,
+									Lambdas_cuda, mtx_B, es, ls, Nx, Ny, Nz, Nd, N, "General", Profile);			
 		}
 	}
 	else if (strcmp(material.material_type, "biisotropic") == 0)
@@ -248,13 +327,28 @@ void FAME_Fast_Algorithms_Driver(
 			(strcmp(lattice_type, "primitive_orthorhombic") == 0) || \
 			(strcmp(lattice_type, "primitive_tetragonal"  ) == 0) )
 		{		
-			FAME_Fast_Algorithms_Biisotropic(Freq_array, Ele_field_mtx, cuHandles, Lambdas_cuda, lBuffer,fft_buffer, mtx_B,material ,Nx, Ny, Nz, Nd,
-												es, ls, "Simple", Profile);		
+			FAME_Fast_Algorithms_Biisotropic(Freq_array, Ele_field_mtx, cuHandles, Lambdas_cuda, lBuffer, fft_buffer, 
+									mtx_B, material, Nx, Ny, Nz, Nd, es, ls, "Simple", Profile);		
 		}
 		else
 		{
-			FAME_Fast_Algorithms_Biisotropic(Freq_array, Ele_field_mtx, cuHandles,Lambdas_cuda, lBuffer, fft_buffer, mtx_B,material ,Nx, Ny, Nz, Nd,
-				es, ls , "General",Profile);			
+			FAME_Fast_Algorithms_Biisotropic(Freq_array, Ele_field_mtx, cuHandles,Lambdas_cuda, lBuffer, fft_buffer, 
+									mtx_B, material, Nx, Ny, Nz, Nd, es, ls, "General", Profile);			
+		}
+	}
+	else if (strcmp(material.material_type, "bianisotropic") == 0)
+	{
+		if( (strcmp(lattice_type, "simple_cubic"          ) == 0) || \
+			(strcmp(lattice_type, "primitive_orthorhombic") == 0) || \
+			(strcmp(lattice_type, "primitive_tetragonal"  ) == 0) )
+		{		
+			FAME_Fast_Algorithms_Bianisotropic(Freq_array, Ele_field_mtx, Dis_field_mtx, cuHandles, Lambdas_cuda, lBuffer, fft_buffer, 
+									mtx_B, material ,Nx, Ny, Nz, Nd, es, ls, "Simple", Profile);		
+		}
+		else
+		{
+			FAME_Fast_Algorithms_Bianisotropic(Freq_array, Ele_field_mtx, Dis_field_mtx, cuHandles, Lambdas_cuda, lBuffer, fft_buffer, 
+									mtx_B, material ,Nx, Ny, Nz, Nd, es, ls , "General", Profile);			
 		}
 	}
 }
@@ -294,12 +388,36 @@ void Destroy_Lambdas(LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, char* lattice_t
     free(Lambdas.Pi_Pr);
     free(Lambdas.Pi_Qrs);
     free(Lambdas.Pi_Prs);
+	free(Lambdas.Pi_Qr_110);
+    free(Lambdas.Pi_Pr_110);
+    free(Lambdas.Pi_Qrs_110);
+    free(Lambdas.Pi_Prs_110);
+	free(Lambdas.Pi_Qr_101);
+    free(Lambdas.Pi_Pr_101);
+    free(Lambdas.Pi_Qrs_101);
+    free(Lambdas.Pi_Prs_101);
+	free(Lambdas.Pi_Qr_011);
+    free(Lambdas.Pi_Pr_011);
+    free(Lambdas.Pi_Qrs_011);
+    free(Lambdas.Pi_Prs_011);
 
     cudaFree(Lambdas_cuda.Lambda_q_sqrt);
 	cudaFree(Lambdas_cuda.dPi_Qr);
 	cudaFree(Lambdas_cuda.dPi_Pr);
 	cudaFree(Lambdas_cuda.dPi_Qrs);
 	cudaFree(Lambdas_cuda.dPi_Prs);
+	cudaFree(Lambdas_cuda.dPi_Qr_110);
+	cudaFree(Lambdas_cuda.dPi_Pr_110);
+	cudaFree(Lambdas_cuda.dPi_Qrs_110);
+	cudaFree(Lambdas_cuda.dPi_Prs_110);
+	cudaFree(Lambdas_cuda.dPi_Qr_101);
+	cudaFree(Lambdas_cuda.dPi_Pr_101);
+	cudaFree(Lambdas_cuda.dPi_Qrs_101);
+	cudaFree(Lambdas_cuda.dPi_Prs_101);
+	cudaFree(Lambdas_cuda.dPi_Qr_011);
+	cudaFree(Lambdas_cuda.dPi_Pr_011);
+	cudaFree(Lambdas_cuda.dPi_Qrs_011);
+	cudaFree(Lambdas_cuda.dPi_Prs_011);
 }
 
 void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, FFT_BUFFER fft_buffer, CULIB_HANDLES cuHandles,
@@ -340,6 +458,7 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 
 	cudaMemcpy(N3_temp1, vec_x, dsizeEle_field_mtx_N, cudaMemcpyHostToDevice);
   
+  //printDeviceArray(N3_temp1, Ele_field_mtx_N, "vec_x.txt");
 
 	if( (strcmp(lattice_type, "simple_cubic"          ) == 0) || \
 		(strcmp(lattice_type, "primitive_orthorhombic") == 0) || \
@@ -421,12 +540,14 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 	   (strcmp(lattice_type, "primitive_orthorhombic") == 0) || \
 	   (strcmp(lattice_type, "primitive_tetragonal"  ) == 0))
 	{
-		FAME_Matrix_Vector_Production_Qrs(Nd2_temp, N3_temp1, cuHandles, fft_buffer, Lambdas_cuda.dD_ks, Lambdas_cuda.dPi_Qrs, Nx, Ny, Nz, Nd, Profile);
+		FAME_Matrix_Vector_Production_Qrs(Nd2_temp, N3_temp1, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, Lambdas_cuda.dD_ks, Lambdas_cuda.dPi_Qrs);
 	}
 	else
 	{
-		FAME_Matrix_Vector_Production_Qrs(Nd2_temp, N3_temp1, cuHandles, fft_buffer, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Qrs, Nx, Ny, Nz, Nd, Profile);
+		FAME_Matrix_Vector_Production_Qrs(Nd2_temp, N3_temp1, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Qrs);
 	}
+  
+//  printDeviceArray(Nd2_temp, 2*Nd, "QRS.txt");
 
 	cudaMemcpy(Qrs_x, Nd2_temp, dsizeNd2, cudaMemcpyDeviceToHost);
 
@@ -443,29 +564,36 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 	   (strcmp(lattice_type, "primitive_orthorhombic") == 0) || \
 	   (strcmp(lattice_type, "primitive_tetragonal"  ) == 0))
 	{
-		FAME_Matrix_Vector_Production_Pr(cuHandles, fft_buffer, Nd2_temp, Nx, Ny, Nz, Nd, Lambdas_cuda.dD_k, Lambdas_cuda.dPi_Pr, N3_temp1);
+		FAME_Matrix_Vector_Production_Pr(N3_temp1, Nd2_temp, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, Lambdas_cuda.dD_k, Lambdas_cuda.dPi_Pr);
 	}
 	else
 	{
-		FAME_Matrix_Vector_Production_Pr(cuHandles, fft_buffer, Nd2_temp, Nx, Ny, Nz, Nd, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Pr, N3_temp1);
+		FAME_Matrix_Vector_Production_Pr(N3_temp1, Nd2_temp, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Pr);
 	}
   
+//  printDeviceArray(N3_temp1, Ele_field_mtx_N, "PrS.txt");
+//getchar();
   
 	cudaMemcpy(vec_y, N3_temp1, dsizeEle_field_mtx_N, cudaMemcpyDeviceToHost);
 
 	mtx_prod(vec_temp, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, vec_x, N12, Ele_field_mtx_N);
 	
+/*cout<<"vec_temp "<<creal(vec_temp[0] )<<"  "<<cimag(vec_temp[0] )<<endl;
+cout<<"vec_temp "<<creal(vec_temp[1] )<<"  "<<cimag(vec_temp[1] )<<endl;
+cout<<" vec_x "<<creal( vec_x[0] )<<"  "<<cimag( vec_x[0] )<<endl;
+cout<<" vec_x "<<creal( vec_x[1] )<<"  "<<cimag( vec_x[1] )<<endl;*/
 
 	cmpxCPU* test = (cmpxCPU*) malloc(Ele_field_mtx_N * sizeof(cmpxCPU));
 	vec_plus(test, 1.0, vec_temp, -1.0, vec_y, Ele_field_mtx_N);
 	realCPU SVD_test_C = vec_norm(test, Ele_field_mtx_N)/sqrt(Ele_field_mtx_N);
 
 	printf("          EigDecomp_test_C1 = %e\n", C1_error);
-    	printf("          EigDecomp_test_C2 = %e\n", C2_error);
-    	printf("          EigDecomp_test_C3 = %e\n", C3_error);
+    printf("          EigDecomp_test_C2 = %e\n", C2_error);
+    printf("          EigDecomp_test_C3 = %e\n", C3_error);
 	printf("          SVD_test_C        = %e\n", SVD_test_C);
 
-
+  //printDeviceArray(N3_temp1, Ele_field_mtx_N, "vec_y.txt");
+//getchar();
 	if(C1_error > error || C2_error > error || C3_error > error || SVD_test_C > error)
 	{
 		printf("\033[40;31mFAME_Main_Code(330):\033[0m\n");
@@ -481,7 +609,7 @@ void Check_Eigendecomp(MTX_C mtx_C, LAMBDAS Lambdas, LAMBDAS_CUDA Lambdas_cuda, 
 	free(vec_x); free(vec_y);
 }
 
-void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error)
+void Check_Residual_Iso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error)
 {
 	int Ele_field_mtx_N = N * 3;
 	int N12 = N * 12;
@@ -504,17 +632,16 @@ void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MT
 		mtx_prod(vec_left, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, vec_temp, N12, Ele_field_mtx_N, "Conjugate Transpose");
 		mtx_dot_prod(B_eps, Ele_field_mtx + i*Ele_field_mtx_N, vec_temp, Ele_field_mtx_N, 1);
    
-   vec_plus(residual, 1.0, vec_left, omega2, vec_temp, Ele_field_mtx_N);
+   		vec_plus(residual, 1.0, vec_left, omega2, vec_temp, Ele_field_mtx_N);
 		res = vec_norm(residual, Ele_field_mtx_N);
  
-   res_inf = cabs(residual[0]);
-   for (int j=1; j<Ele_field_mtx_N; j++)
-   {
-       if(cabs(residual[j]) > res_inf)
-        res_inf = cabs(residual[j]);
-    }
+   		res_inf = cabs(residual[0]);
+   		for (int j = 1; j < Ele_field_mtx_N; j++)
+   		{
+       		if(cabs(residual[j]) > res_inf)
+        	res_inf = cabs(residual[j]);
+    	}
     
-		printf("                 ");
 		if(res > error)
 		{
 			printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e\033[0m ,residual_inf = %e.\033[0m\n", i, Freq_array[i], res, res_inf);
@@ -526,6 +653,52 @@ void Check_Residual(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MT
 
 	free(vec_temp); free(vec_left); free(residual);
 	free(B_eps);
+}
+
+void Check_Residual_Aniso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, cmpxCPU* Dis_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error)
+{
+	int Ele_field_mtx_N = N * 12;
+	int N3 = N * 3;
+	int N12 = N * 12;
+	size_t size;
+
+	size = Ele_field_mtx_N * sizeof(cmpxCPU);
+
+	cmpxCPU* vec_temp = (cmpxCPU*)malloc(size);
+	cmpxCPU* vec_left = (cmpxCPU*)malloc(size);
+	cmpxCPU* residual = (cmpxCPU*)malloc(size);
+
+	realCPU res, omega2;
+
+	for(int i = 0; i < Nwant; i++)
+	{
+		omega2 = -pow(Freq_array[i], 2);
+		mtx_prod(vec_temp, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, Ele_field_mtx + i*Ele_field_mtx_N, N12, N3);
+		mtx_prod(vec_temp + N3, mtx_C.C_110_r, mtx_C.C_110_c, mtx_C.C_110_v, Ele_field_mtx + i*Ele_field_mtx_N + N3, N12, N3);
+		mtx_prod(vec_temp + 2*N3, mtx_C.C_101_r, mtx_C.C_101_c, mtx_C.C_101_v, Ele_field_mtx + i*Ele_field_mtx_N + 2*N3, N12, N3);
+		mtx_prod(vec_temp + 3*N3, mtx_C.C_011_r, mtx_C.C_011_c, mtx_C.C_011_v, Ele_field_mtx + i*Ele_field_mtx_N + 3*N3, N12, N3);
+		mtx_prod(vec_left, mtx_C.C_r, mtx_C.C_c, mtx_C.C_v, vec_temp, N12, N3, "Conjugate Transpose");
+		mtx_prod(vec_left + N3, mtx_C.C_110_r, mtx_C.C_110_c, mtx_C.C_110_v, vec_temp + N3, N12, N3, "Conjugate Transpose");
+		mtx_prod(vec_left + 2*N3, mtx_C.C_101_r, mtx_C.C_101_c, mtx_C.C_101_v, vec_temp + 2*N3, N12, N3, "Conjugate Transpose");
+		mtx_prod(vec_left + 3*N3, mtx_C.C_011_r, mtx_C.C_011_c, mtx_C.C_011_v, vec_temp + 3*N3, N12, N3, "Conjugate Transpose");
+   
+   		vec_plus(residual, 1.0, vec_left, omega2, Dis_field_mtx + i*Ele_field_mtx_N, Ele_field_mtx_N);
+		res = vec_norm(residual, Ele_field_mtx_N);
+
+		if(res > error)
+		{
+			printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e.\033[0m\n", i, Freq_array[i], res);
+				//Freq_array[i] = -Freq_array[i];
+		}
+		else
+		{
+			printf("Freq(%2d) = %10.8f, residual = %e.\n", i, Freq_array[i], res);
+		}
+
+	}
+
+	free(vec_temp); free(vec_left); free(residual);
+	
 }
 
 void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error)
@@ -555,7 +728,7 @@ void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx
 
 	for(int i = 0; i < Nwant; i++)
 	{
-		omega2 = Freq_array[i];
+		omega2 = -Freq_array[i];
 
 		mtx_dot_prod(B_zeta, Ele_field_mtx + i*mtx_N, residual, N3, 1);
 		mtx_dot_prod(B_mu, Ele_field_mtx + i*mtx_N + N3, vec_left, N3, 1);
@@ -573,7 +746,6 @@ void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx
 
 		res = vec_norm(residual, mtx_N);
 
-		printf("                 ");
 		if(res > error)
 		{
 			printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e.\033[0m\n", i, Freq_array[i], res);
@@ -587,3 +759,63 @@ void Check_Residual_Biiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, MTX_B mtx
 	free(B_eps);free(B_zeta);free(B_xi);free(B_mu);
 	
 }
+
+void Check_Residual_Bianiso(realCPU* Freq_array, cmpxCPU* Ele_field_mtx, cmpxCPU* Dis_field_mtx, MTX_B mtx_B, MTX_C mtx_C, int N, int Nwant, realCPU error)
+{
+	int mtx_N = N * 48;
+	int N3 = N * 3;
+	int N12 = N * 12;
+	size_t size;
+	
+	size = mtx_N * Nwant * sizeof(cmpxCPU);
+	cmpxCPU scal = 0.0 + 1.0*I;
+
+	cmpxCPU* vec_left = (cmpxCPU*)malloc(size);
+	cmpxCPU* residual = (cmpxCPU*)malloc(size);
+
+	realCPU res;
+	cmpxCPU omega2;
+
+	for(int i = 0; i < Nwant; i++)
+	{
+		omega2 = -Freq_array[i] * scal;
+
+		mtx_prod(vec_left + 0 * N3,  mtx_C.C_r,     mtx_C.C_c,     mtx_C.C_v,     Ele_field_mtx + i * mtx_N + 12 * N3, N12, N3, "minus", "Conjugate Transpose");
+		mtx_prod(vec_left + 1 * N3,  mtx_C.C_110_r, mtx_C.C_110_c, mtx_C.C_110_v, Ele_field_mtx + i * mtx_N + 13 * N3, N12, N3, "minus", "Conjugate Transpose");
+		mtx_prod(vec_left + 2 * N3,  mtx_C.C_101_r, mtx_C.C_101_c, mtx_C.C_101_v, Ele_field_mtx + i * mtx_N + 14 * N3, N12, N3, "minus", "Conjugate Transpose");
+		mtx_prod(vec_left + 3 * N3,  mtx_C.C_011_r, mtx_C.C_011_c, mtx_C.C_011_v, Ele_field_mtx + i * mtx_N + 15 * N3, N12, N3, "minus", "Conjugate Transpose");
+
+		mtx_prod(vec_left + 4 * N3,  mtx_C.C_r,     mtx_C.C_c,     mtx_C.C_v,     Ele_field_mtx + i * mtx_N + 8 * N3, N12, N3, "Conjugate Transpose");
+		mtx_prod(vec_left + 5 * N3,  mtx_C.C_110_r, mtx_C.C_110_c, mtx_C.C_110_v, Ele_field_mtx + i * mtx_N + 9 * N3, N12, N3, "Conjugate Transpose");
+		mtx_prod(vec_left + 6 * N3,  mtx_C.C_101_r, mtx_C.C_101_c, mtx_C.C_101_v, Ele_field_mtx + i * mtx_N + 10 * N3, N12, N3, "Conjugate Transpose");
+		mtx_prod(vec_left + 7 * N3,  mtx_C.C_011_r, mtx_C.C_011_c, mtx_C.C_011_v, Ele_field_mtx + i * mtx_N + 11 * N3, N12, N3, "Conjugate Transpose");
+
+		mtx_prod(vec_left + 8 * N3,  mtx_C.C_r,     mtx_C.C_c,     mtx_C.C_v,     Ele_field_mtx + i * mtx_N + 4 * N3, N12, N3, "minus");
+		mtx_prod(vec_left + 9 * N3,  mtx_C.C_110_r, mtx_C.C_110_c, mtx_C.C_110_v, Ele_field_mtx + i * mtx_N + 5 * N3, N12, N3, "minus");
+		mtx_prod(vec_left + 10 * N3, mtx_C.C_101_r, mtx_C.C_101_c, mtx_C.C_101_v, Ele_field_mtx + i * mtx_N + 6 * N3, N12, N3, "minus");
+		mtx_prod(vec_left + 11 * N3, mtx_C.C_011_r, mtx_C.C_011_c, mtx_C.C_011_v, Ele_field_mtx + i * mtx_N + 7 * N3, N12, N3, "minus");
+
+		mtx_prod(vec_left + 12 * N3, mtx_C.C_r,     mtx_C.C_c,     mtx_C.C_v,     Ele_field_mtx + i * mtx_N + 0 * N3, N12, N3);
+		mtx_prod(vec_left + 13 * N3, mtx_C.C_110_r, mtx_C.C_110_c, mtx_C.C_110_v, Ele_field_mtx + i * mtx_N + 1 * N3, N12, N3);
+		mtx_prod(vec_left + 14 * N3, mtx_C.C_101_r, mtx_C.C_101_c, mtx_C.C_101_v, Ele_field_mtx + i * mtx_N + 2 * N3, N12, N3);
+		mtx_prod(vec_left + 15 * N3, mtx_C.C_011_r, mtx_C.C_011_c, mtx_C.C_011_v, Ele_field_mtx + i * mtx_N + 3 * N3, N12, N3);
+			
+		vec_plus(residual, 1.0, vec_left, omega2, Dis_field_mtx + i * mtx_N, mtx_N);
+		res = vec_norm(residual, mtx_N);
+
+		if(res > error)
+		{
+			printf("\033[40;31mFreq(%2d) = %10.8f, residual = %e.\033[0m\n", i, Freq_array[i], res);
+				//Freq_array[i] = -Freq_array[i];
+		}
+		else
+		{
+			printf("Freq(%2d) = %10.8f, residual = %e.\n", i, Freq_array[i], res);
+		}
+
+	}
+
+	free(vec_left); free(residual);
+	
+}
+

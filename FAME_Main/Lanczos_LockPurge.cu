@@ -54,7 +54,7 @@ int Lanczos_LockPurge(CULIB_HANDLES cuHandles,  LANCZOS_BUFFER* lBuffer, cmpxGPU
         }
 
         //ev=ev*G';
-        cublasStatus=PC_cublas_rot(cublas_handle, size, ev+j*size, 1, ev+(j+1)*size, 1, &c, &s);
+        cublasStatus=FAME_cublas_rot(cublas_handle, size, ev+j*size, 1, ev+(j+1)*size, 1, &c, &s);
         assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 
         if(j>0)
@@ -79,7 +79,7 @@ int Lanczos_LockPurge(CULIB_HANDLES cuHandles,  LANCZOS_BUFFER* lBuffer, cmpxGPU
                     beta[i-2]=c*beta[i-2];
                 }
 
-                cublasStatus=PC_cublas_rot(cublas_handle, size, ev+(i-1)*size, 1, ev+i*size, 1, &c, &s);
+                cublasStatus=FAME_cublas_rot(cublas_handle, size, ev+(i-1)*size, 1, ev+i*size, 1, &c, &s);
                 assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
             }
 

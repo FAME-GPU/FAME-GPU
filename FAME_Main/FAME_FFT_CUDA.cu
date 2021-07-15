@@ -32,14 +32,14 @@ int FFT_CUDA(cmpxGPU* vec_y, cmpxGPU* vec_x, cmpxGPU* dD_ks, FFT_BUFFER fftBuffe
 
     D_ks_product<<<DimGrid, DimBlock>>>(temp, dD_ks, vec_x, N);
 
-    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, temp,    vec_y,    CUFFT_FORWARD);
+    cufftRe = FAME_cufft_Exec(cuHandles.cufft_plan, temp,    vec_y,    CUFFT_FORWARD);
     assert( cufftRe == CUFFT_SUCCESS );
-    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, temp+N,  vec_y+N,  CUFFT_FORWARD);
+    cufftRe = FAME_cufft_Exec(cuHandles.cufft_plan, temp+N,  vec_y+N,  CUFFT_FORWARD);
     assert( cufftRe == CUFFT_SUCCESS );
-    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, temp+N2, vec_y+N2, CUFFT_FORWARD);
+    cufftRe = FAME_cufft_Exec(cuHandles.cufft_plan, temp+N2, vec_y+N2, CUFFT_FORWARD);
     assert( cufftRe == CUFFT_SUCCESS );
 
-    cublasStatus = PC_cublas_dscal(cuHandles.cublas_handle, N * 3, &alpha, vec_y, 1);
+    cublasStatus = FAME_cublas_dscal(cuHandles.cublas_handle, N * 3, &alpha, vec_y, 1);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
 
     return 0;
@@ -61,17 +61,17 @@ int IFFT_CUDA(cmpxGPU* vec_y, cmpxGPU* vec_x, cmpxGPU* dD_k, FFT_BUFFER fftBuffe
 
     cmpxGPU* temp = fftBuffer.d_A;
 
-    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, vec_x,    temp,    CUFFT_INVERSE);
+    cufftRe = FAME_cufft_Exec(cuHandles.cufft_plan, vec_x,    temp,    CUFFT_INVERSE);
     assert( cufftRe == CUFFT_SUCCESS );
 
-    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, vec_x+N,  temp+N,  CUFFT_INVERSE);
+    cufftRe = FAME_cufft_Exec(cuHandles.cufft_plan, vec_x+N,  temp+N,  CUFFT_INVERSE);
     assert( cufftRe == CUFFT_SUCCESS );
-    cufftRe = PC_cufft_Exec(cuHandles.cufft_plan, vec_x+N2, temp+N2, CUFFT_INVERSE);
+    cufftRe = FAME_cufft_Exec(cuHandles.cufft_plan, vec_x+N2, temp+N2, CUFFT_INVERSE);
     assert( cufftRe == CUFFT_SUCCESS );
 
     D_k_product<<<DimGrid, DimBlock>>>(vec_y, dD_k, temp, N);
 
-    cublasStatus =PC_cublas_dscal(cuHandles.cublas_handle, N * 3, &alpha, vec_y, 1);
+    cublasStatus =FAME_cublas_dscal(cuHandles.cublas_handle, N * 3, &alpha, vec_y, 1);
     assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
     return 0;
 }
@@ -90,7 +90,7 @@ int spMV_fastT_gpu(
     const int n3, 
     const int flag)
 {
-
+//cout<<"in spMv_fast"<<endl;
     int n = n1*n2*n3;
     cufftResult    cufftErr;
     cublasStatus_t cublasStatus;
@@ -120,25 +120,25 @@ int spMV_fastT_gpu(
         /* (T) p */
         case 1:
         {
-            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_z, p, p, CUFFT_INVERSE );
+            cufftErr = FAME_cufft_Exec(cuHandles.cufft_plan_1d_z, p, p, CUFFT_INVERSE );
             assert(cufftErr == CUFFT_SUCCESS);
 
             Dan_Multi_transpose_1_1616<<<DimGrid_1616, DimBlock_1616>>>(fftBuffer->d_A, p, n1, n2, n3, mtx_D_jell);
             cudaDeviceSynchronize();
 
-            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_y, fftBuffer->d_A, fftBuffer->d_A, CUFFT_INVERSE );
+            cufftErr = FAME_cufft_Exec(cuHandles.cufft_plan_1d_y, fftBuffer->d_A, fftBuffer->d_A, CUFFT_INVERSE );
             assert(cufftErr == CUFFT_SUCCESS);
 
             Dan_Multi_trans<<<DimGrid_dantr , DimBlock_dantr>>>(p, fftBuffer->d_A, mtx_D_jx, n, n1, n2, n3, Gx, Gz, one_over_Gx, one_over_Gz, k2);
             cudaDeviceSynchronize();
 
-            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_x, p, fftBuffer->d_A, CUFFT_INVERSE);
+            cufftErr = FAME_cufft_Exec(cuHandles.cufft_plan_1d_x, p, fftBuffer->d_A, CUFFT_INVERSE);
             assert(cufftErr == CUFFT_SUCCESS);
 
             Dan_Multi_Complex_scale<<<DimGrid, DimBlock>>>(p, mtx_D_kx, fftBuffer->d_A, n);
             cudaDeviceSynchronize();
 
-            cublasStatus = PC_cublas_copy(cuHandles.cublas_handle, n, p, 1, out, 1);
+            cublasStatus = FAME_cublas_copy(cuHandles.cublas_handle, n, p, 1, out, 1);
             assert( cublasStatus == CUBLAS_STATUS_SUCCESS ); 
             break;
         }
@@ -149,23 +149,23 @@ int spMV_fastT_gpu(
             DanMulti_conj<<<DimGrid, DimBlock>>>(fftBuffer->d_A, mtx_D_kx, p, n);
             cudaDeviceSynchronize();
 
-            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_x, fftBuffer->d_A, fftBuffer->d_A, CUFFT_FORWARD );
+            cufftErr = FAME_cufft_Exec(cuHandles.cufft_plan_1d_x, fftBuffer->d_A, fftBuffer->d_A, CUFFT_FORWARD );
 
             assert(cufftErr == CUFFT_SUCCESS);
 
             Conj_Dan_trans<<<DimGrid_dantr, DimBlock_dantr>>>(p, fftBuffer->d_A, mtx_D_jx, n, n1, n2, n3, Gx, Gz, one_over_Gx, one_over_Gz, k2);
             cudaDeviceSynchronize();
 
-            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_y, p, fftBuffer->d_A, CUFFT_FORWARD );
+            cufftErr = FAME_cufft_Exec(cuHandles.cufft_plan_1d_y, p, fftBuffer->d_A, CUFFT_FORWARD );
             assert(cufftErr == CUFFT_SUCCESS);
 
             ConjMulti_Conj_transpose_1_1616<<<DimGrid_1616, DimBlock_1616>>>(p, fftBuffer->d_A, n1, n2, n3, mtx_D_jell);
             cudaDeviceSynchronize();
 
-            cufftErr = PC_cufft_Exec(cuHandles.cufft_plan_1d_z, p, p, CUFFT_FORWARD );
+            cufftErr = FAME_cufft_Exec(cuHandles.cufft_plan_1d_z, p, p, CUFFT_FORWARD );
             assert(cufftErr == CUFFT_SUCCESS);
 
-            cublasStatus = PC_cublas_copy(cuHandles.cublas_handle, n, p, 1, out, 1);
+            cublasStatus = FAME_cublas_copy(cuHandles.cublas_handle, n, p, 1, out, 1);
             assert(cublasStatus == CUBLAS_STATUS_SUCCESS);
             break;
         }

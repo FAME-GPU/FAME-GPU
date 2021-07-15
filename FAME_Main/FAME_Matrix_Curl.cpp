@@ -115,20 +115,77 @@ int FAME_Matrix_Curl(MTX_C* mtx_C, realCPU* wave_vec,int* grid_num, realCPU* edg
 		mtx_C->C_r[i+2*N] = mtx_C->C1_r[i] + 2*N;
 		mtx_C->C_c[i+2*N] = mtx_C->C1_c[i] +   N;
 		mtx_C->C_v[i+2*N] =  1.0*mtx_C->C1_v[i];
-
 		mtx_C->C_r[i+4*N] = mtx_C->C2_r[i];
 		mtx_C->C_c[i+4*N] = mtx_C->C2_c[i] + 2*N;
 		mtx_C->C_v[i+4*N] =  1.0*mtx_C->C2_v[i];
 		mtx_C->C_r[i+6*N] = mtx_C->C2_r[i] + 2*N;
 		mtx_C->C_c[i+6*N] = mtx_C->C2_c[i];
 		mtx_C->C_v[i+6*N] = -1.0*mtx_C->C2_v[i];
-
-		mtx_C->C_r[i+8*N]  = mtx_C->C3_r[i];
-		mtx_C->C_c[i+8*N]  = mtx_C->C3_c[i] + N;
-		mtx_C->C_v[i+8*N]  = -1.0*mtx_C->C3_v[i];
+		mtx_C->C_r[i+8*N] = mtx_C->C3_r[i];
+		mtx_C->C_c[i+8*N] = mtx_C->C3_c[i] + N;
+		mtx_C->C_v[i+8*N] = -1.0*mtx_C->C3_v[i];
 		mtx_C->C_r[i+10*N] = mtx_C->C3_r[i] + N;
 		mtx_C->C_c[i+10*N] = mtx_C->C3_c[i];
 		mtx_C->C_v[i+10*N] =  1.0*mtx_C->C3_v[i];
+
+		mtx_C->C_110_r[i]     = mtx_C->C1_c[i] +   N;
+	    mtx_C->C_110_c[i]     = mtx_C->C1_r[i] + 2*N;
+	    mtx_C->C_110_v[i]     = conj(mtx_C->C1_v[i]);
+	    mtx_C->C_110_r[i+2*N] = mtx_C->C1_c[i] + 2*N;
+	    mtx_C->C_110_c[i+2*N] = mtx_C->C1_r[i] +   N;
+	    mtx_C->C_110_v[i+2*N] = -1.0*conj(mtx_C->C1_v[i]);
+	    mtx_C->C_110_r[i+4*N] = mtx_C->C2_c[i];
+	    mtx_C->C_110_c[i+4*N] = mtx_C->C2_r[i] + 2*N;
+	    mtx_C->C_110_v[i+4*N] = -1.0*conj(mtx_C->C2_v[i]);
+	    mtx_C->C_110_r[i+6*N] = mtx_C->C2_c[i] + 2*N;
+	    mtx_C->C_110_c[i+6*N] = mtx_C->C2_r[i];
+	    mtx_C->C_110_v[i+6*N] = conj(mtx_C->C2_v[i]);
+	    mtx_C->C_110_r[i+8*N] = mtx_C->C3_r[i];
+	    mtx_C->C_110_c[i+8*N] = mtx_C->C3_c[i] + N;
+	    mtx_C->C_110_v[i+8*N] = -1.0*mtx_C->C3_v[i];
+	    mtx_C->C_110_r[i+10*N] = mtx_C->C3_r[i] + N;
+	    mtx_C->C_110_c[i+10*N] = mtx_C->C3_c[i];
+	    mtx_C->C_110_v[i+10*N] =  1.0*mtx_C->C3_v[i];
+
+		mtx_C->C_101_r[i]     = mtx_C->C1_c[i] +   N;
+		mtx_C->C_101_c[i]     = mtx_C->C1_r[i] + 2*N;
+		mtx_C->C_101_v[i]     = conj(mtx_C->C1_v[i]);
+		mtx_C->C_101_r[i+2*N] = mtx_C->C1_c[i] + 2*N;
+		mtx_C->C_101_c[i+2*N] = mtx_C->C1_r[i] +   N;
+		mtx_C->C_101_v[i+2*N] = -1.0*conj(mtx_C->C1_v[i]);
+		mtx_C->C_101_r[i+4*N] = mtx_C->C2_r[i];
+		mtx_C->C_101_c[i+4*N] = mtx_C->C2_c[i] + 2*N;
+		mtx_C->C_101_v[i+4*N] =  1.0*mtx_C->C2_v[i];
+		mtx_C->C_101_r[i+6*N] = mtx_C->C2_r[i] + 2*N;
+		mtx_C->C_101_c[i+6*N] = mtx_C->C2_c[i];
+		mtx_C->C_101_v[i+6*N] = -1.0*mtx_C->C2_v[i];
+		mtx_C->C_101_r[i+8*N]  = mtx_C->C3_c[i];
+		mtx_C->C_101_c[i+8*N]  = mtx_C->C3_r[i] + N;
+		mtx_C->C_101_v[i+8*N]  = conj(mtx_C->C3_v[i]);
+		mtx_C->C_101_r[i+10*N] = mtx_C->C3_c[i] + N;
+		mtx_C->C_101_c[i+10*N] = mtx_C->C3_r[i];
+		mtx_C->C_101_v[i+10*N] = -1.0*conj(mtx_C->C3_v[i]);
+
+		mtx_C->C_011_r[i]     = mtx_C->C1_r[i] +   N;
+		mtx_C->C_011_c[i]     = mtx_C->C1_c[i] + 2*N;
+		mtx_C->C_011_v[i]     = -1.0*mtx_C->C1_v[i];
+		mtx_C->C_011_r[i+2*N] = mtx_C->C1_r[i] + 2*N;
+		mtx_C->C_011_c[i+2*N] = mtx_C->C1_c[i] +   N;
+		mtx_C->C_011_v[i+2*N] =  1.0*mtx_C->C1_v[i];
+		mtx_C->C_011_r[i+4*N] = mtx_C->C2_c[i];
+		mtx_C->C_011_c[i+4*N] = mtx_C->C2_r[i] + 2*N;
+		mtx_C->C_011_v[i+4*N] = -conj(1.0*mtx_C->C2_v[i]);
+		mtx_C->C_011_r[i+6*N] = mtx_C->C2_c[i] + 2*N;
+		mtx_C->C_011_c[i+6*N] = mtx_C->C2_r[i];
+		mtx_C->C_011_v[i+6*N] = conj(mtx_C->C2_v[i]);
+		mtx_C->C_011_r[i+8*N]  = mtx_C->C3_c[i];
+		mtx_C->C_011_c[i+8*N]  = mtx_C->C3_r[i] + N;
+		mtx_C->C_011_v[i+8*N]  = conj(mtx_C->C3_v[i]);
+		mtx_C->C_011_r[i+10*N] = mtx_C->C3_c[i] + N;
+		mtx_C->C_011_c[i+10*N] = mtx_C->C3_r[i];
+		mtx_C->C_011_v[i+10*N] = -1.0*conj(mtx_C->C3_v[i]);
+
+
 	}
 	//FAME_Create_C_txt(mtx_C->C1_r, mtx_C->C1_c, mtx_C->C1_v, mtx_C->C2_r,  mtx_C->C2_c, mtx_C->C2_v, mtx_C->C3_r,  mtx_C->C3_c,  mtx_C->C3_v, grid_num);
 	return 0;

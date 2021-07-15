@@ -13,7 +13,7 @@ void FAME_Matrix_Vector_Production_invPhi_Biisotropic
 {
 
 	dim3 DimBlock(BLOCK_SIZE,1,1);
-    dim3 DimGrid((size-1)/BLOCK_SIZE +1,1,1);
+    dim3 DimGrid((size - 1) / BLOCK_SIZE +1,1,1);
 
 	dot_pro<<<DimGrid, DimBlock>>>( size, invPhi, vec_y_ele_in, vec_y_ele_out);
 

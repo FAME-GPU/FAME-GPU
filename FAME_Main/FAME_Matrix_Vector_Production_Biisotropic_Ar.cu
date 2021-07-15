@@ -65,16 +65,16 @@ void FAME_Matrix_Vector_Production_Biisotropic_Ar
 	cudaMalloc((void**)&temp_vec_y_mag, memsize);
 
 
-	FAME_Matrix_Vector_Production_Pr( cuHandles, fft_buffer, vec_x, Nx, Ny, Nz, Nd, D_k, Pi_Pr, vec_y_ele);
+	FAME_Matrix_Vector_Production_Pr( vec_y_ele, vec_x, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_k, Pi_Pr);
 
-	FAME_Matrix_Vector_Production_Qr( vec_y_mag, vec_x+2*Nd, cuHandles, fft_buffer, D_k, Pi_Qr, Nx, Ny, Nz, Nd, Profile);
+	FAME_Matrix_Vector_Production_Qr( vec_y_mag, vec_x+2*Nd, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_k, Pi_Qr);
 	
 	// temp_vec_y_ele = B.B_zeta_s.*vec_y_ele + vec_y_mag;	
 	dot_pro_add<<<DimGrid, DimBlock>>>( N, mtx_B.B_zeta_s, vec_y_ele, vec_y_mag, temp_vec_y_ele); 
 	
 	// temp_vec_y_mag = -vec_y_ele;
 	realGPU alpha = -1.0;
-	cublasStatus=PC_cublas_dscal(cuHandles.cublas_handle, size, &alpha, vec_y_ele, 1); 
+	cublasStatus = FAME_cublas_dscal(cuHandles.cublas_handle, size, &alpha, vec_y_ele, 1); 
 	assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 	
 	checkCudaErrors(cudaMemcpy(vec_y_mag, vec_y_ele, memsize, cudaMemcpyDeviceToDevice));
@@ -86,8 +86,8 @@ void FAME_Matrix_Vector_Production_Biisotropic_Ar
 	// temp_vec_y_ele = B.B_zeta.*vec_y_ele - vec_y_mag;
 	dot_pro_minus<<<DimGrid, DimBlock>>>( N, mtx_B.B_zeta, vec_y_ele, vec_y_mag, temp_vec_y_ele);
 		
-	FAME_Matrix_Vector_Production_Prs(cuHandles, fft_buffer,  temp_vec_y_ele, Nx, Ny, Nz, Nd, D_ks, Pi_Prs, vec_y);
-	FAME_Matrix_Vector_Production_Qrs(vec_y+2*Nd, vec_y_ele,  cuHandles, fft_buffer, D_ks, Pi_Qrs,  Nx, Ny, Nz, Nd, Profile );	
+	FAME_Matrix_Vector_Production_Prs(vec_y, temp_vec_y_ele, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_ks, Pi_Prs);
+	FAME_Matrix_Vector_Production_Qrs(vec_y+2*Nd, vec_y_ele,  cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_ks, Pi_Qrs);	
 
 	cudaFree( temp_vec_y_ele );
 	cudaFree( temp_vec_y_mag );
@@ -136,16 +136,15 @@ void FAME_Matrix_Vector_Production_Biisotropic_Ar
 	checkCudaErrors(cudaMalloc((void**)&temp_vec_y_mag, memsize));
 
 
-
-	FAME_Matrix_Vector_Production_Pr( cuHandles, fft_buffer,  vec_x, Nx, Ny, Nz, Nd, D_kx, D_ky, D_kz, Pi_Pr, vec_y_ele);	
-    FAME_Matrix_Vector_Production_Qr( vec_y_mag, vec_x+2*Nd, cuHandles, fft_buffer,D_kx, D_ky, D_kz, Pi_Qr, Nx, Ny, Nz, Nd, Profile);	
+	FAME_Matrix_Vector_Production_Pr( vec_y_ele, vec_x, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_kx, D_ky, D_kz, Pi_Pr);	
+    FAME_Matrix_Vector_Production_Qr( vec_y_mag, vec_x+2*Nd, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_kx, D_ky, D_kz, Pi_Qr);	
 
 
 	dot_pro_add<<<DimGrid, DimBlock>>>( N, mtx_B.B_zeta_s, vec_y_ele, vec_y_mag, temp_vec_y_ele);
 
 
 	realGPU alpha = -1.0;
-	cublasStatus = PC_cublas_dscal(cuHandles.cublas_handle, size, &alpha, vec_y_ele, 1);
+	cublasStatus = FAME_cublas_dscal(cuHandles.cublas_handle, size, &alpha, vec_y_ele, 1);
 	assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
     checkCudaErrors(cudaMemcpy(vec_y_mag, vec_y_ele, memsize, cudaMemcpyDeviceToDevice));
 
@@ -154,9 +153,9 @@ void FAME_Matrix_Vector_Production_Biisotropic_Ar
 	dot_pro_minus<<<DimGrid, DimBlock>>>( N, mtx_B.B_zeta, vec_y_ele, vec_y_mag, temp_vec_y_ele);
 
 	
-	FAME_Matrix_Vector_Production_Prs(cuHandles, fft_buffer, temp_vec_y_ele, Nx, Ny, Nz, Nd, D_kx, D_ky, D_kz, Pi_Prs, vec_y);
+	FAME_Matrix_Vector_Production_Prs(vec_y, temp_vec_y_ele, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_kx, D_ky, D_kz, Pi_Prs);
 
-    FAME_Matrix_Vector_Production_Qrs(vec_y+2*Nd, vec_y_ele, cuHandles, fft_buffer,  D_kx, D_ky , D_kz, Pi_Qrs, Nx, Ny, Nz, Nd, Profile);
+    FAME_Matrix_Vector_Production_Qrs(vec_y+2*Nd, vec_y_ele, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_kx, D_ky , D_kz, Pi_Qrs);
 
 	cudaFree( temp_vec_y_ele );
 	cudaFree( temp_vec_y_mag );

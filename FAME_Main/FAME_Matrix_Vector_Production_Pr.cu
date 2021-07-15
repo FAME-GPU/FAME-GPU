@@ -6,13 +6,13 @@
 static __global__ void vp_add_vp(int size, cmpxGPU* L_1, cmpxGPU* L_2, cmpxGPU* vec_1, cmpxGPU* vec_2,cmpxGPU* vec_out);
 
 ////////////=========================== Create Pr function for Biiso (cuda)===========================//////////////////
-int FAME_Matrix_Vector_Production_Pr(   CULIB_HANDLES cuHandles, 
-                                        FFT_BUFFER fft_buffer, 
-                                        cmpxGPU* vec_x, 
+int FAME_Matrix_Vector_Production_Pr(   cmpxGPU* vec_y,
+                                        cmpxGPU* vec_x,
+                                        CULIB_HANDLES cuHandles, 
+                                        FFT_BUFFER fft_buffer,  
                                         int Nx, int Ny, int Nz, int Nd, 
                                         cmpxGPU* D_k,
-                                        cmpxGPU* Pi_Pr, 
-                                        cmpxGPU* vec_y)
+                                        cmpxGPU* Pi_Pr)
 {
     int N = Nx*Ny*Nz;
     //cmpxGPU* temp = cuHandles.N3_temp1;
@@ -40,7 +40,15 @@ int FAME_Matrix_Vector_Production_Pr(   CULIB_HANDLES cuHandles,
     return 0;
 }
 
-int FAME_Matrix_Vector_Production_Pr(CULIB_HANDLES cuHandles, FFT_BUFFER fft_buffer, cmpxGPU* vec_x, int Nx, int Ny, int Nz, int Nd, cmpxGPU* D_kx, cmpxGPU* D_ky, cmpxGPU* D_kz, cmpxGPU* Pi_Pr, cmpxGPU* vec_y)
+int FAME_Matrix_Vector_Production_Pr(   cmpxGPU* vec_y,
+                                        cmpxGPU* vec_x,
+                                        CULIB_HANDLES cuHandles, 
+                                        FFT_BUFFER fft_buffer,  
+                                        int Nx, int Ny, int Nz, int Nd, 
+                                        cmpxGPU* D_kx,
+                                        cmpxGPU* D_ky,
+                                        cmpxGPU* D_kz,
+                                        cmpxGPU* Pi_Pr)
 {
     int N = Nx*Ny*Nz;
     int N3 = N * 3;

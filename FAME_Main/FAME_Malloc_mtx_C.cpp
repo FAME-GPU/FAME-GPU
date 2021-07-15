@@ -23,6 +23,15 @@ int FAME_Malloc_mtx_C(MTX_C* mtx_C, int N)
 	mtx_C->C_r = (int*)  malloc(size);
 	mtx_C->C_c = (int*)  malloc(size);
 	mtx_C->C_v = (cmpxCPU*) malloc(N12 * sizeof(cmpxCPU));
+	mtx_C->C_110_r = (int*)  malloc(size);
+	mtx_C->C_110_c = (int*)  malloc(size);
+	mtx_C->C_110_v = (cmpxCPU*) malloc(N12 * sizeof(cmpxCPU));
+	mtx_C->C_101_r = (int*)  malloc(size);
+	mtx_C->C_101_c = (int*)  malloc(size);
+	mtx_C->C_101_v = (cmpxCPU*) malloc(N12 * sizeof(cmpxCPU));
+	mtx_C->C_011_r = (int*)  malloc(size);
+	mtx_C->C_011_c = (int*)  malloc(size);
+	mtx_C->C_011_v = (cmpxCPU*) malloc(N12 * sizeof(cmpxCPU));
 
 	return 0;
 }

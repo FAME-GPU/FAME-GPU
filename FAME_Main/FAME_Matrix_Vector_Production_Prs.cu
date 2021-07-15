@@ -6,13 +6,13 @@ static __global__ void vp_add_vp_add_vp(int N, int Nd, int Nd_2, cmpxGPU* L, cmp
 
 
 ////////////=========================== Create Prs function for Biiso (cuda)===========================//////////////////SC
-int FAME_Matrix_Vector_Production_Prs( CULIB_HANDLES cuHandles, 
-                                                                                        FFT_BUFFER fft_buffer, 
-                                                                                        cmpxGPU* vec_x, 
-                                                                                        int Nx, int Ny, int Nz, int Nd,
-                                                                                        cmpxGPU* D_ks, 
-                                                                                        cmpxGPU* Pi_Prs, 
-                                                                                         cmpxGPU* vec_y)
+int FAME_Matrix_Vector_Production_Prs(  cmpxGPU* vec_y,
+                                        cmpxGPU* vec_x, 
+                                        CULIB_HANDLES cuHandles, 
+                                        FFT_BUFFER fft_buffer, 
+                                        int Nx, int Ny, int Nz, int Nd,
+                                        cmpxGPU* D_ks, 
+                                        cmpxGPU* Pi_Prs)
 {
     int N = Nx*Ny*Nz;
 
@@ -32,7 +32,15 @@ int FAME_Matrix_Vector_Production_Prs( CULIB_HANDLES cuHandles,
     return 0;
 }
 
-int FAME_Matrix_Vector_Production_Prs( CULIB_HANDLES cuHandles, FFT_BUFFER fft_buffer, cmpxGPU* vec_x, int Nx, int Ny, int Nz, int Nd, cmpxGPU* D_kx, cmpxGPU* D_ky, cmpxGPU* D_kz, cmpxGPU* Pi_Prs, cmpxGPU* vec_y)//FCC
+int FAME_Matrix_Vector_Production_Prs(  cmpxGPU* vec_y,
+                                        cmpxGPU* vec_x, 
+                                        CULIB_HANDLES cuHandles, 
+                                        FFT_BUFFER fft_buffer, 
+                                        int Nx, int Ny, int Nz, int Nd,
+                                        cmpxGPU* D_kx, 
+                                        cmpxGPU* D_ky, 
+                                        cmpxGPU* D_kz, 
+                                        cmpxGPU* Pi_Prs)
 {
     int N = Nx*Ny*Nz;
     cmpxGPU* tmp;

@@ -8,27 +8,25 @@
 #include "Lanczos_Biisotropic.cuh"
 #include "printDeviceArray.cuh"
 
-//#define BLOCK_SIZE 1024
-
-int Eigen_Restoration_Biisotropic(  CULIB_HANDLES cuHandles,
-                                    LAMBDAS_CUDA Lambdas_cuda,
-                                    FFT_BUFFER    fft_buffer,
-                                    cmpxGPU* Input_eigvec_mat,
-                                    cmpxGPU* Output_eigvec_mat,
-                                    MTX_B  mtx_B,
-                                    int N_eig_wanted,
-                                    int Nx,
-                                    int Ny,
-                                    int Nz,
-                                    int Nd,
-                                    std::string flag_CompType, PROFILE* Profile);
+int Eigen_Restoration_Biisotropic( 	CULIB_HANDLES cuHandles,
+									LAMBDAS_CUDA Lambdas_cuda,
+									FFT_BUFFER    fft_buffer,
+									cmpxGPU* Input_eigvec_mat, 
+									cmpxGPU* Output_eigvec_mat,
+									MTX_B  mtx_B,	
+									int N_eig_wanted, 
+									int Nx,
+									int Ny,
+									int Nz,
+									int Nd,
+									string flag_CompType, PROFILE* Profile);
  
 static __global__ void scaling(int size, cmpxGPU* array, realCPU norm_vec);
 static __global__ void initialize(cmpxGPU* vec, realCPU real, realCPU imag, int size);
 
 int FAME_Fast_Algorithms_Biisotropic
-	(realCPU*        Freq_array,
-	 cmpxCPU*          Ele_field_mtx,
+	(realCPU* Freq_array,
+	 cmpxCPU* Ele_field_mtx,
 	 CULIB_HANDLES cuHandles,
 	 LAMBDAS_CUDA  Lambdas_cuda, 
 	 LANCZOS_BUFFER lBuffer,
@@ -44,7 +42,7 @@ int FAME_Fast_Algorithms_Biisotropic
 	 string flag_CompType,
 	 PROFILE* Profile)
 {
-	cout << "IN FAME_Fast_Algorithms_Biisotropic " << endl;
+	cout << "IN FAME_Fast_Algorithms_Bi-isotropic " << endl;
 
 	int N = Nx*Ny*Nz;
 	int Nd4 = Nd * 4;
@@ -62,41 +60,30 @@ int FAME_Fast_Algorithms_Biisotropic
 	checkCudaErrors(cudaMalloc((void**)&DEV_Back,   sizeof(cmpxGPU)*6*N*eigen_wanted));
 	cmpxGPU* DEV;
 	checkCudaErrors(cudaMalloc((void**)&DEV,        sizeof(cmpxGPU)*4*Nd*(eigen_wanted+2)*2));
-	cmpxGPU* EW = (cmpxGPU*) malloc( eigen_wanted*sizeof(cmpxGPU));
-
 
 	memsize = Nd4 * sizeof(cmpxGPU);
-    checkCudaErrors(cudaMalloc((void**)&cuHandles.Nd2_temp1, memsize));
+
     checkCudaErrors(cudaMalloc((void**)&cuHandles.Nd2_temp2, memsize));
     checkCudaErrors(cudaMalloc((void**)&cuHandles.Nd2_temp3, memsize));
 	checkCudaErrors(cudaMalloc((void**)&cuHandles.Nd2_temp4, memsize));
 
 	
-	if (material.chirality_in[0] > sqrt(13))
-	{
-		cout<<"Chirality_in > sqrt(13), indefinite matrix ！"<<endl;
-		assert(0);
-	}
-	else if (material.chirality_in[0] < sqrt(13))
-	{
-	
-		Lanczos_Biisotropic( cuHandles,
-			fft_buffer, lBuffer,
-			mtx_B, Nx, Ny, Nz, Nd, es, ls,
-			Lambdas_cuda.Lambda_q_sqrt,
-			Lambdas_cuda.dPi_Qr,
-			Lambdas_cuda.dPi_Pr,
-			Lambdas_cuda.dPi_Qrs,
-			Lambdas_cuda.dPi_Prs,
-			Lambdas_cuda.dD_k,
-			Lambdas_cuda.dD_ks,
-			Lambdas_cuda.dD_kx,
-			Lambdas_cuda.dD_ky,
-			Lambdas_cuda.dD_kz,
-			Freq_array, DEV,
-			flag_CompType,
-			Profile );
-	}
+	Lanczos_Biisotropic( cuHandles,
+		fft_buffer, lBuffer,
+		mtx_B, Nx, Ny, Nz, Nd, es, ls,
+		Lambdas_cuda.Lambda_q_sqrt,
+		Lambdas_cuda.dPi_Qr,
+		Lambdas_cuda.dPi_Pr,
+		Lambdas_cuda.dPi_Qrs,
+		Lambdas_cuda.dPi_Prs,
+		Lambdas_cuda.dD_k,
+		Lambdas_cuda.dD_ks,
+		Lambdas_cuda.dD_kx,
+		Lambdas_cuda.dD_ky,
+		Lambdas_cuda.dD_kz,
+		Freq_array, DEV,
+		flag_CompType,
+		Profile );
 
 	cudaFree(lBuffer.dU);
 
@@ -111,7 +98,7 @@ int FAME_Fast_Algorithms_Biisotropic
 	{
 			for(int i = es.nwant - 1; i >= 2 ; i--)
 			{
-				cublasStatus=PC_cublas_swap(cuHandles.cublas_handle, 6*N, DEV_Back + i * 6*N, 1, DEV_Back + (i - 2) * 6*N, 1);
+				cublasStatus=FAME_cublas_swap(cuHandles.cublas_handle, 6*N, DEV_Back + i * 6*N, 1, DEV_Back + (i - 2) * 6*N, 1);
 				assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 				Freq_array[i] = Freq_array[i - 2];
 			}
@@ -129,7 +116,6 @@ int FAME_Fast_Algorithms_Biisotropic
 	checkCudaErrors(cudaMemcpy(Ele_field_mtx, DEV_Back, N6 * eigen_wanted * sizeof(cmpxGPU), cudaMemcpyDeviceToHost));
 
 	cudaFree(DEV); cudaFree(DEV_Back);
-	cudaFree(cuHandles.Nd2_temp1); cudaFree(cuHandles.Nd2_temp2); cudaFree(cuHandles.Nd2_temp3); cudaFree(cuHandles.Nd2_temp4);
 	return 0;
 }
 
@@ -144,7 +130,7 @@ int Eigen_Restoration_Biisotropic( 	CULIB_HANDLES cuHandles,
 									int Ny,
 									int Nz,
 									int Nd,
-									string flag_CompType,PROFILE* Profile)
+									string flag_CompType, PROFILE* Profile)
 {
 	int N = Nx*Ny*Nz;
 	realCPU norm_vec = 0.0;
@@ -157,48 +143,22 @@ int Eigen_Restoration_Biisotropic( 	CULIB_HANDLES cuHandles,
 
 	// Start to restore the eigenvectors
 
-	for(int ii = 0; ii<N_eig_wanted; ii++)
+	for(int ii = 0; ii < N_eig_wanted; ii++)
 	{
-		if( flag_CompType == "Simple" ){
-			FAME_Matrix_Vector_Production_Pr( 	cuHandles, 
-												fft_buffer, 
-												Input_eigvec_mat+4*Nd*ii, 
-												Nx, 
-												Ny,
-												Nz,
-												Nd,
-												Lambdas_cuda.dD_k,
-												Lambdas_cuda.dPi_Pr,
-												vec_y);
-			
-			FAME_Matrix_Vector_Production_Qr( 	vec_y+3*N,
-												Input_eigvec_mat+2*Nd+4*Nd*ii,				
-												cuHandles, 
-												fft_buffer,
-												Lambdas_cuda.dD_k,
-												Lambdas_cuda.dPi_Qr,
-												Nx, Ny, Nz, Nd, Profile );
+		if( flag_CompType == "Simple" )
+		{
+			FAME_Matrix_Vector_Production_Pr(vec_y, Input_eigvec_mat+4*Nd*ii, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, 
+				Lambdas_cuda.dD_k, Lambdas_cuda.dPi_Pr);																				
+			FAME_Matrix_Vector_Production_Qr(vec_y + 3 * N, Input_eigvec_mat+2*Nd+4*Nd*ii, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, 
+				Lambdas_cuda.dD_k, Lambdas_cuda.dPi_Qr);
 
-		}else if( flag_CompType == "General" ){
-			//printDeviceArray( Input_eigvec_mat, 2*Nd, "print_Input_eigvec_mat.txt");
-			FAME_Matrix_Vector_Production_Pr(	cuHandles, 
-												fft_buffer,
-												Input_eigvec_mat+4*Nd*ii,
-												Nx,
-												Ny,
-												Nz,
-												Nd,
-												Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz,
-												Lambdas_cuda.dPi_Pr,
-												vec_y);									
-			//printDeviceArray( vec_y, 3*N, "print_vec_y.txt");												
-			FAME_Matrix_Vector_Production_Qr(   vec_y+3*N,
-												Input_eigvec_mat+2*Nd+4*Nd*ii,
-												cuHandles,
-                                                fft_buffer,
-                                                Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, 
-                                                Lambdas_cuda.dPi_Qr,
-                                                Nx, Ny, Nz, Nd, Profile);
+		}
+		else if( flag_CompType == "General" )
+		{
+			FAME_Matrix_Vector_Production_Pr(vec_y, Input_eigvec_mat+4*Nd*ii, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, 
+				Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Pr);																				
+			FAME_Matrix_Vector_Production_Qr(vec_y + 3 * N, Input_eigvec_mat+2*Nd+4*Nd*ii, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, 
+				Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Qr);
 		}
 	
 	FAME_Matrix_Vector_Production_invB_Biisotropic( cuHandles,
@@ -208,7 +168,7 @@ int Eigen_Restoration_Biisotropic( 	CULIB_HANDLES cuHandles,
                                                     Output_eigvec_mat+6*N*ii);
 	
 	//Normalize the eigenvector
-	cublasStatus=PC_cublas_nrm2(cuHandles.cublas_handle, 6*N, Output_eigvec_mat+6*N*ii, 1, &norm_vec );
+	cublasStatus=FAME_cublas_nrm2(cuHandles.cublas_handle, 6*N, Output_eigvec_mat+6*N*ii, 1, &norm_vec );
 	assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 	scaling<<<DimGrid, DimBlock>>>(N, Output_eigvec_mat+6*N*ii, norm_vec);
 

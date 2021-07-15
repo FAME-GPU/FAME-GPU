@@ -34,8 +34,13 @@ int FAME_Matrix_B_Biisotropic(int n, MATERIAL material, realCPU* B_eps, realCPU*
 	}*/
 
 	int size = n*N_material_handle;
-	int tn	 =3*n;
+	int tn	 = 3*n;
 	int N = 3*size;// 3*Nx*Ny*Nz*t
+
+	realCPU ele_permitt_in = material.ele_permitt_in[0];
+	realCPU mag_permeab_in = material.mag_permeab_in[0];
+	realCPU reciprocity_in = material.reciprocity_in[0];
+	realCPU chirality_in = material.chirality_in[0];
 	
 	dim3 DimBlock(BLOCK_SIZE,1,1);
     dim3 DimGrid((N-1)/BLOCK_SIZE +1,1,1);	
@@ -70,25 +75,25 @@ int FAME_Matrix_B_Biisotropic(int n, MATERIAL material, realCPU* B_eps, realCPU*
 		{
 				
     		alpha_ones<<<DimGrid, DimBlock>>>(n, B_eps+j*n, 
-											  material.ele_permitt_in[i], material.ele_permitt_out,
+											  ele_permitt_in, material.ele_permitt_out,
 											  dB_inout+i*n+j*n);
 
 			cudaDeviceSynchronize();
 
 			alpha_ones<<<DimGrid, DimBlock>>>(n, B_mu+j*n,
-                                      		  material.mag_permeab_in[i], material.mag_permeab_out,
+                                      		  mag_permeab_in, material.mag_permeab_out,
                                       		  dB_inout + i*n +j*n);
 
 			cudaDeviceSynchronize();
 			xi<<<DimGrid, DimBlock>>>(n, B_xi+j*n,
-                              		  material.reciprocity_in[i],   material.reciprocity_out,
-                              		  material.chirality_in[i],     material.chirality_out,
+                              		  reciprocity_in,   material.reciprocity_out,
+                              		  chirality_in,     material.chirality_out,
                               		  dB_inout + i*n +j*n);
 
 			cudaDeviceSynchronize();
 			zeta<<<DimGrid, DimBlock>>>(n, B_zeta+j*n,
-                                material.reciprocity_in[i],   material.reciprocity_out,
-                                material.chirality_in[i],     material.chirality_out,
+                                reciprocity_in,   material.reciprocity_out,
+                                chirality_in,     material.chirality_out,
                                 dB_inout +i*n+j*n );
 			cudaDeviceSynchronize();
 		}

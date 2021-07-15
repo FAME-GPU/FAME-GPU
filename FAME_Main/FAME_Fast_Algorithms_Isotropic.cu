@@ -4,7 +4,7 @@
 #include "FAME_Matrix_Vector_Production_Qr.cuh"
 #include "printDeviceArray.cuh"
 
-static __global__ void initialize(cmpxGPU* vec, realCPU real, realCPU imag, int size);
+static __global__ void initialize_iso(cmpxGPU* vec, realCPU real, realCPU imag, int size);
 static __global__ void dot_product(cmpxGPU* vec_y, realCPU* array, int size);
 
 
@@ -63,7 +63,7 @@ int FAME_Fast_Algorithms_Isotropic(
 	{
 		for(int i = es.nwant - 1; i >= 2 ; i--)
 		{
-			PC_cublas_swap(cuHandles.cublas_handle, N3, ev_back + i * N3, 1, ev_back + (i - 2) * N3, 1);
+			FAME_cublas_swap(cuHandles.cublas_handle, N3, ev_back + i * N3, 1, ev_back + (i - 2) * N3, 1);
 			Freq_array[i] = Freq_array[i - 2];
 		}
 
@@ -75,12 +75,13 @@ int FAME_Fast_Algorithms_Isotropic(
 		dim3 DimBlock(BLOCK_SIZE, 1, 1);
 		dim3 DimGrid((N3-1)/BLOCK_SIZE + 1, 1, 1);
 
-		initialize<<<DimGrid, DimBlock>>>(ev_back,      temp, 0.0, N3);
-		initialize<<<DimGrid, DimBlock>>>(ev_back + N3, temp, 0.0, N3);
+		initialize_iso<<<DimGrid, DimBlock>>>(ev_back,      temp, 0.0, N3);
+		initialize_iso<<<DimGrid, DimBlock>>>(ev_back + N3, temp, 0.0, N3);
 	}
 
 	checkCudaErrors(cudaMemcpy(Ele_field_mtx, ev_back, N3 * es.nwant * sizeof(cmpxGPU), cudaMemcpyDeviceToHost));
-
+//	printDeviceArray(ev_back,N3 ,"ev_back.txt");
+ //getchar();
 	cudaFree(ev); cudaFree(ev_back);cudaFree(lBuffer.dU);
 	cudaFree(cuHandles.Nd2_temp1); cudaFree(cuHandles.Nd2_temp2); cudaFree(cuHandles.Nd2_temp3); cudaFree(cuHandles.Nd2_temp4);
 	return 0;
@@ -111,19 +112,21 @@ int Eigen_Restoration_Isotropic(
 		dot_product<<<DimGrid, DimBlock>>>(Input_eigvec_mat+i*Nd2, Lambdas_cuda.Lambda_q_sqrt, Nd2);
 
 		if (flag_CompType == "Simple")
-			FAME_Matrix_Vector_Production_Qr(Output_eigvec_mat+i*N3, Input_eigvec_mat+i*Nd2, cuHandles, fft_buffer, Lambdas_cuda.dD_k, Lambdas_cuda.dPi_Qr, Nx, Ny, Nz, Nd, Profile );
+			FAME_Matrix_Vector_Production_Qr(Output_eigvec_mat+i*N3, Input_eigvec_mat+i*Nd2, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, Lambdas_cuda.dD_k, Lambdas_cuda.dPi_Qr );
 		
 		else if (flag_CompType == "General")
-			FAME_Matrix_Vector_Production_Qr(Output_eigvec_mat+i*N3, Input_eigvec_mat+i*Nd2, cuHandles, fft_buffer, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Qr, Nx, Ny, Nz, Nd, Profile );
+			FAME_Matrix_Vector_Production_Qr(Output_eigvec_mat+i*N3, Input_eigvec_mat+i*Nd2, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, Lambdas_cuda.dD_kx, Lambdas_cuda.dD_ky, Lambdas_cuda.dD_kz, Lambdas_cuda.dPi_Qr );
    
 
 		dot_product<<<DimGrid, DimBlock>>>(Output_eigvec_mat+i*N3, mtx_B.invB_eps, N3);
 
-		PC_cublas_nrm2(cuHandles.cublas_handle, N3, Output_eigvec_mat+N3*i, 1, &norm);
-   		norm=1.0/norm;
-
-		PC_cublas_dscal(cuHandles.cublas_handle, N3, &norm, Output_eigvec_mat+N3*i, 1);
-
+		FAME_cublas_nrm2(cuHandles.cublas_handle, N3, Output_eigvec_mat+N3*i, 1, &norm);
+   norm=1.0/norm;
+//   cout<<norm<<endl;
+//printDeviceArray(Output_eigvec_mat+i*N3,N3 ,"Output1.txt");
+		FAME_cublas_dscal(cuHandles.cublas_handle, N3, &norm, Output_eigvec_mat+N3*i, 1);
+//   printDeviceArray(Output_eigvec_mat+i*N3,N3 ,"Output.txt");
+//   getchar();
 	}
 	
 	return 0;
@@ -140,7 +143,7 @@ static __global__ void dot_product(cmpxGPU* vec_y, realCPU* array, int size)
 
 }
 
-static __global__ void initialize(cmpxGPU* vec, realCPU real, realCPU imag, int size)
+static __global__ void initialize_iso(cmpxGPU* vec, realCPU real, realCPU imag, int size)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if(idx < size)

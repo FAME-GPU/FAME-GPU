@@ -15,8 +15,7 @@ int FAME_Matrix_Vector_Production_Isotropic_QBQ(
 	cmpxGPU* D_ks,
 	cmpxGPU* Pi_Qr,
 	cmpxGPU* Pi_Qrs,
-	int Nx, int Ny, int Nz, int Nd,
-	PROFILE* Profile)
+	int Nx, int Ny, int Nz, int Nd)
 {
     int N = Nx * Ny * Nz;
     int N3 = N * 3;
@@ -25,14 +24,13 @@ int FAME_Matrix_Vector_Production_Isotropic_QBQ(
 
 	dim3 DimBlock(BLOCK_SIZE, 1, 1);
     dim3 DimGrid((N3 - 1) / BLOCK_SIZE + 1, 1, 1);
-    
+ //cout<<"in QBQ SIMPLE"<<endl;   
 
-    FAME_Matrix_Vector_Production_Qr(vec_y_1, vec_x, cuHandles, fft_buffer, D_k, Pi_Qr, Nx, Ny, Nz, Nd, Profile);
-
+    FAME_Matrix_Vector_Production_Qr(vec_y_1, vec_x, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_k, Pi_Qr);
  
     dot_product<<<DimGrid, DimBlock>>>(vec_y_1, mtx_B.invB_eps, N3);
 
-    FAME_Matrix_Vector_Production_Qrs(vec_y, vec_y_1, cuHandles, fft_buffer, D_ks, Pi_Qrs, Nx, Ny, Nz, Nd, Profile);
+    FAME_Matrix_Vector_Production_Qrs(vec_y, vec_y_1, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_ks, Pi_Qrs);
 
 	return 0;
 }
@@ -48,8 +46,7 @@ int FAME_Matrix_Vector_Production_Isotropic_QBQ(
 	cmpxGPU* D_kz,
 	cmpxGPU* Pi_Qr,
 	cmpxGPU* Pi_Qrs,
-	int Nx, int Ny, int Nz, int Nd,
-	PROFILE* Profile)
+	int Nx, int Ny, int Nz, int Nd)
 {
     int N = Nx * Ny * Nz;
     int N3 = N * 3;
@@ -60,13 +57,13 @@ int FAME_Matrix_Vector_Production_Isotropic_QBQ(
     dim3 DimGrid((N3 - 1) / BLOCK_SIZE + 1, 1, 1);
     
 
-	FAME_Matrix_Vector_Production_Qr(vec_y_1, vec_x, cuHandles, fft_buffer, D_kx, D_ky, D_kz, Pi_Qr, Nx, Ny, Nz, Nd, Profile);
+	FAME_Matrix_Vector_Production_Qr(vec_y_1, vec_x, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_kx, D_ky, D_kz, Pi_Qr);
 
 
 
 	dot_product<<<DimGrid, DimBlock>>>(vec_y_1, mtx_B.invB_eps, N3);
 
-	FAME_Matrix_Vector_Production_Qrs(vec_y, vec_y_1, cuHandles, fft_buffer, D_kx, D_ky, D_kz, Pi_Qrs, Nx, Ny, Nz, Nd, Profile);
+	FAME_Matrix_Vector_Production_Qrs(vec_y, vec_y_1, cuHandles, fft_buffer, Nx, Ny, Nz, Nd, D_kx, D_ky, D_kz, Pi_Qrs);
 
 
     return 0;

@@ -24,10 +24,17 @@ int FAME_Destroy_Main(
     // Free temp
     cudaFree(cuHandles.N3_temp1);
     cudaFree(cuHandles.N3_temp2);
+
+    cudaFree(cuHandles.temp_vec1);
+    cudaFree(cuHandles.temp_vec2);
  
     // Free MTX_B
     cudaFree(mtx_B.B_eps);
     cudaFree(mtx_B.invB_eps);
+    cudaFree(mtx_B.G);
+    cudaFree(mtx_B.GInOut);
+    cudaFree(mtx_B.GInOut_index);
+    cudaFree(mtx_B.GInOut_index_length);
 
     // Free MTX_C
     free(mtx_C.C1_r); free(mtx_C.C1_c); free(mtx_C.C1_v);

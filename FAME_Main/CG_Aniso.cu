@@ -1,8 +1,8 @@
 #include "FAME_Internal_Common.h"
 #include "FAME_CUDA.h"
-#include "FAME_Matrix_Vector_Production_Isotropic_QBQ.cuh"
+#include "FAME_Matrix_Vector_Production_Anisotropic_QBQ.cuh"
 
-int CG(
+int CG_Aniso(
     cmpxGPU* vec_y,
     cmpxGPU* rhs,
     CULIB_HANDLES    cuHandles,
@@ -12,12 +12,18 @@ int CG(
     cmpxGPU* D_ks,
     cmpxGPU* Pi_Qr,
     cmpxGPU* Pi_Qrs,
+    cmpxGPU* Pi_Qr_110,
+    cmpxGPU* Pi_Qrs_110,
+    cmpxGPU* Pi_Qr_101,
+    cmpxGPU* Pi_Qrs_101,
+    cmpxGPU* Pi_Qr_011,
+    cmpxGPU* Pi_Qrs_011,
     int Nx, int Ny, int Nz, int Nd,
     int Maxit, realGPU Tol,
     PROFILE* Profile)
 {
     
-    int dim = 2 * Nd;
+    int dim = 8 * Nd;
     realGPU res, temp, b;
 
     cmpxGPU a, na, dot, r0, r1;
@@ -52,8 +58,8 @@ int CG(
 
         // Ap = A * p;
                                      
-        FAME_Matrix_Vector_Production_Isotropic_QBQ(Ap, p, cuHandles, fft_buffer, mtx_B,
-                                     D_k, D_ks, Pi_Qr, Pi_Qrs, Nx, Ny, Nz, Nd);
+        FAME_Matrix_Vector_Production_Anisotropic_QBQ(Ap, p, cuHandles, fft_buffer, mtx_B,
+                D_k, D_ks, Pi_Qr, Pi_Qrs, Pi_Qr_110, Pi_Qrs_110, Pi_Qr_101, Pi_Qrs_101, Pi_Qr_011, Pi_Qrs_011, Nx, Ny, Nz, Nd);
         
         // dot = dot(p, Ap);
         FAME_cublas_dot(cuHandles.cublas_handle, dim, p, 1, Ap, 1, &dot);
@@ -82,6 +88,7 @@ int CG(
     }
 
     res = sqrt(r1.x);
+    // printf("%d %e.\n", k, res);
     if(k >= Maxit)
         printf("\033[40;31mCG did not converge when iteration numbers reached LS_MAXIT (%3d) with residual %e.\033[0m\n", Maxit, res);
 
@@ -89,7 +96,7 @@ int CG(
 }
 
 
-int CG(
+int CG_Aniso(
     cmpxGPU* vec_y,
     cmpxGPU* rhs,
     CULIB_HANDLES    cuHandles,
@@ -100,12 +107,18 @@ int CG(
     cmpxGPU* D_kz,
     cmpxGPU* Pi_Qr,
     cmpxGPU* Pi_Qrs,
+    cmpxGPU* Pi_Qr_110,
+    cmpxGPU* Pi_Qrs_110,
+    cmpxGPU* Pi_Qr_101,
+    cmpxGPU* Pi_Qrs_101,
+    cmpxGPU* Pi_Qr_011,
+    cmpxGPU* Pi_Qrs_011,
     int Nx, int Ny, int Nz, int Nd,
     int Maxit, realGPU Tol,
     PROFILE* Profile)
 {
     
-    int dim = 2 * Nd;
+    int dim = 8 * Nd;
     realGPU res, temp, b;
 
     cmpxGPU a, na, dot, r0, r1;
@@ -138,10 +151,9 @@ int CG(
             FAME_cublas_copy(cuHandles.cublas_handle, dim, r, 1, p, 1);
         }
 
-        // Ap = A * p;
-                   
-        FAME_Matrix_Vector_Production_Isotropic_QBQ(Ap, p, cuHandles, fft_buffer, mtx_B,
-                               D_kx, D_ky, D_kz, Pi_Qr, Pi_Qrs, Nx, Ny, Nz, Nd);
+        // Ap = A * p;       
+        FAME_Matrix_Vector_Production_Anisotropic_QBQ(Ap, p, cuHandles, fft_buffer, mtx_B,
+                D_kx, D_ky, D_kz, Pi_Qr, Pi_Qrs, Pi_Qr_110, Pi_Qrs_110, Pi_Qr_101, Pi_Qrs_101, Pi_Qr_011, Pi_Qrs_011, Nx, Ny, Nz, Nd);
     
         // dot = dot(p, Ap);
         FAME_cublas_dot(cuHandles.cublas_handle, dim, p, 1, Ap, 1, &dot);

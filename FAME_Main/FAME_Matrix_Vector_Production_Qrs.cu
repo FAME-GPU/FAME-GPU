@@ -10,9 +10,9 @@ int FAME_Matrix_Vector_Production_Qrs(
 	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles, 
 	FFT_BUFFER       fft_buffer, 
+	int Nx, int Ny, int Nz, int Nd,
 	cmpxGPU* D_ks, 
-	cmpxGPU* Pi_Qrs, 
-	int Nx, int Ny, int Nz, int Nd, PROFILE* Profile)
+	cmpxGPU* Pi_Qrs)
 {
     int N   = Nx * Ny * Nz;
     int Nd2 = Nd * 2;
@@ -33,11 +33,11 @@ int FAME_Matrix_Vector_Production_Qrs(
 	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles, 
 	FFT_BUFFER       fft_buffer, 
-	cmpxGPU* D_kx, 
-	cmpxGPU* D_ky, 
+	int Nx, int Ny, int Nz, int Nd,
+	cmpxGPU* D_kx,
+	cmpxGPU* D_ky,
 	cmpxGPU* D_kz, 
-	cmpxGPU* Pi_Qrs, 
-	int Nx, int Ny, int Nz, int Nd, PROFILE* Profile)
+	cmpxGPU* Pi_Qrs)
 {
 
     int N   = Nx * Ny * Nz;
@@ -45,7 +45,6 @@ int FAME_Matrix_Vector_Production_Qrs(
     int Nd2 = Nd * 2;
     dim3 DimBlock(BLOCK_SIZE,1,1);
     dim3 DimGrid((N-1)/BLOCK_SIZE +1,1,1);
-
 
     spMV_fastT_gpu(vec_x,    vec_x,    cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, -1);
     spMV_fastT_gpu(vec_x+N,  vec_x+N,  cuHandles, &fft_buffer, D_kx, D_ky, D_kz, Nx, Ny, Nz, -1);

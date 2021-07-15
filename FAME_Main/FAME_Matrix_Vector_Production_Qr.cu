@@ -11,9 +11,9 @@ int FAME_Matrix_Vector_Production_Qr(
 	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles, 
 	FFT_BUFFER       fft_buffer, 
+	int Nx, int Ny, int Nz, int Nd,
 	cmpxGPU* D_k, 
-	cmpxGPU* Pi_Qr,
-	int Nx, int Ny, int Nz, int Nd, PROFILE* Profile)
+	cmpxGPU* Pi_Qr)
 {
     int N  = Nx * Ny * Nz;
     int N2 = N * 2;
@@ -33,8 +33,6 @@ int FAME_Matrix_Vector_Production_Qr(
     vp_add_vp<<<DimGrid, DimBlock>>>(Nd, Pi_Qr+Nd,   Pi_Qr+4*Nd, vec_x, vec_x+Nd, temp+N2-Nd);
     vp_add_vp<<<DimGrid, DimBlock>>>(Nd, Pi_Qr+2*Nd, Pi_Qr+5*Nd, vec_x, vec_x+Nd, temp+N3-Nd);
 
-	/*CUDA version (follow matlab) correct*/
-
 	IFFT_CUDA(vec_y, temp, D_k, fft_buffer, cuHandles, Nx, Ny, Nz);
 
 	return 0;
@@ -43,18 +41,17 @@ int FAME_Matrix_Vector_Production_Qr(
 int FAME_Matrix_Vector_Production_Qr(
 	cmpxGPU* vec_y,
 	cmpxGPU* vec_x,
-	CULIB_HANDLES    cuHandles, 
-	FFT_BUFFER       fft_buffer, 
-	cmpxGPU* D_kx, 
-	cmpxGPU* D_ky, 
+	CULIB_HANDLES cuHandles, 
+	FFT_BUFFER fft_buffer, 
+	int Nx, int Ny, int Nz, int Nd,
+	cmpxGPU* D_kx,
+	cmpxGPU* D_ky,
 	cmpxGPU* D_kz, 
-	cmpxGPU* Pi_Qr,
-	int Nx, int Ny, int Nz, int Nd,PROFILE* Profile)
+	cmpxGPU* Pi_Qr)
 {
     int N  = Nx * Ny * Nz;
     int N2 = N * 2;
     int N3 = N * 3;
-
     // cuHandles.N3_temp2 is used in QBQ
     cmpxGPU* temp = cuHandles.N3_temp2;
 	//cmpxGPU* temp;

@@ -17,8 +17,7 @@ int FAME_Matrix_Vector_Production_invB_Biisotropic( CULIB_HANDLES cuHandles,
 {
 		int N_3 = 3*N; //3*Nx*Ny*Nz
 		dim3 DimBlock(BLOCK_SIZE, 1, 1);
-		dim3 DimGrid((N-1)/BLOCK_SIZE+1, 1, 1);
-		
+		dim3 DimGrid( (N-1)/BLOCK_SIZE + 1, 1, 1);
 		cublasStatus_t cublasStatus;
 
 		cmpxGPU one; one.x = 1.0; one.y = 0.0;
@@ -33,9 +32,9 @@ int FAME_Matrix_Vector_Production_invB_Biisotropic( CULIB_HANDLES cuHandles,
 
 		dot_product_3size<<<DimGrid, DimBlock>>>(N, vec_x+N_3, mtx_B.B_mu, vec_y );
 
-		cublasStatus = PC_cublas_axpy( cuHandles.cublas_handle, N_3, &one, vec_y, 1, temp, 1 );
+		cublasStatus = FAME_cublas_axpy( cuHandles.cublas_handle, N_3, &one, vec_y, 1, temp, 1 );
 		assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
-		cublasStatus = PC_cublas_dscal( cuHandles.cublas_handle, N_3, &m_one, temp, 1 );
+		cublasStatus = FAME_cublas_dscal( cuHandles.cublas_handle, N_3, &m_one, temp, 1 );
 		assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 		dot_product_3size<<<DimGrid, DimBlock>>>(N, temp, mtx_B.invPhi, vec_y );
 
@@ -44,12 +43,12 @@ int FAME_Matrix_Vector_Production_invB_Biisotropic( CULIB_HANDLES cuHandles,
 		
 		dot_product_3size<<<DimGrid, DimBlock>>>(N, mtx_B.B_zeta, vec_x+N_3, vec_y+N_3);
 		
-		cublasStatus = PC_cublas_axpy( cuHandles.cublas_handle, N_3, &one, vec_y+N_3, 1, temp, 1 );
+		cublasStatus = FAME_cublas_axpy( cuHandles.cublas_handle, N_3, &one, vec_y+N_3, 1, temp, 1 );
 		assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 		dot_product_3size<<<DimGrid, DimBlock>>>(N, temp, mtx_B.invPhi, vec_y+N_3 );
 
 		///////
-		cublasStatus = PC_cublas_scal( cuHandles.cublas_handle, 6*N, &m_one_i, vec_y, 1 );
+		cublasStatus = FAME_cublas_scal( cuHandles.cublas_handle, 6*N, &m_one_i, vec_y, 1 );
 		assert( cublasStatus == CUBLAS_STATUS_SUCCESS );
 	return 0;
 }
