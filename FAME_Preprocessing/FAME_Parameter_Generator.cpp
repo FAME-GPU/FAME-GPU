@@ -80,22 +80,18 @@ int copy_Popt2Par(
     // ====================== Material information ======================
     strcpy((Par->material.data_name), (Popt_material.data_name));
     strcpy((Par->material.material_type), (Popt_material.material_type));
-    Par->material.num_ele_permitt_in = Popt_material.num_ele_permitt_in;
-    Par->material.num_mag_permeab_in = Popt_material.num_mag_permeab_in;
-    Par->material.num_reciprocity_in = Popt_material.num_reciprocity_in;
-    Par->material.num_chirality_in = Popt_material.num_chirality_in;
 
-    Par->material.ele_permitt_in = (realCPU*) malloc(Par->material.num_ele_permitt_in * sizeof(realCPU));
-    memcpy(Par->material.ele_permitt_in, Popt_material.ele_permitt_in, Par->material.num_ele_permitt_in * sizeof(realCPU));
+    Par->material.ele_permitt_in = (realCPU*) malloc(18 * sizeof(realCPU));
+    memcpy(Par->material.ele_permitt_in, Popt_material.ele_permitt_in, 18 * sizeof(realCPU));
 
-    Par->material.mag_permeab_in = (realCPU*) malloc(Par->material.num_mag_permeab_in * sizeof(realCPU));
-    memcpy(Par->material.mag_permeab_in, Popt_material.mag_permeab_in, Par->material.num_mag_permeab_in * sizeof(realCPU));
+    Par->material.mag_permeab_in = (realCPU*) malloc(18 * sizeof(realCPU));
+    memcpy(Par->material.mag_permeab_in, Popt_material.mag_permeab_in, 18 * sizeof(realCPU));
 
-    Par->material.reciprocity_in = (realCPU*) malloc(Par->material.num_reciprocity_in * sizeof(realCPU));
-    memcpy(Par->material.reciprocity_in, Popt_material.reciprocity_in, Par->material.num_reciprocity_in* sizeof(realCPU));
+    Par->material.reciprocity_in = (realCPU*) malloc(18 * sizeof(realCPU));
+    memcpy(Par->material.reciprocity_in, Popt_material.reciprocity_in, 9 * sizeof(realCPU));
 
-    Par->material.chirality_in = (realCPU*) malloc(Par->material.num_chirality_in * sizeof(realCPU));
-    memcpy(Par->material.chirality_in, Popt_material.chirality_in, Par->material.num_chirality_in* sizeof(realCPU));
+    Par->material.chirality_in = (realCPU*) malloc(18 * sizeof(realCPU));
+    memcpy(Par->material.chirality_in, Popt_material.chirality_in, 18 * sizeof(realCPU));
 
     Par->material.ele_permitt_out = Popt_material.ele_permitt_out;
     Par->material.mag_permeab_out = Popt_material.mag_permeab_out;

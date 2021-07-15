@@ -2,6 +2,7 @@
 #include "FAME_Material_Handle.h"
 #include "FAME_Matrix_Grid.h"
 #include "inv3.h"
+#include "vec_sum.h"
 // 2020-02-19
 
 int FAME_Material_Locate(realCPU* point_set, realCPU* Omega, realCPU* lattice_vec_a_orig_P, realCPU* invAP, realCPU* lattice_vec_a_orig, PAR Par)
@@ -120,6 +121,47 @@ int FAME_Material_Locate_Index(MATERIAL* Material, PAR Par)
         FAME_Material_Locate_Index_Print(Material->Binout + idx * 3, Par, (char*)"Magnetic_x_point_set");
         FAME_Material_Locate_Index_Print(Material->Binout + idx * 4, Par, (char*)"Magnetic_y_point_set");
         FAME_Material_Locate_Index_Print(Material->Binout + idx * 5, Par, (char*)"Magnetic_z_point_set");
+    }
+    else if(strcmp(Par.material.material_type, "anisotropic") == 0 || strcmp(Par.material.material_type, "bianisotropic") == 0)
+    {
+        Material->BInOut = (int*) calloc (8 * idx, sizeof(int));
+        FAME_Material_Locate_Index_Print(Material->BInOut + idx * 0, Par, (char*)"Electric_x_point_set");
+        FAME_Material_Locate_Index_Print(Material->BInOut + idx * 1, Par, (char*)"Electric_y_point_set");
+        FAME_Material_Locate_Index_Print(Material->BInOut + idx * 2, Par, (char*)"Electric_z_point_set");
+        FAME_Material_Locate_Index_Print(Material->BInOut + idx * 6, Par, (char*)"xyz_point_set");
+        FAME_Material_Locate_Index_Print(Material->BInOut + idx * 3, Par, (char*)"Magnetic_x_point_set");
+        FAME_Material_Locate_Index_Print(Material->BInOut + idx * 4, Par, (char*)"Magnetic_y_point_set");
+        FAME_Material_Locate_Index_Print(Material->BInOut + idx * 5, Par, (char*)"Magnetic_z_point_set");
+        FAME_Material_Locate_Index_Print(Material->BInOut + idx * 7, Par, (char*)"none_xyz_point_set");
+
+        int k;
+        int N = Par.mesh.grid_nums[0] * Par.mesh.grid_nums[1] * Par.mesh.grid_nums[2];
+        Material->BInOut_index_length = (int*) calloc(8, sizeof(int));
+        Material->BInOut_index_length[0] = vec_sum(Material->BInOut, idx);
+        Material->BInOut_index_length[1] = vec_sum(Material->BInOut + idx, idx) + Material->BInOut_index_length[0];
+        Material->BInOut_index_length[2] = vec_sum(Material->BInOut + 2 * idx, idx) + Material->BInOut_index_length[1];
+        Material->BInOut_index_length[3] = vec_sum(Material->BInOut + 3 * idx, idx) + Material->BInOut_index_length[2];
+        Material->BInOut_index_length[4] = vec_sum(Material->BInOut + 4 * idx, idx) + Material->BInOut_index_length[3];
+        Material->BInOut_index_length[5] = vec_sum(Material->BInOut + 5 * idx, idx) + Material->BInOut_index_length[4];
+        Material->BInOut_index_length[6] = vec_sum(Material->BInOut + 6 * idx, idx) + Material->BInOut_index_length[5];
+        Material->BInOut_index_length[7] = vec_sum(Material->BInOut + 7 * idx, idx) + Material->BInOut_index_length[6];
+        Material->BInOut_index = (int*) calloc(Material->BInOut_index_length[7], sizeof(int));
+
+        k = 0;
+        for(int i = 0; i < 8; i++)
+        {
+            for(int j = 0; j < Par.material.material_num; j++)
+            {
+                for(int m = 0; m < N; m++)
+                {
+                    if(Material->BInOut[m + (j + i * Par.material.material_num) * N] == 1)
+                    {
+                        Material->BInOut_index[k] = m;
+                        k++;
+                    }
+                }
+            }
+        }
     }
     else
     {

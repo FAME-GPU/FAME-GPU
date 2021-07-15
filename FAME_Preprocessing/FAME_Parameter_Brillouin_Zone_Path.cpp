@@ -21,6 +21,7 @@ int FAME_Parameter_Brillouin_Zone_Path(RECIP_LATTICE* Recip_lattice, int part_nu
     //printf("= = = = = = FAME_Parameter_Brillouin_Zone_Point = = = = = = = = = = = = = = = = =\n");
     FAME_Parameter_Brillouin_Zone_Point( &(Recip_lattice->vertex), Lattice, Recip_lattice->reciprocal_lattice_vector_b);
 
+
     str_len    = strlen(Recip_lattice->path_string);
     count_part = 0;
     flag       = 0;
@@ -34,6 +35,7 @@ int FAME_Parameter_Brillouin_Zone_Path(RECIP_LATTICE* Recip_lattice, int part_nu
             part_x = (subpath_end_string[0] - subpath_start_string[0])/(realCPU)(part_num-1);
             part_y = (subpath_end_string[1] - subpath_start_string[1])/(realCPU)(part_num-1);
             part_z = (subpath_end_string[2] - subpath_start_string[2])/(realCPU)(part_num-1);
+
             for (int j = 0; j < part_num; j++ )
             {
                 subpath[0][j] = subpath_start_string[0] + part_x*j;
@@ -84,11 +86,14 @@ int FAME_Parameter_Brillouin_Zone_Path(RECIP_LATTICE* Recip_lattice, int part_nu
         V2 = Recip_lattice->WaveVector[i * 3 + 1];
         V3 = Recip_lattice->WaveVector[i * 3 + 2];
 
-        Recip_lattice->WaveVector[i * 3 + 0] = Lattice.Omega[0] * V1 + Lattice.Omega[3] * V2 + Lattice.Omega[6] * V3;
-        Recip_lattice->WaveVector[i * 3 + 1] = Lattice.Omega[1] * V1 + Lattice.Omega[4] * V2 + Lattice.Omega[7] * V3;
-        Recip_lattice->WaveVector[i * 3 + 2] = Lattice.Omega[2] * V1 + Lattice.Omega[5] * V2 + Lattice.Omega[8] * V3;
-    }
+        Recip_lattice->WaveVector[i * 3 + 0] = Lattice.Omega[0] * V1 + Lattice.Omega[1] * V2 + Lattice.Omega[2] * V3;
+        Recip_lattice->WaveVector[i * 3 + 1] = Lattice.Omega[3] * V1 + Lattice.Omega[4] * V2 + Lattice.Omega[5] * V3;
+        Recip_lattice->WaveVector[i * 3 + 2] = Lattice.Omega[6] * V1 + Lattice.Omega[7] * V2 + Lattice.Omega[8] * V3;
 
+    	//printf("\033[40;33m= = Start to compute (%3d/%3d) WaveVector = [ % .6f % .6f % .6f ] = =\033[0m\n", i + 1, Recip_lattice->Wave_vec_num, Recip_lattice->WaveVector[3 * i], Recip_lattice->WaveVector[3 * i + 1], Recip_lattice->WaveVector[3 * i + 2]);
+     
+    }
+    //getchar();
     return 0;
 }
 
@@ -108,7 +113,8 @@ void default_path(LATTICE lattice, RECIP_LATTICE* recip_lattice)
     }
     else if(strcmp(lattice.lattice_type, "hexagonal") == 0)
     {
-        strcpy(recip_lattice->path_string, "GMKGALHA|LM|KH");
+	    strcpy(recip_lattice->path_string, "GKMKHAG");
+        //strcpy(recip_lattice->path_string, "GMKGALHA|LM|KH");
     }
     else if(strcmp(lattice.lattice_type, "rhombohedral") == 0)
     {
@@ -133,7 +139,7 @@ void default_path(LATTICE lattice, RECIP_LATTICE* recip_lattice)
     {
         strcpy(recip_lattice->path_string, "GXSYGZURTZ|YT|UX|SR");
     }
-    else if(strcmp(lattice.lattice_type, "c_base_centered_orthorhombic") == 0 || strcmp(lattice.lattice_type, "a_base_centered_orthorhombic") == 0 )
+    else if(strcmp(lattice.lattice_type, "c_base_centered_orthorhombic") == 0)
     {
         strcpy(recip_lattice->path_string, "GXSRAZGYCBTY|ZT");
     }

@@ -40,11 +40,13 @@ int FAME_Set_User_Option( POPT *Popt )
 
         else if(strcmp(str, "# Permittivity (inner material)") == 0)
         {
-            fscanf(fp, "%d", &Popt->material.num_ele_permitt_in);
-            Popt->material.ele_permitt_in = (realCPU*) calloc(Popt->material.num_ele_permitt_in, sizeof(realCPU));
+            Popt->material.ele_permitt_in = (realCPU*) calloc(18, sizeof(realCPU));
 
-            for(int i = 0; i < Popt->material.num_ele_permitt_in; i++)
+            for(int i = 0; i < 9; i++)
                 fscanf(fp, "%lf", &Popt->material.ele_permitt_in[i]);
+
+            for(int i = 0; i < 9; i++)
+                fscanf(fp, "%lf", &Popt->material.ele_permitt_in[i + 9]);
             
         }
 
@@ -55,12 +57,14 @@ int FAME_Set_User_Option( POPT *Popt )
 
         else if(strcmp(str, "# Permeability (inner material)") == 0)
         {
-            fscanf(fp, "%d", &Popt->material.num_mag_permeab_in);
 
-            Popt->material.mag_permeab_in = (realCPU*) calloc(Popt->material.num_mag_permeab_in, sizeof(realCPU));
+            Popt->material.mag_permeab_in = (realCPU*) calloc(18, sizeof(realCPU));
 
-            for(int i = 0; i < Popt->material.num_mag_permeab_in; i++)
+            for(int i = 0; i < 9; i++)
                 fscanf(fp, "%lf", &Popt->material.mag_permeab_in[i]);
+
+            for(int i = 0; i < 9; i++)
+                fscanf(fp, "%lf", &Popt->material.mag_permeab_in[i + 9]);
         }
 
         else if(strcmp(str, "# Permeability (outer material)") == 0)
@@ -68,33 +72,34 @@ int FAME_Set_User_Option( POPT *Popt )
             fscanf(fp, "%lf", &Popt->material.mag_permeab_out);
         }
 
-        else if(strcmp(str, "# Reciprocity (inner material) (must given when biisotropic)") == 0)
+        else if(strcmp(str, "# Reciprocity (inner material) (must given when bi-isotropic and bi-anisotropic)") == 0)
         {
-            fscanf(fp, "%d", &Popt->material.num_reciprocity_in);
 
-            Popt->material.reciprocity_in = (realCPU*) calloc(Popt->material.num_reciprocity_in, sizeof(realCPU));
+            Popt->material.reciprocity_in = (realCPU*) calloc(9, sizeof(realCPU));
             
-            for(int i = 0; i < Popt->material.num_reciprocity_in; i++)
+            for(int i = 0; i < 9; i++)
                 fscanf(fp, "%lf", &Popt->material.reciprocity_in[i]);
-                
+              
         }
 
-        else if(strcmp(str, "# Reciprocity (outer material)") == 0)
+        else if(strcmp(str, "# Reciprocity (outer material) (must given when bi-isotropic and bi-anisotropic)") == 0)
         {
             fscanf(fp, "%lf", &Popt->material.reciprocity_out);
         }
 
-        else if(strcmp(str, "# Chirality (inner material) (must given when biisotropic)") == 0)
+        else if(strcmp(str, "# Chirality (inner material) (must given when bi-isotropic and bi-anisotropic)") == 0)
         {
-            fscanf(fp, "%d", &Popt->material.num_chirality_in);
 
-            Popt->material.chirality_in = (realCPU*) calloc(Popt->material.num_chirality_in, sizeof(realCPU));
+            Popt->material.chirality_in = (realCPU*) calloc(18, sizeof(realCPU));
 
-            for(int i = 0; i < Popt->material.num_chirality_in; i++)
+            for(int i = 0; i < 9; i++)
                 fscanf(fp, "%lf", &Popt->material.chirality_in[i]);
+
+            for(int i = 0; i < 9; i++)
+                fscanf(fp, "%lf", &Popt->material.chirality_in[i + 9]);
         }
 
-        else if(strcmp(str, "# Chirality (outer material) (must given when biisotropic)") == 0)
+        else if(strcmp(str, "# Chirality (outer material) (must given when bi-isotropic and bi-anisotropic)") == 0)
         {
             fscanf(fp, "%lf", &Popt->material.chirality_out);
         }
@@ -218,11 +223,13 @@ int FAME_Set_User_Option_Single( POPT *Popt )
 
         else if(strcmp(str, "# Permittivity (inner material)") == 0)
         {
-            fscanf(fp, "%d", &Popt->material.num_ele_permitt_in);
-            Popt->material.ele_permitt_in = (realCPU*) calloc(Popt->material.num_ele_permitt_in, sizeof(realCPU));
+            Popt->material.ele_permitt_in = (realCPU*) calloc(18, sizeof(realCPU));
 
-            for(int i = 0; i < Popt->material.num_ele_permitt_in; i++)
+            for(int i = 0; i < 9; i++)
                 fscanf(fp, "%f", &Popt->material.ele_permitt_in[i]);
+
+            for(int i = 0; i < 9; i++)
+                fscanf(fp, "%f", &Popt->material.ele_permitt_in[i + 9]);
             
         }
 
@@ -233,12 +240,14 @@ int FAME_Set_User_Option_Single( POPT *Popt )
 
         else if(strcmp(str, "# Permeability (inner material)") == 0)
         {
-            fscanf(fp, "%d", &Popt->material.num_mag_permeab_in);
 
-            Popt->material.mag_permeab_in = (realCPU*) calloc(Popt->material.num_mag_permeab_in, sizeof(realCPU));
+            Popt->material.mag_permeab_in = (realCPU*) calloc(18, sizeof(realCPU));
 
-            for(int i = 0; i < Popt->material.num_mag_permeab_in; i++)
+            for(int i = 0; i < 9; i++)
                 fscanf(fp, "%f", &Popt->material.mag_permeab_in[i]);
+
+            for(int i = 0; i < 9; i++)
+                fscanf(fp, "%f", &Popt->material.mag_permeab_in[i + 9]);
         }
 
         else if(strcmp(str, "# Permeability (outer material)") == 0)
@@ -246,33 +255,34 @@ int FAME_Set_User_Option_Single( POPT *Popt )
             fscanf(fp, "%f", &Popt->material.mag_permeab_out);
         }
 
-        else if(strcmp(str, "# Reciprocity (inner material) (must given when biisotropic)") == 0)
+        else if(strcmp(str, "# Reciprocity (inner material) (must given when biisotropic and bi-anisotropic)") == 0)
         {
-            fscanf(fp, "%d", &Popt->material.num_reciprocity_in);
 
-            Popt->material.reciprocity_in = (realCPU*) calloc(Popt->material.num_reciprocity_in, sizeof(realCPU));
+            Popt->material.reciprocity_in = (realCPU*) calloc(9, sizeof(realCPU));
             
-            for(int i = 0; i < Popt->material.num_reciprocity_in; i++)
+            for(int i = 0; i < 9; i++)
                 fscanf(fp, "%f", &Popt->material.reciprocity_in[i]);
                 
         }
 
-        else if(strcmp(str, "# Reciprocity (outer material)") == 0)
+        else if(strcmp(str, "# Reciprocity (outer material) (must given when biisotropic and bi-anisotropic)") == 0)
         {
             fscanf(fp, "%f", &Popt->material.reciprocity_out);
         }
 
-        else if(strcmp(str, "# Chirality (inner material) (must given when biisotropic)") == 0)
+        else if(strcmp(str, "# Chirality (inner material) (must given when biisotropic and bi-anisotropic)") == 0)
         {
-            fscanf(fp, "%d", &Popt->material.num_chirality_in);
 
-            Popt->material.chirality_in = (realCPU*) calloc(Popt->material.num_chirality_in, sizeof(realCPU));
+            Popt->material.chirality_in = (realCPU*) calloc(18, sizeof(realCPU));
 
-            for(int i = 0; i < Popt->material.num_chirality_in; i++)
+            for(int i = 0; i < 9; i++)
                 fscanf(fp, "%f", &Popt->material.chirality_in[i]);
+
+            for(int i = 0; i < 9; i++)
+                fscanf(fp, "%f", &Popt->material.chirality_in[i + 9]);
         }
 
-        else if(strcmp(str, "# Chirality (outer material) (must given when biisotropic)") == 0)
+        else if(strcmp(str, "# Chirality (outer material) (must given when biisotropic and bi-anisotropic)") == 0)
         {
             fscanf(fp, "%f", &Popt->material.chirality_out);
         }
