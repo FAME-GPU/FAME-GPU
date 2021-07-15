@@ -1,42 +1,41 @@
 ======================== Mesh information ========================
 # Grid number
-120 120 120
-
+ 60 60 60
+ 
 ================= Reciprocal lattice information =================
 # Part number
  10
 
 ====================== Material information ======================
 # Material data name
- No198_SC_alphaCO
+ No227_FCC_SiO2
 # Material type
  isotropic
 # Permittivity (inner material)
- 6
- 13.0 13.0 13.0 13.0 13.0 13.0
+ 13.0 0.0 0.0 0.0 13.0 0.0 0.0 0.0 13.0
+ 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
 # Permittivity (outer material)
  1.0
 # Permeability (inner material)
- 6
- 1.0 1.0 1.0 1.0 1.0 1.0  
+ 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0
+ 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
 # Permeability (outer material)
  1.0
-# Reciprocity (inner material) (must given when biisotropic)
- 6
- 0.0 0.0 0.0 0.0 0.0 0.0 
-# Reciprocity (outer material) (must given when biisotropic)
+# Reciprocity (inner material) (must given when bi-isotropic and bi-anisotropic)
+ 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+# Reciprocity (outer material) (must given when bi-isotropic and bi-anisotropic)
  0.0
-# Chirality (inner material) (must given when biisotropic)
- 6
- 0.5 0.5 0.5 0.5 0.5 0.5
-# Chirality (outer material) (must given when biisotropic)
+# Chirality (inner material) (must given when bi-isotropic and bi-anisotropic)
+ 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0
+ 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+# Chirality (outer material) (must given when bi-isotropic and bi-anisotropic)
  0
 
 ======================= Solver information =======================
 # Desired eigenpair number
  10
 # Dimension of Krylov subspace for Lanczos
- 30
+ 50
 # Maximum restart number of Lanczos
  300
 # Maximum iteration number of linear solver
@@ -48,9 +47,9 @@
 # Printf User Option
  0
 # Printf Parameter
- 1
-# Create Parameter
  0
+# Create Parameter
+ 0 
 # Create B_inout
  0
 # Create Wave Vector
@@ -60,4 +59,4 @@
 # Grid nums Max
  0 16
 # Sphere/Cylinder radius adjustment
- 1 0.6
+ 1 0.3

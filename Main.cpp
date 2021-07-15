@@ -1,4 +1,3 @@
-
 #include "FAME_Internal_Common.h"
 #include "FAME_Preprocessing.h"
 #include "FAME_Main_Code.cuh"
@@ -10,23 +9,21 @@ int main()
 {
     PAR Par;
     PROFILE Profile;
-    double accum_Pre, accum_Mai;
+    realCPU accum_Pre, accum_Mai;
     struct timespec start, end;
 
     printf("\033[40;33m= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\033[0m\n");
-	printf("\033[40;33m= = = = = = = = = = = = = = = = Start to run FAME  = = = = = = = = = = = = = = = =\033[0m\n");
+	printf("\033[40;33m= = = = = = = = = = = = = = = = Start to run FAME = = = = = = = = = = = = = = = =\033[0m\n");
     printf("\033[40;33m= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\033[0m\n");
 
-    printf("= = FAME_Preprocessing  = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
+    printf("= = = = FAME_Preprocessing  = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
     clock_gettime(CLOCK_REALTIME, &start);
     FAME_Preprocessing(&Par);
     clock_gettime(CLOCK_REALTIME, &end);
     accum_Pre = ( end.tv_sec - start.tv_sec ) + ( end.tv_nsec - start.tv_nsec ) / BILLION;
     //printf("%*s%8.2f sec.\n", 68, "", accum_Pre);
 
-//未找到此文件
     FAME_Set_Profile(&Profile, Par);
-
 
     printf("\n= = FAME_Main_Code  = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
 
@@ -48,10 +45,18 @@ int main()
 	{
 		printf("\033[40;33m= = = = = = = = = = = = FAME (Isotropic GPU) has done ! = = = = = = = = = = = = =\033[0m\n");
 	}
+    if(strcmp(Par.material.material_type, "anisotropic") == 0)
+	{
+		printf("\033[40;33m= = = = = = = = = = = = FAME (Anisotropic GPU) has done ! = = = = = = = = = = = = =\033[0m\n");
+	}
 	else if(strcmp(Par.material.material_type, "biisotropic") == 0)
 	{
         printf("\033[40;33m= = = = = = = = = = = = FAME (Biisotropic GPU) has done ! = = = = = = = = = = = = =\033[0m\n");
     }   
+    if(strcmp(Par.material.material_type, "bianisotropic") == 0)
+	{
+		printf("\033[40;33m= = = = = = = = = = = = FAME (Bianisotropic GPU) has done ! = = = = = = = = = = = = =\033[0m\n");
+	}
     printf("\033[40;33m= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\033[0m\n");
 
     return 0;

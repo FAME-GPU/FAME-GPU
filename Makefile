@@ -12,7 +12,7 @@
 # Pascal  - NVIDIA compute capability 6.x cards
 # Volta   - NVIDIA compute capability 7.x cards
 # Note that NVIDIA no longer supports 1.x cards
-GPU_TARGET = Pascal
+GPU_TARGET = Volta
 include make.inc
 #############################################
 ### Compiler settings                     ###
@@ -24,7 +24,7 @@ NVCCFLA = -O3 -m64 $(NVCCFLAGS) -std=c++03
 #############################################
 ### CUDA                                  ###
 #############################################
-CUDADIR ?= /opt/cuda-10.1
+CUDADIR ?= /usr/local/cuda
 CUDAINC  = -I$(CUDADIR)/include -I$(CUDADIR)/samples/common/inc
 CUDALIB  = -L$(CUDADIR)/lib64
 CUDAFLA  = -lcudart -lcublas -lcufft -lcusolver -lcusparse -lcurand -lpthread -ldl -lgomp
@@ -32,7 +32,7 @@ CUDAALL  = $(CUDAINC) $(CUDALIB) $(CUDAFLA)
 #############################################
 ### LAPACK                                ###
 #############################################
-LAPACKDIR ?= /opt/lapack-3.9.0
+LAPACKDIR ?= /home/lxl/Softwares/lapack-3.9.0
 LAPACKINC  = -I$(LAPACKDIR)/LAPACKE/include
 LAPACKLIB  = -L$(LAPACKDIR)
 LAPACKFLA  = -llapacke -llapack -lgfortran -lrefblas
