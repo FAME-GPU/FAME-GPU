@@ -4,6 +4,13 @@
 #include <complex.h>
 #include "FAME_Internal_Common.h"
 
+
+void vec_plus(realCPU alpha, realCPU* vec1, realCPU beta, realCPU* vec2, int dim)
+{
+    for( int i = 0; i < dim; i++)
+            vec1[i] = alpha * vec1[i] + beta * vec2[i];
+}
+
 void vec_plus(realCPU* vec_sum, realCPU alpha, realCPU* vec1, realCPU beta, realCPU* vec2, int dim)
 {
     for( int i = 0; i < dim; i++)

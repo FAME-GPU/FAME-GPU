@@ -80,6 +80,29 @@ void mtx_prod(cmpxCPU* ans, int* M1_row, int* M1_col, cmpxCPU* M1_val, cmpxCPU* 
     	for( int i = 0; i < nnz; i++ )
         	ans[M1_col[i]] += conj(M1_val[i])*vec2[M1_row[i]];
 	}
+	else if(flag_CompType == "minus")
+    {
+        for( int i = 0; i < m; i++ )
+            ans[i] = 0.0;
+    
+        for( int i = 0; i < nnz; i++ )
+            ans[M1_row[i]] -= M1_val[i]*vec2[M1_col[i]];
+    }
+    else
+		printf("mtx_prod flag_CompType error!\n");
+}
+
+void mtx_prod(cmpxCPU* ans, int* M1_row, int* M1_col, cmpxCPU* M1_val, cmpxCPU* vec2, int nnz, int m, string flag_CompType1, string flag_CompType2)
+{
+    // Do the Matrix-vector production with sparse format matrix M1
+	if (flag_CompType1 == "minus" && flag_CompType2 == "Conjugate Transpose")
+	{
+    	for( int i = 0; i < m; i++ )
+        	ans[i] = 0.0;
+    
+    	for( int i = 0; i < nnz; i++ )
+        	ans[M1_col[i]] -= conj(M1_val[i])*vec2[M1_row[i]];
+	}
 	else
 		printf("mtx_prod flag_CompType error!\n");
 }

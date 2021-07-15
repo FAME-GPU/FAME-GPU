@@ -30,8 +30,7 @@ int FAME_Print(POPT Popt, char* data)
 
     else if (strcmp(data, "Permittivity (inner material)") == 0)
     {
-        printf(" %d\n", Popt.material.num_ele_permitt_in);
-        for(i = 0; i < Popt.material.num_ele_permitt_in; i++)
+        for(i = 0; i < 9; i++)
         {
             printf("% lf ", Popt.material.ele_permitt_in[i]);
             if((i + 1) % 6 == 0)
@@ -47,8 +46,7 @@ int FAME_Print(POPT Popt, char* data)
 
     else if (strcmp(data, "Permeability (inner material)") == 0)
     {
-        printf(" %d\n", Popt.material.num_mag_permeab_in);
-        for(i = 0; i < Popt.material.num_mag_permeab_in; i++)
+        for(i = 0; i < 9; i++)
         {
             printf("% lf ", Popt.material.mag_permeab_in[i]);
             if((i + 1) % 6 == 0)
@@ -64,8 +62,7 @@ int FAME_Print(POPT Popt, char* data)
 
     else if (strcmp(data, "Reciprocity (inner material) (must given when biisotropic)") == 0)
     {
-        printf(" %d\n", Popt.material.num_reciprocity_in);
-        for(i = 0; i < Popt.material.num_reciprocity_in; i++)
+        for(i = 0; i < 9; i++)
         {
             printf("% lf ", Popt.material.reciprocity_in[i]);
             if((i + 1) % 6 == 0)
@@ -81,8 +78,7 @@ int FAME_Print(POPT Popt, char* data)
 
     else if (strcmp(data, "Chirality (inner material) (must given when biisotropic)") == 0)
     {
-        printf(" %d\n", Popt.material.num_chirality_in);
-        for(i = 0; i < Popt.material.num_chirality_in; i++)
+        for(i = 0; i < 9; i++)
         {
             printf("% lf ", Popt.material.chirality_in[i]);
             if((i + 1) % 6 == 0)
@@ -458,8 +454,7 @@ int FAME_Print(PAR Par, char* data)
 
     else if (strcmp(data, "Permittivity (inner material)") == 0)
     {
-        //printf(" %d\n", Par.material.num_ele_permitt_in);
-        for(i = 0; i < Par.material.num_ele_permitt_in; i++)
+        for(i = 0; i < 9; i++)
         {
             printf("% lf ", Par.material.ele_permitt_in[i]);
             if((i + 1) % 6 == 0)
@@ -476,8 +471,7 @@ int FAME_Print(PAR Par, char* data)
 
     else if (strcmp(data, "Permeability (inner material)") == 0)
     {
-       // printf(" %d\n", Par.material.num_mag_permeab_in);
-        for(i = 0; i < Par.material.num_mag_permeab_in; i++)
+        for(i = 0; i < 9; i++)
         {
             printf("% lf ", Par.material.mag_permeab_in[i]);
             if((i + 1) % 6 == 0)
@@ -493,8 +487,7 @@ int FAME_Print(PAR Par, char* data)
 
     else if (strcmp(data, "Reciprocity (inner material) (must given when biisotropic)") == 0)
     {
-       // printf(" %d\n", Par.material.num_reciprocity_in);
-        for(i = 0; i < Par.material.num_reciprocity_in; i++)
+        for(i = 0; i < 9; i++)
         {
             printf("% lf ", Par.material.reciprocity_in[i]);
             if((i + 1) % 6 == 0)
@@ -510,8 +503,7 @@ int FAME_Print(PAR Par, char* data)
 
     else if (strcmp(data, "Chirality (inner material) (must given when biisotropic)") == 0)
     {
-        //printf(" %d\n", Par.material.num_chirality_in);
-        for(i = 0; i < Par.material.num_chirality_in; i++)
+        for(i = 0; i < 9; i++)
         {
             printf("% lf ", Par.material.chirality_in[i]);
             if((i + 1) % 6 == 0)
@@ -887,8 +879,7 @@ int FAME_Print(PAR Par, char* data, FILE* fp)
 
     else if (strcmp(data, "Permittivity (inner material)") == 0)
     {
-        fprintf(fp, " %d\n", Par.material.num_ele_permitt_in);
-        for(i = 0; i < Par.material.num_ele_permitt_in; i++)
+        for(i = 0; i < 9; i++)
         {
             fprintf(fp, "% lf ", Par.material.ele_permitt_in[i]);
             if((i + 1) % 6 == 0)

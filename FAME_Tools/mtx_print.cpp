@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
-typedef double _Complex cmpxCPU;
-// 2020-02-19
+#include "FAME_Internal_Common.h"
 
-void mtx_print(double* M, int m, int n)
+void mtx_print(realCPU* M, int m, int n)
 {
     for(int i = 0; i < m; i++)
     {

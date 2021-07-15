@@ -25,14 +25,6 @@ int FAME_Print_Profile(PROFILE Profile)
 	printf("%12.2f",   Profile.ls_time[Profile.idx]);
 	printf("%12d",     Profile.es_iter[Profile.idx]);
 	printf("%12.2f\n", Profile.es_time[Profile.idx]);
-    printf("               ");
- /* printf("qr_time     qrs_time     fft_time     ifft_time     eigen_time\n");
-	printf("               ");  
- printf("%12.2f", Profile.qr_time[Profile.idx]);
- printf("%12.2f", Profile.qrs_time[Profile.idx]);
- printf("%12.2f", Profile.fft_time[Profile.idx]);
- printf("%12.2f", Profile.ifft_time[Profile.idx]);
- printf("%12.2f\n", Profile.eigen_time[Profile.idx]);*/
 	printf("= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
   	return 0;
 }

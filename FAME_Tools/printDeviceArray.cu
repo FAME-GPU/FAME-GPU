@@ -17,8 +17,8 @@ void printDeviceArray(realGPU *d_Array, int n, const char *filename)
 
     printf("Write array into %s.\n", filename);
 
-    realGPU *h_Array = (realGPU*) malloc( n * sizeof(realGPU) );
-    cudaErr = cudaMemcpy(h_Array, d_Array, n*sizeof(realGPU), cudaMemcpyDeviceToHost);
+    realCPU *h_Array = (realCPU*) malloc( n * sizeof(realCPU) );
+    cudaErr = cudaMemcpy(h_Array, d_Array, n*sizeof(realCPU), cudaMemcpyDeviceToHost);
 	assert( cudaErr == cudaSuccess );
 
 	for(int i = 0 ; i < n; i++)
@@ -68,21 +68,3 @@ void printDeviceArray(int *d_Array, int n, const char *filename)
     free(h_Array);
 }
 
-void printDeviceArray(cmpxCPU *d_Array, int n, const char *filename)
-{
-	cudaError_t cudaErr;
-    FILE *fp = fopen(filename, "w");
-    assert( fp != NULL );
-
-    printf("Write array into %s.\n", filename);
-
-    int *h_Array = (int*) malloc( n * sizeof(int) );
-    cudaErr = cudaMemcpy(h_Array, d_Array, n*sizeof(int), cudaMemcpyDeviceToHost);
-	assert( cudaErr == cudaSuccess );	
-
-    for(int i = 0; i < n; i++)
-        fprintf(fp, "%d\n", h_Array[i]);
-
-    fclose(fp);
-    free(h_Array);
-}

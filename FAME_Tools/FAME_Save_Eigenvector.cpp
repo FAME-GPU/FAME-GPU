@@ -36,10 +36,11 @@ int FAME_Save_Eigenvector(cmpxCPU* Ele_field_mtx, int Nwant, int N3, int idx)
 		strcat(filename, ".txt");
 		fp = fopen(filename, "w");
 
-		fprintf(fp, "Ele_field_mtx{%d}(:, %d) = [\n", idx + 1, i + 1);
 		for(int j = 0; j < N3; j++)
-			fprintf(fp, "(% e) + (% e * 1i)\n", creal(Ele_field_mtx[i * N3 + j]), cimag(Ele_field_mtx[i * N3 + j]));
-		fprintf(fp, "];\n", idx + 1, i + 1);
+		{
+			fprintf(fp, "%.16f  %.16f \n", creal(Ele_field_mtx[i * N3 + j]), cimag(Ele_field_mtx[i * N3 + j]));
+		}
+		fprintf(fp, "\n", idx + 1, i + 1);
 		fclose(fp);
 	}
 
