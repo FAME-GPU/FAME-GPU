@@ -6,19 +6,19 @@ int FAME_Matrix_Vector_Production_Qr(
 	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles, 
 	FFT_BUFFER       fft_buffer, 
+	int Nx, int Ny, int Nz, int Nd,
 	cmpxGPU* D_k, 
-	cmpxGPU* Pi_Qr,
-	int Nx, int Ny, int Nz, int Nd, PROFILE* Profile);
+	cmpxGPU* Pi_Qr);
 
 int FAME_Matrix_Vector_Production_Qr(
 	cmpxGPU* vec_y,
 	cmpxGPU* vec_x,
 	CULIB_HANDLES    cuHandles, 
 	FFT_BUFFER       fft_buffer, 
-	cmpxGPU* D_kx, 
-	cmpxGPU* D_ky, 
+	int Nx, int Ny, int Nz, int Nd,
+	cmpxGPU* D_kx,
+	cmpxGPU* D_ky,
 	cmpxGPU* D_kz, 
-	cmpxGPU* Pi_Qr,
-	int Nx, int Ny, int Nz, int Nd, PROFILE* Profile);
+	cmpxGPU* Pi_Qr);
 
 #endif

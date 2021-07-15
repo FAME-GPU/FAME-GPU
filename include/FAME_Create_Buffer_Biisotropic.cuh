@@ -1,5 +1,5 @@
-#ifndef _FAME_CREATE_BUFFER_Biisotropic_H_
-#define	_FAME_CREATE_BUFFER_Biisotropic_H_
+#ifndef _FAME_CREATE_BUFFER_BIISOTROPIC_H_
+#define	_FAME_CREATE_BUFFER_BIISOTROPIC_H_
 
 int FAME_Create_Buffer_Biisotropic(	CULIB_HANDLES*  cuHandles, 
     FFT_BUFFER* 	fft_buffer,

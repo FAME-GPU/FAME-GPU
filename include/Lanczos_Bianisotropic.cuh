@@ -1,7 +1,7 @@
-#ifndef _LANCZOS_BIISOTROPIC_H_
-#define _LANCZOS_BIISOTROPIC_H_
+#ifndef _LANCZOS_BIANISOTROPIC_H_
+#define _LANCZOS_BIANISOTROPIC_H_
 
-int Lanczos_Biisotropic
+int Lanczos_Bianisotropic
 ( 	CULIB_HANDLES cuHandles, 
     FFT_BUFFER    fft_buffer,
     LANCZOS_BUFFER lBuffer,
@@ -17,6 +17,18 @@ int Lanczos_Biisotropic
         cmpxGPU* Pi_Pr,
         cmpxGPU* Pi_Qrs,
         cmpxGPU* Pi_Prs,
+        cmpxGPU* Pi_Qr_110,
+        cmpxGPU* Pi_Pr_110,
+        cmpxGPU* Pi_Qrs_110,
+        cmpxGPU* Pi_Prs_110,
+        cmpxGPU* Pi_Qr_101,
+        cmpxGPU* Pi_Pr_101,
+        cmpxGPU* Pi_Qrs_101,
+        cmpxGPU* Pi_Prs_101,
+        cmpxGPU* Pi_Qr_011,
+        cmpxGPU* Pi_Pr_011,
+        cmpxGPU* Pi_Qrs_011,
+        cmpxGPU* Pi_Prs_011,
         cmpxGPU* D_k,
         cmpxGPU* D_ks,
 		cmpxGPU* D_kx,

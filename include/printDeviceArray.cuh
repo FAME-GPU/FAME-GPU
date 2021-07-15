@@ -7,5 +7,4 @@ void printDeviceArray(cmpxGPU *d_Array, int n, const char *filename);
 
 void printDeviceArray(int *d_Array, int n, const char *filename);
 
-void printDeviceArray(cmpxCPU *d_Array, int n, const char *filename);
 #endif

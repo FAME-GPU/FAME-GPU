@@ -23,15 +23,16 @@ using namespace std;
 typedef float realCPU;
 typedef float _Complex cmpxCPU;
 #define lapack_complex_float cmpxCPU
-#define PC_lapacke_pteqr LAPACKE_cpteqr
-#define PC_lapacke_stegr LAPACKE_cstegr
+#define FAME_lapacke_pteqr LAPACKE_cpteqr
+#define FAME_lapacke_stegr LAPACKE_cstegr
+
 #else
 
 typedef double realCPU;
 typedef double _Complex cmpxCPU;
 #define lapack_complex_double cmpxCPU
-#define PC_lapacke_pteqr LAPACKE_zpteqr
-#define PC_lapacke_stegr LAPACKE_zstegr
+#define FAME_lapacke_pteqr LAPACKE_zpteqr
+#define FAME_lapacke_stegr LAPACKE_zstegr
 #endif // end of USE_SINGLE
 
 typedef struct{
@@ -106,9 +107,9 @@ typedef struct{
     char    data_name[50];
 	char    material_type[50];
 	int*    Binout;
-	int*	GInOut;
-	int*    GInOut_index;
-	int*    GInOut_index_length;
+	int*    BInOut;
+	int*    BInOut_index;
+	int*    BInOut_index_length;
     int     material_num;
     int*    sphere_num;
     realCPU* sphere_centers;
@@ -117,10 +118,6 @@ typedef struct{
 	realCPU* cylinder_top_centers;
 	realCPU* cylinder_bot_centers;
 	realCPU* cylinder_radius;
-	int     num_ele_permitt_in;
-	int     num_reciprocity_in;
-	int		num_mag_permeab_in;
-	int		num_chirality_in;
 	realCPU* ele_permitt_in;
 	realCPU  ele_permitt_out;
 	realCPU* mag_permeab_in;
@@ -165,6 +162,18 @@ typedef struct{
 	cmpxCPU* Pi_Pr;
 	cmpxCPU* Pi_Qrs;
 	cmpxCPU* Pi_Prs;
+	cmpxCPU* Pi_Qr_110;
+	cmpxCPU* Pi_Pr_110;
+	cmpxCPU* Pi_Qrs_110;
+	cmpxCPU* Pi_Prs_110;
+	cmpxCPU* Pi_Qr_101;
+	cmpxCPU* Pi_Pr_101;
+	cmpxCPU* Pi_Qrs_101;
+	cmpxCPU* Pi_Prs_101;
+	cmpxCPU* Pi_Qr_011;
+	cmpxCPU* Pi_Pr_011;
+	cmpxCPU* Pi_Qrs_011;
+	cmpxCPU* Pi_Prs_011;
 	
 } LAMBDAS;
 
@@ -181,6 +190,15 @@ typedef struct{
 	int*   C_r;
 	int*   C_c;
 	cmpxCPU*  C_v;
+	int*   C_110_r;
+	int*   C_110_c;
+	cmpxCPU*  C_110_v;
+	int*   C_101_r;
+	int*   C_101_c;
+	cmpxCPU*  C_101_v;
+	int*   C_011_r;
+	int*   C_011_c;
+	cmpxCPU*  C_011_v;
 } MTX_C;
 
 typedef struct{

@@ -1,7 +1,7 @@
-#ifndef _LANCZOS_ISOTROPIC_H_
-#define _LANCZOS_ISOTROPIC_H_
+#ifndef _LANCZOS_ANISOTROPIC_H_
+#define _LANCZOS_ANISOTROPIC_H_
 
-int Lanczos_Isotropic( 
+int Lanczos_Anisotropic( 
     realCPU*          Freq_array, 
     cmpxGPU* ev,
     CULIB_HANDLES    cuHandles,
